@@ -11,11 +11,7 @@ namespace sup\craftgeo\models;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\App;
 use sup\craftgeo\Geo;
-use sup\craftgeo\services\GeoService;
-
-use function Embed\isEmpty;
 
 class StaticMap extends Model
 {
@@ -82,31 +78,22 @@ class StaticMap extends Model
             return null;
         }
 
-        $params = [
-            'key'     => $apiKey,
-            'size'    => $this->width . 'x' . $this->height,
-            'zoom'    => $this->zoom,
-            'scale'   => $scale,
-            'format'  => $this->format,
-            'maptype' => $this->mapType ?? 'roadmap',
-            'colorScheme' => $this->colorScheme ?? null
-        ];
+        $params = array_filter([
+            'center'      => $center,
+            'size'        => $this->width . 'x' . $this->height,
+            'zoom'        => $this->zoom,
+            'scale'       => $scale,
+            'format'      => $this->format,
+            'maptype'     => $this->mapType ?: 'roadmap',
+            'map_id'      => $this->mapId ?: null,
+            'colorScheme' => $this->colorScheme ?: null,
+            'key'         => $apiKey,
+        ], fn($v) => $v !== null && $v !== '');
 
-        if(!isEmpty($this->center)){
-            $params['center'] =  $this->center;
-        }
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
-        if(!isEmpty($this->mapId)){
-            $params['mapId'] = $this->mapId;
-        };
-
-        // Build markers
-        $markerParams = $this->buildMarkerParams($center);
-
-        $query = http_build_query($params);
-
-        foreach ($markerParams as $marker) {
-            $query .= '&markers=' . urlencode($marker);
+        foreach ($this->buildMarkerParams($center) as $marker) {
+            $query .= '&markers=' . rawurlencode($marker);
         }
 
         return 'https://maps.googleapis.com/maps/api/staticmap?' . $query;
@@ -126,7 +113,7 @@ class StaticMap extends Model
         }
 
         if (is_string($center) && !empty(trim($center))) {
-            return urlencode(trim($center));
+            return trim($center);
         }
 
         if ($this->centerFallback) {
@@ -154,19 +141,19 @@ class StaticMap extends Model
             }
 
             if (is_string($location) && !empty(trim($location))) {
-                return urlencode(trim($location));
+                return trim($location);
             }
         }
 
         return null;
     }
 
-    private function buildMarkerParams(string $center): array
+    private function buildMarkerParams(?string $center): array
     {
         $markers = $this->markers;
 
         if (empty($markers)) {
-            return ["color:red|{$center}"];
+            return $center ? ["color:red|{$center}"] : [];
         }
 
         $params = [];
@@ -192,8 +179,8 @@ class StaticMap extends Model
                     $parts[] = "{$lat},{$lng}";
                 }
             } elseif (is_string($location) && !empty($location)) {
-                $parts[] = urlencode($location);
-            } else {
+                $parts[] = $location;
+            } elseif ($center) {
                 $parts[] = $center;
             }
 

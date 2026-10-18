@@ -14,41 +14,41 @@ namespace sup\craftgeo;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
-use craft\elements\db\ElementQuery;
-use craft\events\DefineBehaviorsEvent;
 use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\UrlHelper;
 use craft\services\Fields;
-use craft\feedme\services\Fields as FeedMeFields;
 use sup\craftgeo\fields\GeoField;
 use sup\craftgeo\models\Settings;
 use yii\base\Event;
-use craft\web\UrlManager;
 use sup\craftgeo\integrations\feedme\fields\GeoFeedMeField as FieldsGeoFeedMeField;
 use craft\events\RegisterGqlTypesEvent;
 use craft\services\Gql;
 use craft\web\twig\variables\CraftVariable;
-use sup\craftgeo\behaviors\GeoFieldBehavior;
 use sup\craftgeo\integrations\graphql\types\GeoCoordsInput;
 use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
 use sup\craftgeo\integrations\graphql\types\GeoType;
-use sup\craftgeo\migrations\Install;
+use sup\craftgeo\services\GeoService;
 use sup\craftgeo\services\MapService;
 use sup\craftgeo\services\ZoneService;
-use sup\craftgeo\variables\GeoVariable as VariablesGeoVariable;
-use sup\craftgeo\web\GeoVariable;
+use sup\craftgeo\variables\GeoVariable;
+
+/**
+ * @property-read GeoService $geo
+ * @property-read MapService $maps
+ * @property-read ZoneService $zones
+ */
 
 class Geo extends BasePlugin
 {
-    public string $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.1';
     public bool $hasCpSettings = true;
 
     public static function config(): array
     {
         return [
             'components' => [
-                // Define component configs here...
+                'geo' => GeoService::class,
+                'maps' => MapService::class,
+                'zones' => ZoneService::class,
             ],
         ];
     }
@@ -57,19 +57,7 @@ class Geo extends BasePlugin
     {
         parent::init();
 
-        //  Set Components
-        $this->setComponents([
-            'maps' => MapService::class,
-            'zones'=> ZoneService::class
-        ]); 
-
         $this->attachEventHandlers();
-
-        // Any code that creates an element query or loads Twig should be deferred until
-        // after Craft is fully initialized, to avoid conflicts with other plugins/modules
-        Craft::$app->onInit(function() {
-            // ...
-        });
     }
 
     public function createInstallMigration(): ?\craft\db\Migration
@@ -87,16 +75,12 @@ class Geo extends BasePlugin
         return Craft::createObject(Settings::class);
     }
 
-    public function getSettings(): Settings
+    /**
+     * @return Settings
+     */
+    public function getSettings(): ?Model
     {
-        $settings = parent::getSettings();
-        $config = Craft::$app->config->getConfigFromFile('geo');
-
-        if (!empty($config)) {
-            Craft::configure($settings, $config);
-        }
-
-        return $settings;
+        return parent::getSettings();
     }
 
 
@@ -109,10 +93,6 @@ class Geo extends BasePlugin
         ]);
     }
 
-
-   public function onRegisterCPUrlRules (RegisterUrlRulesEvent $event)
-    {
-    }
 
     public function onRegisterFeedMeFields (\craft\feedme\events\RegisterFeedMeFieldsEvent $event)
     {
@@ -136,8 +116,7 @@ class Geo extends BasePlugin
 	{
 		/** @var CraftVariable $variable */
 		$variable = $event->sender;
-		$variable->set('maps', GeoVariable::class);
-        $variable->set('geomaps', VariablesGeoVariable::class);
+        $variable->set('geomaps', GeoVariable::class);
 	}
 
 
@@ -149,20 +128,6 @@ class Geo extends BasePlugin
             $event->types[] = GeoField::class;
         });
 
-
-        Event::on(
-        ElementQuery::class,
-        ElementQuery::EVENT_DEFINE_BEHAVIORS,
-        function (DefineBehaviorsEvent $event) {
-            $event->behaviors['geoField'] = GeoFieldBehavior::class;
-        }
-    );
-
-		Event::on(
-			UrlManager::class,
-			UrlManager::EVENT_REGISTER_CP_URL_RULES,
-			[$this, 'onRegisterCPUrlRules']
-		);
 
 
         Event::on(

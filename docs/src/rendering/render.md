@@ -1,6 +1,6 @@
 # Static Map Images 
 
-**Gep Maps** makes it easy to render static map images in Twig. There are two approaches: via a Map field, or using the global `craft.geomaps` variable.
+**Geo Maps** makes it easy to render static map images in Twig. There are two approaches: via a Map field, or using the global `craft.geomaps` variable.
 
 ### 1. Using a Map Field
 ```twig
@@ -88,7 +88,7 @@ markers: [
 # Embed Dynamic Maps 
 
 
-**Gep Maps** makes it easy to render dynamic map images in Twig. There are two approaches: via a Map field, or using the global `craft.geomaps` variable.
+**Geo Maps** makes it easy to render dynamic map images in Twig. There are two approaches: via a Map field, or using the global `craft.geomaps` variable.
 
 
 ### 1. Using a Map Field

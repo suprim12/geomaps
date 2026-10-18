@@ -10,715 +10,163 @@
 namespace sup\craftgeo\services;
 
 use Craft;
-use sup\craftgeo\Geo;
-use yii\base\Component;
 use craft\helpers\Json;
+use sup\craftgeo\Geo;
+use Throwable;
+use yii\base\Component;
 
+/**
+ * Geocoding helpers (Google Geocoding API).
+ */
 class GeoService extends Component
 {
-	public static array $countries = [
-		'AF' => 'Afghanistan',
-		'AX' => 'Åland Islands',
-		'AL' => 'Albania',
-		'DZ' => 'Algeria',
-		'AS' => 'American Samoa',
-		'AD' => 'Andorra',
-		'AO' => 'Angola',
-		'AI' => 'Anguilla',
-		'AQ' => 'Antarctica',
-		'AG' => 'Antigua and Barbuda',
-		'AR' => 'Argentina',
-		'AM' => 'Armenia',
-		'AW' => 'Aruba',
-		'AU' => 'Australia',
-		'AT' => 'Austria',
-		'AZ' => 'Azerbaijan',
-		'BS' => 'Bahamas',
-		'BH' => 'Bahrain',
-		'BD' => 'Bangladesh',
-		'BB' => 'Barbados',
-		'BY' => 'Belarus',
-		'BE' => 'Belgium',
-		'BZ' => 'Belize',
-		'BJ' => 'Benin',
-		'BM' => 'Bermuda',
-		'BT' => 'Bhutan',
-		'BO' => 'Bolivia, Plurinational State of',
-		'BQ' => 'Bonaire, Sint Eustatius and Saba',
-		'BA' => 'Bosnia and Herzegovina',
-		'BW' => 'Botswana',
-		'BV' => 'Bouvet Island',
-		'BR' => 'Brazil',
-		'IO' => 'British Indian Ocean Territory',
-		'BN' => 'Brunei Darussalam',
-		'BG' => 'Bulgaria',
-		'BF' => 'Burkina Faso',
-		'BI' => 'Burundi',
-		'KH' => 'Cambodia',
-		'CM' => 'Cameroon',
-		'CA' => 'Canada',
-		'CV' => 'Cape Verde',
-		'KY' => 'Cayman Islands',
-		'CF' => 'Central African Republic',
-		'TD' => 'Chad',
-		'CL' => 'Chile',
-		'CN' => 'China',
-		'CX' => 'Christmas Island',
-		'CC' => 'Cocos (Keeling) Islands',
-		'CO' => 'Colombia',
-		'KM' => 'Comoros',
-		'CG' => 'Congo',
-		'CD' => 'Congo, the Democratic Republic of the',
-		'CK' => 'Cook Islands',
-		'CR' => 'Costa Rica',
-		'CI' => 'Côte d\'Ivoire',
-		'HR' => 'Croatia',
-		'CU' => 'Cuba',
-		'CW' => 'Curaçao',
-		'CY' => 'Cyprus',
-		'CZ' => 'Czech Republic',
-		'DK' => 'Denmark',
-		'DJ' => 'Djibouti',
-		'DM' => 'Dominica',
-		'DO' => 'Dominican Republic',
-		'EC' => 'Ecuador',
-		'EG' => 'Egypt',
-		'SV' => 'El Salvador',
-		'GQ' => 'Equatorial Guinea',
-		'ER' => 'Eritrea',
-		'EE' => 'Estonia',
-		'ET' => 'Ethiopia',
-		'FK' => 'Falkland Islands (Malvinas)',
-		'FO' => 'Faroe Islands',
-		'FJ' => 'Fiji',
-		'FI' => 'Finland',
-		'FR' => 'France',
-		'GF' => 'French Guiana',
-		'PF' => 'French Polynesia',
-		'TF' => 'French Southern Territories',
-		'GA' => 'Gabon',
-		'GM' => 'Gambia',
-		'GE' => 'Georgia',
-		'DE' => 'Germany',
-		'GH' => 'Ghana',
-		'GI' => 'Gibraltar',
-		'GR' => 'Greece',
-		'GL' => 'Greenland',
-		'GD' => 'Grenada',
-		'GP' => 'Guadeloupe',
-		'GU' => 'Guam',
-		'GT' => 'Guatemala',
-		'GG' => 'Guernsey',
-		'GN' => 'Guinea',
-		'GW' => 'Guinea-Bissau',
-		'GY' => 'Guyana',
-		'HT' => 'Haiti',
-		'HM' => 'Heard Island and McDonald Islands',
-		'VA' => 'Holy See (Vatican City State)',
-		'HN' => 'Honduras',
-		'HK' => 'Hong Kong',
-		'HU' => 'Hungary',
-		'IS' => 'Iceland',
-		'IN' => 'India',
-		'ID' => 'Indonesia',
-		'IR' => 'Iran, Islamic Republic of',
-		'IQ' => 'Iraq',
-		'IE' => 'Ireland',
-		'IM' => 'Isle of Man',
-		'IL' => 'Israel',
-		'IT' => 'Italy',
-		'JM' => 'Jamaica',
-		'JP' => 'Japan',
-		'JE' => 'Jersey',
-		'JO' => 'Jordan',
-		'KZ' => 'Kazakhstan',
-		'KE' => 'Kenya',
-		'KI' => 'Kiribati',
-		'KP' => 'Korea, Democratic People\'s Republic of',
-		'KR' => 'Korea, Republic of',
-		'KW' => 'Kuwait',
-		'KG' => 'Kyrgyzstan',
-		'LA' => 'Lao People\'s Democratic Republic',
-		'LV' => 'Latvia',
-		'LB' => 'Lebanon',
-		'LS' => 'Lesotho',
-		'LR' => 'Liberia',
-		'LY' => 'Libya',
-		'LI' => 'Liechtenstein',
-		'LT' => 'Lithuania',
-		'LU' => 'Luxembourg',
-		'MO' => 'Macao',
-		'MK' => 'Macedonia, the Former Yugoslav Republic of',
-		'MG' => 'Madagascar',
-		'MW' => 'Malawi',
-		'MY' => 'Malaysia',
-		'MV' => 'Maldives',
-		'ML' => 'Mali',
-		'MT' => 'Malta',
-		'MH' => 'Marshall Islands',
-		'MQ' => 'Martinique',
-		'MR' => 'Mauritania',
-		'MU' => 'Mauritius',
-		'YT' => 'Mayotte',
-		'MX' => 'Mexico',
-		'FM' => 'Micronesia, Federated States of',
-		'MD' => 'Moldova, Republic of',
-		'MC' => 'Monaco',
-		'MN' => 'Mongolia',
-		'ME' => 'Montenegro',
-		'MS' => 'Montserrat',
-		'MA' => 'Morocco',
-		'MZ' => 'Mozambique',
-		'MM' => 'Myanmar',
-		'NA' => 'Namibia',
-		'NR' => 'Nauru',
-		'NP' => 'Nepal',
-		'NL' => 'Netherlands',
-		'NC' => 'New Caledonia',
-		'NZ' => 'New Zealand',
-		'NI' => 'Nicaragua',
-		'NE' => 'Niger',
-		'NG' => 'Nigeria',
-		'NU' => 'Niue',
-		'NF' => 'Norfolk Island',
-		'MP' => 'Northern Mariana Islands',
-		'NO' => 'Norway',
-		'OM' => 'Oman',
-		'PK' => 'Pakistan',
-		'PW' => 'Palau',
-		'PS' => 'Palestine, State of',
-		'PA' => 'Panama',
-		'PG' => 'Papua New Guinea',
-		'PY' => 'Paraguay',
-		'PE' => 'Peru',
-		'PH' => 'Philippines',
-		'PN' => 'Pitcairn',
-		'PL' => 'Poland',
-		'PT' => 'Portugal',
-		'PR' => 'Puerto Rico',
-		'QA' => 'Qatar',
-		'RE' => 'Réunion',
-		'RO' => 'Romania',
-		'RU' => 'Russian Federation',
-		'RW' => 'Rwanda',
-		'BL' => 'Saint Barthélemy',
-		'SH' => 'Saint Helena, Ascension and Tristan da Cunha',
-		'KN' => 'Saint Kitts and Nevis',
-		'LC' => 'Saint Lucia',
-		'MF' => 'Saint Martin (French part)',
-		'PM' => 'Saint Pierre and Miquelon',
-		'VC' => 'Saint Vincent and the Grenadines',
-		'WS' => 'Samoa',
-		'SM' => 'San Marino',
-		'ST' => 'Sao Tome and Principe',
-		'SA' => 'Saudi Arabia',
-		'SN' => 'Senegal',
-		'RS' => 'Serbia',
-		'SC' => 'Seychelles',
-		'SL' => 'Sierra Leone',
-		'SG' => 'Singapore',
-		'SX' => 'Sint Maarten (Dutch part)',
-		'SK' => 'Slovakia',
-		'SI' => 'Slovenia',
-		'SB' => 'Solomon Islands',
-		'SO' => 'Somalia',
-		'ZA' => 'South Africa',
-		'GS' => 'South Georgia and the South Sandwich Islands',
-		'SS' => 'South Sudan',
-		'ES' => 'Spain',
-		'LK' => 'Sri Lanka',
-		'SD' => 'Sudan',
-		'SR' => 'Suriname',
-		'SJ' => 'Svalbard and Jan Mayen',
-		'SZ' => 'Swaziland',
-		'SE' => 'Sweden',
-		'CH' => 'Switzerland',
-		'SY' => 'Syrian Arab Republic',
-		'TW' => 'Taiwan, Province of China',
-		'TJ' => 'Tajikistan',
-		'TZ' => 'Tanzania, United Republic of',
-		'TH' => 'Thailand',
-		'TL' => 'Timor-Leste',
-		'TG' => 'Togo',
-		'TK' => 'Tokelau',
-		'TO' => 'Tonga',
-		'TT' => 'Trinidad and Tobago',
-		'TN' => 'Tunisia',
-		'TR' => 'Turkey',
-		'TM' => 'Turkmenistan',
-		'TC' => 'Turks and Caicos Islands',
-		'TV' => 'Tuvalu',
-		'UG' => 'Uganda',
-		'UA' => 'Ukraine',
-		'AE' => 'United Arab Emirates',
-		'GB' => 'United Kingdom',
-		'US' => 'United States',
-		'UM' => 'United States Minor Outlying Islands',
-		'UY' => 'Uruguay',
-		'UZ' => 'Uzbekistan',
-		'VU' => 'Vanuatu',
-		'VE' => 'Venezuela, Bolivarian Republic of',
-		'VN' => 'Viet Nam',
-		'VG' => 'Virgin Islands, British',
-		'VI' => 'Virgin Islands, U.S.',
-		'WF' => 'Wallis and Futuna',
-		'EH' => 'Western Sahara',
-		'YE' => 'Yemen',
-		'ZM' => 'Zambia',
-		'ZW' => 'Zimbabwe',
-	];
+    public const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 
-	public static array $countriesIso3 = [
-		'AD' => 'AND',
-		'AE' => 'ARE',
-		'AF' => 'AFG',
-		'AG' => 'ATG',
-		'AI' => 'AIA',
-		'AL' => 'ALB',
-		'AM' => 'ARM',
-		'AO' => 'AGO',
-		'AQ' => 'ATA',
-		'AR' => 'ARG',
-		'AS' => 'ASM',
-		'AT' => 'AUT',
-		'AU' => 'AUS',
-		'AW' => 'ABW',
-		'AX' => 'ALA',
-		'AZ' => 'AZE',
-		'BA' => 'BIH',
-		'BB' => 'BRB',
-		'BD' => 'BGD',
-		'BE' => 'BEL',
-		'BF' => 'BFA',
-		'BG' => 'BGR',
-		'BH' => 'BHR',
-		'BI' => 'BDI',
-		'BJ' => 'BEN',
-		'BL' => 'BLM',
-		'BM' => 'BMU',
-		'BN' => 'BRN',
-		'BO' => 'BOL',
-		'BQ' => 'BES',
-		'BR' => 'BRA',
-		'BS' => 'BHS',
-		'BT' => 'BTN',
-		'BV' => 'BVT',
-		'BW' => 'BWA',
-		'BY' => 'BLR',
-		'BZ' => 'BLZ',
-		'CA' => 'CAN',
-		'CC' => 'CCK',
-		'CD' => 'COD',
-		'CF' => 'CAF',
-		'CG' => 'COG',
-		'CH' => 'CHE',
-		'CI' => 'CIV',
-		'CK' => 'COK',
-		'CL' => 'CHL',
-		'CM' => 'CMR',
-		'CN' => 'CHN',
-		'CO' => 'COL',
-		'CR' => 'CRI',
-		'CU' => 'CUB',
-		'CV' => 'CPV',
-		'CW' => 'CUW',
-		'CX' => 'CXR',
-		'CY' => 'CYP',
-		'CZ' => 'CZE',
-		'DE' => 'DEU',
-		'DJ' => 'DJI',
-		'DK' => 'DNK',
-		'DM' => 'DMA',
-		'DO' => 'DOM',
-		'DZ' => 'DZA',
-		'EC' => 'ECU',
-		'EE' => 'EST',
-		'EG' => 'EGY',
-		'EH' => 'ESH',
-		'ER' => 'ERI',
-		'ES' => 'ESP',
-		'ET' => 'ETH',
-		'FI' => 'FIN',
-		'FJ' => 'FJI',
-		'FK' => 'FLK',
-		'FM' => 'FSM',
-		'FO' => 'FRO',
-		'FR' => 'FRA',
-		'GA' => 'GAB',
-		'GB' => 'GBR',
-		'GD' => 'GRD',
-		'GE' => 'GEO',
-		'GF' => 'GUF',
-		'GG' => 'GGY',
-		'GH' => 'GHA',
-		'GI' => 'GIB',
-		'GL' => 'GRL',
-		'GM' => 'GMB',
-		'GN' => 'GIN',
-		'GP' => 'GLP',
-		'GQ' => 'GNQ',
-		'GR' => 'GRC',
-		'GS' => 'SGS',
-		'GT' => 'GTM',
-		'GU' => 'GUM',
-		'GW' => 'GNB',
-		'GY' => 'GUY',
-		'HK' => 'HKG',
-		'HM' => 'HMD',
-		'HN' => 'HND',
-		'HR' => 'HRV',
-		'HT' => 'HTI',
-		'HU' => 'HUN',
-		'ID' => 'IDN',
-		'IE' => 'IRL',
-		'IL' => 'ISR',
-		'IM' => 'IMN',
-		'IN' => 'IND',
-		'IO' => 'IOT',
-		'IQ' => 'IRQ',
-		'IR' => 'IRN',
-		'IS' => 'ISL',
-		'IT' => 'ITA',
-		'JE' => 'JEY',
-		'JM' => 'JAM',
-		'JO' => 'JOR',
-		'JP' => 'JPN',
-		'KE' => 'KEN',
-		'KG' => 'KGZ',
-		'KH' => 'KHM',
-		'KI' => 'KIR',
-		'KM' => 'COM',
-		'KN' => 'KNA',
-		'KP' => 'PRK',
-		'KR' => 'KOR',
-		'KW' => 'KWT',
-		'KY' => 'CYM',
-		'KZ' => 'KAZ',
-		'LA' => 'LAO',
-		'LB' => 'LBN',
-		'LC' => 'LCA',
-		'LI' => 'LIE',
-		'LK' => 'LKA',
-		'LR' => 'LBR',
-		'LS' => 'LSO',
-		'LT' => 'LTU',
-		'LU' => 'LUX',
-		'LV' => 'LVA',
-		'LY' => 'LBY',
-		'MA' => 'MAR',
-		'MC' => 'MCO',
-		'MD' => 'MDA',
-		'ME' => 'MNE',
-		'MF' => 'MAF',
-		'MG' => 'MDG',
-		'MH' => 'MHL',
-		'MK' => 'MKD',
-		'ML' => 'MLI',
-		'MM' => 'MMR',
-		'MN' => 'MNG',
-		'MO' => 'MAC',
-		'MP' => 'MNP',
-		'MQ' => 'MTQ',
-		'MR' => 'MRT',
-		'MS' => 'MSR',
-		'MT' => 'MLT',
-		'MU' => 'MUS',
-		'MV' => 'MDV',
-		'MW' => 'MWI',
-		'MX' => 'MEX',
-		'MY' => 'MYS',
-		'MZ' => 'MOZ',
-		'NA' => 'NAM',
-		'NC' => 'NCL',
-		'NE' => 'NER',
-		'NF' => 'NFK',
-		'NG' => 'NGA',
-		'NI' => 'NIC',
-		'NL' => 'NLD',
-		'NO' => 'NOR',
-		'NP' => 'NPL',
-		'NR' => 'NRU',
-		'NU' => 'NIU',
-		'NZ' => 'NZL',
-		'OM' => 'OMN',
-		'PA' => 'PAN',
-		'PE' => 'PER',
-		'PF' => 'PYF',
-		'PG' => 'PNG',
-		'PH' => 'PHL',
-		'PK' => 'PAK',
-		'PL' => 'POL',
-		'PM' => 'SPM',
-		'PN' => 'PCN',
-		'PR' => 'PRI',
-		'PS' => 'PSE',
-		'PT' => 'PRT',
-		'PW' => 'PLW',
-		'PY' => 'PRY',
-		'QA' => 'QAT',
-		'RE' => 'REU',
-		'RO' => 'ROU',
-		'RS' => 'SRB',
-		'RU' => 'RUS',
-		'RW' => 'RWA',
-		'SA' => 'SAU',
-		'SB' => 'SLB',
-		'SC' => 'SYC',
-		'SD' => 'SDN',
-		'SE' => 'SWE',
-		'SG' => 'SGP',
-		'SH' => 'SHN',
-		'SI' => 'SVN',
-		'SJ' => 'SJM',
-		'SK' => 'SVK',
-		'SL' => 'SLE',
-		'SM' => 'SMR',
-		'SN' => 'SEN',
-		'SO' => 'SOM',
-		'SR' => 'SUR',
-		'SS' => 'SSD',
-		'ST' => 'STP',
-		'SV' => 'SLV',
-		'SX' => 'SXM',
-		'SY' => 'SYR',
-		'SZ' => 'SWZ',
-		'TC' => 'TCA',
-		'TD' => 'TCD',
-		'TF' => 'ATF',
-		'TG' => 'TGO',
-		'TH' => 'THA',
-		'TJ' => 'TJK',
-		'TK' => 'TKL',
-		'TL' => 'TLS',
-		'TM' => 'TKM',
-		'TN' => 'TUN',
-		'TO' => 'TON',
-		'TR' => 'TUR',
-		'TT' => 'TTO',
-		'TV' => 'TUV',
-		'TW' => 'TWN',
-		'TZ' => 'TZA',
-		'UA' => 'UKR',
-		'UG' => 'UGA',
-		'UM' => 'UMI',
-		'US' => 'USA',
-		'UY' => 'URY',
-		'UZ' => 'UZB',
-		'VA' => 'VAT',
-		'VC' => 'VCT',
-		'VE' => 'VEN',
-		'VG' => 'VGB',
-		'VI' => 'VIR',
-		'VN' => 'VNM',
-		'VU' => 'VUT',
-		'WF' => 'WLF',
-		'WS' => 'WSM',
-		'XK' => 'XKX',
-		'YE' => 'YEM',
-		'YT' => 'MYT',
-		'ZA' => 'ZAF',
-		'ZM' => 'ZMB',
-		'ZW' => 'ZWE',
-	];
+    /** Results are cached so repeated searches don't burn API quota. */
+    public const CACHE_DURATION = 60 * 60 * 24 * 30;
 
-	public static function resolveLocation(mixed $location, ?string $country = null): ?array
+    /**
+     * Returns `['lat' => float, 'lng' => float]` for a coordinate array or an address string.
+     */
+    public static function resolveLocation(mixed $location, ?string $country = null): ?array
     {
-        // Already a coordinate pair
         if (is_array($location)) {
-            $lat = $location['lat'] ?? null;
-            $lng = $location['lng'] ?? null;
+            $lat = $location['lat'] ?? $location[0] ?? null;
+            $lng = $location['lng'] ?? $location[1] ?? null;
 
             if (is_numeric($lat) && is_numeric($lng)) {
-                return ['lat' => (float) $lat, 'lng' => (float) $lng];
+                return ['lat' => (float)$lat, 'lng' => (float)$lng];
             }
+
+            return null;
         }
 
-        // Address string — geocode it
-        if (is_string($location) && !empty($location)) {
-            return static::geocodeAddress($location, $country);
+        if (is_string($location) && trim($location) !== '') {
+            return static::geocode(trim($location), $country);
         }
 
         return null;
     }
 
     /**
-     * Geocode an address string using Google or fallback to Nominatim.
+     * Geocodes an address. Returns null (and logs why) when no key is set or nothing is found.
      */
-    private static function geocodeAddress(string $address, ?string $country = null): ?array
+    public static function geocode(string $address, ?string $country = null): ?array
     {
-        $settings = Geo::getInstance()->getSettings();
-        $apiKey   = $settings->getGeoToken() ?? null;
+        $params = ['address' => $address];
 
-        return static::geocodeWithGoogle($address, $apiKey, $country);
+        $country = $country ? strtoupper(trim($country)) : null;
+        if ($country && $country !== '*' && static::isCountryCode($country)) {
+            $params['components'] = "country:$country";
+        }
 
+        $result = static::request($params);
+
+        if (!$result) {
+            return null;
+        }
+
+        $location = $result['geometry']['location'] ?? null;
+
+        if (!isset($location['lat'], $location['lng'])) {
+            return null;
+        }
+
+        return ['lat' => (float)$location['lat'], 'lng' => (float)$location['lng']];
     }
 
-	private static function geocodeWithGoogle(string $address, string $apiKey, ?string $country = null): ?array
+    /**
+     * Reverse geocodes a coordinate. Returns `['address' => string, 'parts' => array]`.
+     */
+    public static function reverseGeocode(float $lat, float $lng): ?array
     {
-        $query = http_build_query(array_filter([
-            'address'    => $address,
-            'components' => $country ? "country:{$country}" : null,
-            'key'        => $apiKey,
-        ]));
+        $result = static::request(['latlng' => "$lat,$lng"]);
 
-        $url      = "https://maps.googleapis.com/maps/api/geocode/json?{$query}";
-        $response = static::httpGet($url);
-
-        if (!$response) {
+        if (!$result) {
             return null;
         }
-
-        $data = Json::decodeIfJson($response);
-
-        if (($data['status'] ?? '') !== 'OK' || empty($data['results'][0])) {
-            Craft::warning("Google geocode failed for '{$address}': " . ($data['status'] ?? 'unknown'), 'geo');
-            return null;
-        }
-
-        $loc = $data['results'][0]['geometry']['location'];
 
         return [
-            'lat' => (float) $loc['lat'],
-            'lng' => (float) $loc['lng'],
+            'address' => $result['formatted_address'] ?? null,
+            'parts' => $result['address_components'] ?? [],
         ];
     }
 
-	private static function httpGet(string $url, array $headers = []): ?string
+    /**
+     * Normalises a distance unit to `km` or `mi`.
+     */
+    public static function normalizeUnit(?string $unit): string
     {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 5,
-            CURLOPT_HTTPHEADER     => $headers,
-        ]);
-        $response = curl_exec($ch);
-        $error    = curl_error($ch);
-        curl_close($ch);
+        return match (strtolower((string)$unit)) {
+            'mi', 'mile', 'miles' => 'mi',
+            default => 'km',
+        };
+    }
 
-        if ($error) {
-            Craft::error("GeoService HTTP error: {$error}", 'geo');
+    /**
+     * Country options keyed by ISO 3166-1 alpha-2 code, from Craft's address repository.
+     *
+     * @return array<string, string>
+     */
+    public static function countryOptions(): array
+    {
+        $countries = Craft::$app->getAddresses()->getCountryRepository()->getList(Craft::$app->language);
+        asort($countries);
+
+        return $countries;
+    }
+
+    public static function isCountryCode(string $code): bool
+    {
+        return array_key_exists(strtoupper($code), static::countryOptions());
+    }
+
+    /**
+     * Sends a Geocoding API request and returns the first result.
+     */
+    private static function request(array $params): ?array
+    {
+        $apiKey = Geo::getInstance()->getSettings()->getGeoToken();
+
+        if (!$apiKey) {
+            Craft::warning('Geo Maps: geocoding skipped because no Geocoding API key is configured.', __METHOD__);
             return null;
         }
 
-        return $response ?: null;
+        $params['language'] = Craft::$app->language;
+        $cacheKey = 'geo:geocode:' . md5(Json::encode($params));
+
+        $cached = Craft::$app->getCache()->get($cacheKey);
+        if ($cached !== false) {
+            return $cached ?: null;
+        }
+
+        try {
+            $response = Craft::createGuzzleClient(['timeout' => 5])->get(self::GEOCODE_ENDPOINT, [
+                'query' => $params + ['key' => $apiKey],
+            ]);
+            $data = Json::decode((string)$response->getBody());
+        } catch (Throwable $e) {
+            Craft::error('Geo Maps: geocoding request failed: ' . $e->getMessage(), __METHOD__);
+            return null;
+        }
+
+        $status = $data['status'] ?? 'UNKNOWN';
+
+        if ($status === 'ZERO_RESULTS') {
+            Craft::$app->getCache()->set($cacheKey, [], self::CACHE_DURATION);
+            return null;
+        }
+
+        if ($status !== 'OK' || empty($data['results'][0])) {
+            // Don't cache errors like OVER_QUERY_LIMIT or REQUEST_DENIED.
+            Craft::warning("Geo Maps: geocoding returned $status" . (isset($data['error_message']) ? ": {$data['error_message']}" : ''), __METHOD__);
+            return null;
+        }
+
+        $result = $data['results'][0];
+        Craft::$app->getCache()->set($cacheKey, $result, self::CACHE_DURATION);
+
+        return $result;
     }
-
-	/**
-	 * Normalize the given distance unit
-	 * @param string $unit
-	 * @return string
-	 */
-	public static function normalizeDistance (string $unit): string
-	{
-		if ($unit === 'miles') $unit = 'mi';
-		else if ($unit === 'kilometers') $unit = 'km';
-		else if (!in_array($unit, ['mi', 'km'])) $unit = 'km';
-
-		return $unit;
-	}
-
-	/**
-	 * Find an address from the given lat/lng
-	 *
-	 * @param float $lat
-	 * @param float $lng
-	 *
-	 * @return array|null - Returns the address and associated parts
-	 * @throws Exception
-	 */
-	public static function addressFromLatLng (float $lat, float $lng): ?array
-	{
-		$settings = Geo::getInstance()->getSettings();
-		$token    = $settings->getGeoToken();
-
-		return static::_addressFromLatLng_Google(
-				$token,
-				$lat, $lng
-			);
-	}
-
-	/**
-	 * Find an address from the given lat/lng
-	 *
-	 * @param float $lat
-	 * @param float $lng
-	 *
-	 * @return array|null - Returns the address and associated parts
-	 * @throws Exception
-	 */
-	public static function latLngFromAddress (float $lat, float $lng): ?array
-	{
-		$settings = Geo::getInstance()->getSettings();
-		$token    = $settings->getGeoToken();
-
-		return static::_latLngFromAddress_Google(
-				$token,
-				$lat, $lng
-			);
-	}
-	
-
-	private static function _latLngFromAddress_Google ($token, $address, $country): ?array
-	{
-		$url = 'https://maps.googleapis.com/maps/api/geocode/json';
-		$url .= '?address=' . rawurlencode($address);
-		$url .= '&language=' . Craft::$app->locale->getLanguageID();
-		if ($country !== null)
-		{
-			if (static::_validateCountryCode($country))
-				$url .= '&components=country:' . rawurlencode(strtoupper($country));
-			else
-				$url .= rawurlencode(', ' . $country);
-		}
-		$url .= '&key=' . $token;
-
-		$data = (string) static::_client()->get($url)->getBody();
-		$data = Json::decodeIfJson($data);
-
-		if (!is_array($data) || empty($data['results']))
-			return null;
-
-		return [
-			'lat' => $data['results'][0]['geometry']['location']['lat'],
-			'lng' => $data['results'][0]['geometry']['location']['lng'],
-		];
-	}
-
-	private static function _addressFromLatLng_Google ($token, $lat, $lng): ?array
-	{
-		$url = 'https://maps.googleapis.com/maps/api/geocode/json';
-		$url .= '?latlng=' . rawurlencode($lat) . ',' . rawurldecode($lng);
-		$url .= '&language=' . Craft::$app->locale->getLanguageID();
-		$url .= '&key=' . $token;
-
-		$data = (string) static::_client()->get($url)->getBody();
-		$data = Json::decodeIfJson($data);
-
-		if (!is_array($data) || empty($data['results']))
-			return null;
-
-		$pos = $data['results'][0];
-
-		return [
-			'address' => $pos['formatted_address'],
-			'parts' => $pos['address_components'],
-		];
-	}
-
-	private static function _client ()
-	{
-		static $client;
-
-		if (!$client)
-			$client = Craft::createGuzzleClient();
-
-		return $client;
-	}
-
-	private static function _validateCountryCode (string $code): bool
-	{
-		return in_array(strtoupper($code), array_keys(static::$countries));
-	}
-
 }

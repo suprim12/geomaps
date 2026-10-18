@@ -1,6 +1,6 @@
 {
   "name": "sup/craft-geo",
-  "description": "Geo maps",
+  "description": "Location fields for Craft CMS: address autocomplete, GeoJSON drawing, proximity search, static and embedded maps, GraphQL and Feed Me support.",
   "type": "craft-plugin",
   "license": "proprietary",
   "support": {
@@ -12,7 +12,7 @@
   },
   "require": {
     "php": ">=8.2",
-    "craftcms/cms": "^5.9.0"
+    "craftcms/cms": "^5.10.0"
   },
   "require-dev": {
     "craftcms/ecs": "dev-main",
@@ -28,7 +28,10 @@
     "name": "Geo Maps",
     "developer": "suprim golay",
     "documentationUrl": "https://github.com/suprim12/craft-geomaps",
-    "class": "sup\\craftgeo\\Geo"
+    "class": "sup\\craftgeo\\Geo",
+    "developerUrl": "https://suprimgolay.com.np",
+    "developerEmail": "suprimtech@gmail.com",
+    "changelogUrl": "https://raw.githubusercontent.com/suprim12/craft-geomaps/main/CHANGELOG.md"
   },
   "scripts": {
     "check-cs": "ecs check --ansi",
@@ -44,5 +47,20 @@
       "yiisoft/yii2-composer": true,
       "craftcms/plugin-installer": true
     }
-  }
+  },
+  "keywords": [
+    "craft",
+    "cms",
+    "craftcms",
+    "craft-plugin",
+    "maps",
+    "map",
+    "geo",
+    "geojson",
+    "location",
+    "geocoding",
+    "proximity search",
+    "google maps",
+    "leaflet"
+  ]
 }

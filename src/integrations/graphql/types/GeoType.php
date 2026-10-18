@@ -47,6 +47,7 @@ class GeoType extends ObjectType implements SingularTypeInterface
             'country'      => ['type' => Type::string(), 'description' => 'Country'],
             'countryCode'      => ['type' => Type::string(), 'description' => 'Country Code'],
             'geoJson'      => ['type' => Type::string(), 'description' => 'GeoJSON string'],
+            'distance'     => ['type' => Type::float(),  'description' => 'Distance from the searched location (proximity searches only)'],
         ];
     }
 }
