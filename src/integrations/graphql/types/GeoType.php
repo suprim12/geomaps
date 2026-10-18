@@ -11,8 +11,8 @@
 
 namespace sup\craftgeo\integrations\graphql\types;
 
-use craft\gql\GqlEntityRegistry;
 use craft\gql\base\SingularTypeInterface;
+use craft\gql\GqlEntityRegistry;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
@@ -23,12 +23,12 @@ class GeoType extends ObjectType implements SingularTypeInterface
         return 'GeoFieldType';
     }
 
-    public static function getType(): static
+    public static function getType(): self
     {
         return GqlEntityRegistry::getOrCreate(
             static::getName(),
-            fn() => new static([
-                'name'   => static::getName(),
+            fn() => new self([
+                'name' => static::getName(),
                 'fields' => static::getFieldDefinitions(),
             ])
         );
@@ -37,17 +37,17 @@ class GeoType extends ObjectType implements SingularTypeInterface
     public static function getFieldDefinitions(): array
     {
         return [
-            'lat'          => ['type' => Type::float(),  'description' => 'Latitude'],
-            'lng'          => ['type' => Type::float(),  'description' => 'Longitude'],
-            'zoom'         => ['type' => Type::int(),    'description' => 'Zoom level'],
+            'lat' => ['type' => Type::float(),  'description' => 'Latitude'],
+            'lng' => ['type' => Type::float(),  'description' => 'Longitude'],
+            'zoom' => ['type' => Type::int(),    'description' => 'Zoom level'],
             'full_address' => ['type' => Type::string(), 'description' => 'Full address'],
-            'address1'     => ['type' => Type::string(), 'description' => 'Address line 1'],
-            'suburb'       => ['type' => Type::string(), 'description' => 'Suburb'],
-            'postcode'     => ['type' => Type::string(), 'description' => 'Postcode'],
-            'country'      => ['type' => Type::string(), 'description' => 'Country'],
-            'countryCode'      => ['type' => Type::string(), 'description' => 'Country Code'],
-            'geoJson'      => ['type' => Type::string(), 'description' => 'GeoJSON string'],
-            'distance'     => ['type' => Type::float(),  'description' => 'Distance from the searched location (proximity searches only)'],
+            'address1' => ['type' => Type::string(), 'description' => 'Address line 1'],
+            'suburb' => ['type' => Type::string(), 'description' => 'Suburb'],
+            'postcode' => ['type' => Type::string(), 'description' => 'Postcode'],
+            'country' => ['type' => Type::string(), 'description' => 'Country'],
+            'countryCode' => ['type' => Type::string(), 'description' => 'Country Code'],
+            'geoJson' => ['type' => Type::string(), 'description' => 'GeoJSON string'],
+            'distance' => ['type' => Type::float(),  'description' => 'Distance from the searched location (proximity searches only)'],
         ];
     }
 }

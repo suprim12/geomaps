@@ -7,7 +7,8 @@ namespace sup\craftgeo\utilities;
  *
  * @see http://www.movable-type.co.uk/scripts/latlong-vincenty.html
  */
-class Vincenty {
+class Vincenty
+{
     // WGS-84 ellipsoid
     private const A = 6_378_137.0;          // semi-major axis (metres)
     private const F = 1 / 298.257_223_563;  // flattening
@@ -35,14 +36,16 @@ class Vincenty {
             return 0.0;
         }
 
-        $L  = deg2rad($lng2 - $lng1);
+        $L = deg2rad($lng2 - $lng1);
         $U1 = atan((1 - self::F) * tan(deg2rad($lat1)));
         $U2 = atan((1 - self::F) * tan(deg2rad($lat2)));
 
-        $sinU1 = sin($U1); $cosU1 = cos($U1);
-        $sinU2 = sin($U2); $cosU2 = cos($U2);
+        $sinU1 = sin($U1);
+        $cosU1 = cos($U1);
+        $sinU2 = sin($U2);
+        $cosU2 = cos($U2);
 
-        $lambda    = $L;
+        $lambda = $L;
         $lambdaPrev = PHP_FLOAT_MAX;
 
         $sinSigma = $cosSigma = $sigma = 0.0;
@@ -61,9 +64,9 @@ class Vincenty {
                 return 0.0; // coincident
             }
 
-            $cosSigma  = $sinU1 * $sinU2 + $cosU1 * $cosU2 * $cosLambda;
-            $sigma     = atan2($sinSigma, $cosSigma);
-            $sinAlpha  = $cosU1 * $cosU2 * $sinLambda / $sinSigma;
+            $cosSigma = $sinU1 * $sinU2 + $cosU1 * $cosU2 * $cosLambda;
+            $sigma = atan2($sinSigma, $cosSigma);
+            $sinAlpha = $cosU1 * $cosU2 * $sinLambda / $sinSigma;
             $cosSqAlpha = 1 - $sinAlpha ** 2;
 
             $cos2SigmaM = $cosSqAlpha !== 0.0
@@ -73,7 +76,7 @@ class Vincenty {
             $C = self::F / 16 * $cosSqAlpha * (4 + self::F * (4 - 3 * $cosSqAlpha));
 
             $lambdaPrev = $lambda;
-            $lambda     = $L + (1 - $C) * self::F * $sinAlpha * (
+            $lambda = $L + (1 - $C) * self::F * $sinAlpha * (
                 $sigma + $C * $sinSigma * (
                     $cos2SigmaM + $C * $cosSigma * (-1 + 2 * $cos2SigmaM ** 2)
                 )
@@ -90,7 +93,7 @@ class Vincenty {
             }
         }
 
-        $uSq    = $cosSqAlpha * (self::A ** 2 - self::B ** 2) / self::B ** 2;
+        $uSq = $cosSqAlpha * (self::A ** 2 - self::B ** 2) / self::B ** 2;
         $A_coef = 1 + $uSq / 16384 * (4096 + $uSq * (-768 + $uSq * (320 - 175 * $uSq)));
         $B_coef = $uSq / 1024 * (256 + $uSq * (-128 + $uSq * (74 - 47 * $uSq)));
 
@@ -139,7 +142,7 @@ class Vincenty {
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return float Distance in meters
      */
     public function rawgetDistance(mixed $point1, mixed $point2): float
@@ -157,12 +160,12 @@ class Vincenty {
         $b = $point1->getEllipsoid()->getB();
         $f = 1 / $point1->getEllipsoid()->getF();
 
-        $L  = $lng2 - $lng1;
+        $L = $lng2 - $lng1;
         $U1 = atan((1 - $f) * tan($lat1));
         $U2 = atan((1 - $f) * tan($lat2));
 
         $iterationsLeft = 100;
-        $lambda         = $L;
+        $lambda = $L;
 
         $sinU1 = sin($U1);
         $sinU2 = sin($U2);
@@ -203,7 +206,7 @@ class Vincenty {
                 + (1 - $C)
                 * $f
                 * $sinAlpha
-                * ($sigma + $C * $sinSigma * ($cos2SigmaM + $C * $cosSigma * (- 1 + 2 * $cos2SigmaM * $cos2SigmaM)));
+                * ($sigma + $C * $sinSigma * ($cos2SigmaM + $C * $cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM)));
 
             $iterationsLeft--;
         } while (abs($lambda - $lambdaP) > 1e-12 && $iterationsLeft > 0);
@@ -212,17 +215,16 @@ class Vincenty {
             throw new \InvalidArgumentException('Vincenty calculation does not converge');
         }
 
-        $uSq        = $cosSqAlpha * ($a * $a - $b * $b) / ($b * $b);
-        $A          = 1 + $uSq / 16384 * (4096 + $uSq * (- 768 + $uSq * (320 - 175 * $uSq)));
-        $B          = $uSq / 1024 * (256 + $uSq * (- 128 + $uSq * (74 - 47 * $uSq)));
+        $uSq = $cosSqAlpha * ($a * $a - $b * $b) / ($b * $b);
+        $A = 1 + $uSq / 16384 * (4096 + $uSq * (-768 + $uSq * (320 - 175 * $uSq)));
+        $B = $uSq / 1024 * (256 + $uSq * (-128 + $uSq * (74 - 47 * $uSq)));
         $deltaSigma = $B * $sinSigma * (
             $cos2SigmaM
-            + $B / 4 * ($cosSigma * (- 1 + 2 * $cos2SigmaM * $cos2SigmaM)
-            - $B / 6 * $cos2SigmaM * (- 3 + 4 * $sinSigma * $sinSigma) * (- 3 + 4 * $cos2SigmaM * $cos2SigmaM))
+            + $B / 4 * ($cosSigma * (-1 + 2 * $cos2SigmaM * $cos2SigmaM)
+            - $B / 6 * $cos2SigmaM * (-3 + 4 * $sinSigma * $sinSigma) * (-3 + 4 * $cos2SigmaM * $cos2SigmaM))
         );
-        $s          = $b * $A * ($sigma - $deltaSigma);
+        $s = $b * $A * ($sigma - $deltaSigma);
 
         return round($s, 3);
     }
-    
 }

@@ -15,17 +15,17 @@ use sup\craftgeo\Geo;
 
 class StaticMap extends Model
 {
-    public mixed  $center         = null;
+    public mixed  $center = null;
     public mixed  $centerFallback = null;
     public mixed  $mapId = null;
-    public int    $width          = 640;
-    public int    $height         = 400;
-    public int    $zoom           = 14;
-    public int    $scale          = 1;
-    public array  $markers        = [];
-    public string $format         = 'png';
-    public string $mapType        = 'roadmap';
-    public mixed $colorScheme        = null;
+    public int    $width = 640;
+    public int    $height = 400;
+    public int    $zoom = 14;
+    public int    $scale = 1;
+    public array  $markers = [];
+    public string $format = 'png';
+    public string $mapType = 'roadmap';
+    public mixed $colorScheme = null;
     private ?string $_resolvedCenter = null;
 
     public function img(array $options = []): ?string
@@ -65,7 +65,7 @@ class StaticMap extends Model
     private function buildUrl(int $scale = 1): ?string
     {
         $settings = Geo::getInstance()->getSettings();
-        $apiKey   = $settings->getMapToken();
+        $apiKey = $settings->getMapToken();
 
         if (!$apiKey) {
             Craft::warning('GeoMaps: mapToken is required for static maps', 'geo');
@@ -79,15 +79,15 @@ class StaticMap extends Model
         }
 
         $params = array_filter([
-            'center'      => $center,
-            'size'        => $this->width . 'x' . $this->height,
-            'zoom'        => $this->zoom,
-            'scale'       => $scale,
-            'format'      => $this->format,
-            'maptype'     => $this->mapType ?: 'roadmap',
-            'map_id'      => $this->mapId ?: null,
+            'center' => $center,
+            'size' => $this->width . 'x' . $this->height,
+            'zoom' => $this->zoom,
+            'scale' => $scale,
+            'format' => $this->format,
+            'maptype' => $this->mapType ?: 'roadmap',
+            'map_id' => $this->mapId ?: null,
             'colorScheme' => $this->colorScheme ?: null,
-            'key'         => $apiKey,
+            'key' => $apiKey,
         ], fn($v) => $v !== null && $v !== '');
 
         $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
@@ -117,7 +117,7 @@ class StaticMap extends Model
         }
 
         if ($this->centerFallback) {
-            $fb  = $this->centerFallback;
+            $fb = $this->centerFallback;
             $lat = $fb['lat'] ?? $fb[0] ?? null;
             $lng = $fb['lng'] ?? $fb[1] ?? null;
 
@@ -166,7 +166,7 @@ class StaticMap extends Model
             $parts[] = "color:0x{$color}";
 
             if (!empty($marker['label'])) {
-                $label   = strtoupper(substr($marker['label'], 0, 1));
+                $label = strtoupper(substr($marker['label'], 0, 1));
                 $parts[] = "label:{$label}";
             }
 

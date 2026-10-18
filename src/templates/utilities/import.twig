@@ -1,0 +1,53 @@
+{#
+	* Geo Maps plugin for Craft CMS
+	*
+	* @link      https://suprimgolay.com.np/craft-plugins
+	* @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
+	* @copyright Copyright (c) 2026 Suprim Golay
+#}
+
+<h2>{{ 'Import from Maps (Ether)'|t('geo') }}</h2>
+
+{% if fields is empty %}
+	<p>{{ 'No Maps fields were found. There’s nothing to import.'|t('geo') }}</p>
+{% else %}
+	<p>{{ 'Each Maps field below is converted to a Geo Maps field in place. Handles, field layouts and saved locations are kept, so templates using `.lat`, `.lng`, `.address`, `.parts`, `.img()` and location search keep working.'|t('geo')|md(inlineOnly=true) }}</p>
+
+	<table class="data fullwidth">
+		<thead>
+			<tr>
+				<th>{{ 'Field'|t('app') }}</th>
+				<th>{{ 'Handle'|t('app') }}</th>
+				<th>{{ 'Saved locations'|t('geo') }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for item in fields %}
+				<tr>
+					<td>{{ item.field.name }}</td>
+					<td><code>{{ item.field.handle }}</code></td>
+					<td>{{ item.values|number }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<form class="utility" method="post" accept-charset="UTF-8" style="margin-top: 24px">
+		{{ actionInput('geo/import/simple-map') }}
+		{{ csrfInput() }}
+		{{ redirectInput('utilities/geo-import') }}
+
+		<p class="warning has-icon">
+			<span class="icon" aria-hidden="true"></span>
+			<span>{{ 'Back up your database first. This changes field types, which also updates project config — commit the change and deploy it as usual. Other environments will read the old values automatically and index them in the background.'|t('geo') }}</span>
+		</p>
+
+		<div class="buttons">
+			<button type="submit" class="btn submit">{{ 'Import {count} field(s)'|t('geo', { count: fields|length }) }}</button>
+		</div>
+	</form>
+{% endif %}
+
+{% if simpleMapInstalled and fields is empty %}
+	<p>{{ 'You can now uninstall Maps from the <a href="{url}">Plugins</a> page.'|t('geo', { url: pluginsUrl })|raw }}</p>
+{% endif %}

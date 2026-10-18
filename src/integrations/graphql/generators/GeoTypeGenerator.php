@@ -31,7 +31,7 @@ class GeoTypeGenerator implements GeneratorInterface, SingleGeneratorInterface
         return GqlEntityRegistry::getOrCreate(
             $typeName,
             fn() => new GeoType([
-                'name'   => $typeName,
+                'name' => $typeName,
                 'fields' => fn() => GeoType::getFieldDefinitions(),
             ])
         );

@@ -25,7 +25,7 @@ class GeoQueryArgument extends InputObjectType
         return GqlEntityRegistry::getOrCreate(
             static::getName(),
             fn() => new self([
-                'name'   => static::getName(),
+                'name' => static::getName(),
                 'fields' => static::getQueryInputDefinitions(),
             ])
         );
@@ -35,23 +35,23 @@ class GeoQueryArgument extends InputObjectType
     {
         return [
             'location' => [
-                'name'        => 'location',
-                'type'        => Type::string(),
+                'name' => 'location',
+                'type' => Type::string(),
                 'description' => 'Search by address string or place name',
             ],
             'coordinate' => [
-                'name'        => 'coordinate',
-                'type'        => GeoCoordsInput::getType(),
+                'name' => 'coordinate',
+                'type' => GeoCoordsInput::getType(),
                 'description' => 'Search by lat/lng coordinate',
             ],
             'radius' => [
-                'name'        => 'radius',
-                'type'        => Type::float(),
+                'name' => 'radius',
+                'type' => Type::float(),
                 'description' => 'Radius to search within',
             ],
             'unit' => [
-                'name'        => 'unit',
-                'type'        => Type::string(),
+                'name' => 'unit',
+                'type' => Type::string(),
                 'description' => 'Unit of distance: km or mi (default: km)',
             ],
         ];

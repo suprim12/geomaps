@@ -3,6 +3,10 @@
 ## 1.0.0 - 2026-10-18
 
 ### Added
+- Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
+- **Tile URL** and **Tile Attribution** settings for using any raster tile provider.
+- One-click import from Maps (ether/simplemap) under **Utilities → Geo Maps Import**, or `php craft geo/import/simple-map`.
+- Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).
 - Location search accepts a `coordinate`, a `{ lat, lng }` object, an address string, or another Geo Maps value.
 - `:empty:` / `:notempty:` query params.
@@ -27,3 +31,8 @@
 - Saved initial map location in field settings was ignored.
 - Google Places/Geocoder errors when the Maps API loads asynchronously or fails to load.
 - Location search on PostgreSQL.
+- New entries saved the field’s default map centre as their location.
+- The field’s preferred country was saved into each entry’s country.
+- The country value held the county/state name when picked from Google search.
+- Whole-number coordinates were treated as empty.
+- The control panel asset bundle published PHP files to the web root.

@@ -23,6 +23,7 @@ export default defineConfig({
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Configuration', link: '/getting-started/configuration' },
           { text: 'Usage', link: '/getting-started/usage' },
+          { text: 'Migrating from Maps', link: '/getting-started/migrating-from-maps' },
         ],
       },
       {
@@ -41,7 +42,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com' },
+      { icon: 'github', link: 'https://github.com/suprim12/craft-geomaps' },
     ],
 
     footer: {

@@ -10,8 +10,9 @@
 
 
 namespace sup\craftgeo\services;
-use yii\base\Component;
+
 use craft\helpers\Json;
+use yii\base\Component;
 
 class ZoneService extends Component
 {
@@ -84,11 +85,13 @@ class ZoneService extends Component
     private function raycast(float $lat, float $lng, array $ring): bool
     {
         $inside = false;
-        $n      = count($ring);
+        $n = count($ring);
 
         for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-            $xi = $ring[$i][0]; $yi = $ring[$i][1];
-            $xj = $ring[$j][0]; $yj = $ring[$j][1];
+            $xi = $ring[$i][0];
+            $yi = $ring[$i][1];
+            $xj = $ring[$j][0];
+            $yj = $ring[$j][1];
 
             if (
                 (($yi > $lat) !== ($yj > $lat)) &&
