@@ -12,18 +12,18 @@
 
 namespace sup\craftgeo\integrations\feedme\fields;
 
-
+use Craft;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
-use Craft;
 use craft\helpers\Json;
 use sup\craftgeo\fields\GeoField;
+use sup\craftgeo\services\GeoService;
 
-class GeoFeedMeField extends Field implements FieldInterface{
-
-	public static $name = 'Maps';
-	public static $class = GeoField::class;
+class GeoFeedMeField extends Field implements FieldInterface
+{
+    public static $name = 'Maps';
+    public static $class = GeoField::class;
 
 
     public function getMappingTemplate(): string
@@ -35,122 +35,55 @@ class GeoFeedMeField extends Field implements FieldInterface{
     public function getMappingFields(): array
     {
         return [
-            'lat'          => Craft::t('geo', 'Latitude'),
-            'lng'          => Craft::t('geo', 'Longitude'),
-            'zoom'         => Craft::t('geo', 'Zoom'),
+            'lat' => Craft::t('geo', 'Latitude'),
+            'lng' => Craft::t('geo', 'Longitude'),
+            'zoom' => Craft::t('geo', 'Zoom'),
             'full_address' => Craft::t('geo', 'Full Address'),
-            'address1'     => Craft::t('geo', 'Address Line 1'),
-            'suburb'       => Craft::t('geo', 'Suburb'),
-            'postcode'     => Craft::t('geo', 'Postcode'),
-            'country'      => Craft::t('geo', 'Country'),
-            'geoJson'      => Craft::t('geo', 'GeoJSON'),
+            'address1' => Craft::t('geo', 'Address Line 1'),
+            'suburb' => Craft::t('geo', 'Suburb'),
+            'postcode' => Craft::t('geo', 'Postcode'),
+            'country' => Craft::t('geo', 'Country'),
+            'geoJson' => Craft::t('geo', 'GeoJSON'),
         ];
     }
 
-    // public function parseField(): mixed
-    // {
-    //     $preppedData = [];
-
-    //     $subFields = [
-    //         'lat', 'lng', 'zoom',
-    //         'full_address', 'address1',
-    //         'suburb', 'postcode',
-    //         'country', 'geoJson',
-    //     ];
-
-    //     foreach ($subFields as $key) {
-    //         $value = DataHelper::fetchValue($this->feedData, $this->fieldHandle . '.' . $key);
-
-    //         if ($value === null) {
-    //             continue;
-    //         }
-
-    //         $preppedData[$key] = match ($key) {
-    //             'lat', 'lng' => (float) $value,
-    //             'zoom'       => (int)   $value,
-    //             'country'    => strtoupper(substr(trim((string) $value), 0, 2)),
-    //             'geoJson'    => $this->parseGeoJson($value),
-    //             default      => trim((string) $value),
-    //         };
-    //     }
-
-    //     if (empty($preppedData)) {
-    //         $raw = DataHelper::fetchValue($this->feedData, $this->fieldHandle);
-    //         if (!empty($raw)) {
-    //             $preppedData = $this->parseRawValue($raw);
-    //         }
-    //     }
-
-    //     return empty($preppedData) ? null : Json::encode($preppedData);
-    // }
-
     public function parseField(): mixed
-{
-    $preppedData = [];
-
-    $subFields = [
-        'lat', 'lng', 'zoom',
-        'full_address', 'address1',
-        'suburb', 'postcode',
-        'country', 'geoJson',
-    ];
-
-    foreach ($subFields as $key) {
-        // Read the mapped feed node from options
-        $node = $this->fieldInfo['options'][$key] ?? null;
-
-        if (!$node) {
-            continue;
-        }
-
-        $value = DataHelper::fetchValue($this->feedData, $node);
-
-        if ($value === null) {
-            continue;
-        }
-
-        $preppedData[$key] = match ($key) {
-            'lat', 'lng' => (float) $value,
-            'zoom'       => (int)   $value,
-            'country'    => strtoupper(substr(trim((string) $value), 0, 2)),
-            'geoJson'    => $this->parseGeoJson($value),
-            default      => trim((string) $value),
-        };
-    }
-
-    return empty($preppedData) ? null : Json::encode($preppedData);
-}
-
-
-    private function parseRawValue(mixed $value): array
     {
-        // Already a JSON string
-        if (is_string($value) && str_starts_with(trim($value), '{')) {
-            $decoded = Json::decodeIfJson($value);
-            if (is_array($decoded)) {
-                return $this->castTypes($decoded);
+        $preppedData = [];
+
+        // Sub-fields are mapped as fields[<key>] = { node, default } by feedme-field.twig.
+        foreach ($this->fieldInfo['fields'] ?? [] as $key => $subFieldInfo) {
+            if (!array_key_exists($key, $this->getMappingFields()) || !is_array($subFieldInfo)) {
+                continue;
             }
+
+            $value = DataHelper::fetchValue($this->feedData, $subFieldInfo, $this->feed);
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $preppedData[$key] = match ($key) {
+                'lat', 'lng' => (float) $value,
+                'zoom' => (int)   $value,
+                default => $this->parseStringValue($key, $value),
+            };
         }
 
-        // "lat,lng" format
-        if (is_string($value) && substr_count($value, ',') === 1) {
-            [$lat, $lng] = explode(',', $value);
-            return [
-                'lat' => (float) trim($lat),
-                'lng' => (float) trim($lng),
-            ];
+        // A two-letter country is a code; anything longer is a name.
+        $country = $preppedData['country'] ?? null;
+        if (is_string($country) && strlen($country) === 2) {
+            $preppedData['countryCode'] = strtoupper($country);
+            unset($preppedData['country']);
+        } elseif (is_string($country)) {
+            $preppedData['countryCode'] = GeoService::countryCodeFromName($country);
         }
 
-        return [];
+        return empty($preppedData) ? null : Json::encode(array_filter($preppedData, fn($v) => $v !== null));
     }
 
     private function parseStringValue(string $key, mixed $value): mixed
     {
-        // Validate country code
-        if ($key === 'country') {
-            return strtoupper(substr(trim((string) $value), 0, 2));
-        }
-
         // Validate and normalise GeoJSON
         if ($key === 'geoJson') {
             $decoded = Json::decodeIfJson($value);
@@ -158,13 +91,5 @@ class GeoFeedMeField extends Field implements FieldInterface{
         }
 
         return trim((string) $value);
-    }
-
-    private function castTypes(array $data): array
-    {
-        if (isset($data['lat']))  $data['lat']  = (float) $data['lat'];
-        if (isset($data['lng']))  $data['lng']  = (float) $data['lng'];
-        if (isset($data['zoom'])) $data['zoom'] = (int)   $data['zoom'];
-        return $data;
     }
 }

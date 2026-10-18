@@ -9,7 +9,7 @@ You can install **Geo Maps** from the [Craft Plugin Store](https://plugins.craft
 To install via command-line, execute the following from inside your project's root directory:
 
 ```bash
-composer require sup/craft-geo
+composer require suprim/craft-geomaps
 
 ./craft install/plugin geo
 ```

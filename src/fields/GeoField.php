@@ -15,29 +15,28 @@ namespace sup\craftgeo\fields;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\base\PreviewableFieldInterface;
+use craft\elements\db\ElementQuery;
+use craft\helpers\Json;
+use craft\helpers\UrlHelper;
+use GraphQL\Type\Definition\Type;
 use sup\craftgeo\Geo;
+use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
+use sup\craftgeo\integrations\graphql\types\GeoType;
+use sup\craftgeo\models\GeoValue;
 use sup\craftgeo\services\GeoService;
 use sup\craftgeo\web\GeoAsset;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
-use craft\base\PreviewableFieldInterface;
-use craft\elements\db\ElementQuery;
-use craft\helpers\UrlHelper;
-use sup\craftgeo\integrations\graphql\types\GeoType;
-use GraphQL\Type\Definition\Type;
-use craft\helpers\Json;
-use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
-use sup\craftgeo\models\GeoValue;
-
 
 class GeoField extends Field implements PreviewableFieldInterface
 {
-	public float $lat = -34.925;
-	public float $lng = 138.60;
-	public int $zoom = 9;
-	public float $minZoom = 3;
-	public float $maxZoom = 18;
-	public int $mapHeigth = 500;
+    public float $lat = -34.925;
+    public float $lng = 138.60;
+    public int $zoom = 9;
+    public float $minZoom = 3;
+    public float $maxZoom = 18;
+    public int $mapHeigth = 500;
     public ?string $country = null;
     public ?string $countryCode = null;
     public ?string $full_address = null;
@@ -133,16 +132,15 @@ class GeoField extends Field implements PreviewableFieldInterface
         }
 
         return match ($decoded['type']) {
-            'Point'              => $this->validateGeoJsonPoint($decoded),
+            'Point' => $this->validateGeoJsonPoint($decoded),
             'MultiPoint',
-            'LineString'         => $this->validateGeoJsonCoordinateArray($decoded, 2),
+            'LineString' => $this->validateGeoJsonCoordinateArray($decoded, 2),
             'MultiLineString',
-            'Polygon'            => $this->validateGeoJsonCoordinateArray($decoded, 3),
-            'MultiPolygon'       => $this->validateGeoJsonCoordinateArray($decoded, 4),
+            'Polygon' => $this->validateGeoJsonCoordinateArray($decoded, 3),
+            'MultiPolygon' => $this->validateGeoJsonCoordinateArray($decoded, 4),
             'GeometryCollection' => $this->validateGeoJsonGeometryCollection($decoded),
-            'Feature'            => $this->validateGeoJsonFeature($decoded),
-            'FeatureCollection'  => $this->validateGeoJsonFeatureCollection($decoded),
-            default              => null,
+            'Feature' => $this->validateGeoJsonFeature($decoded),
+            'FeatureCollection' => $this->validateGeoJsonFeatureCollection($decoded),
         };
     }
 
@@ -287,9 +285,9 @@ class GeoField extends Field implements PreviewableFieldInterface
     public function getContentGqlMutationArgumentType(): array|\GraphQL\Type\Definition\Type
     {
         return [
-            'name'         => $this->handle,
-            'type'         =>  Type::string(),
-            'description'  => 'JSON string or object with lat, lng, zoom, address fields',
+            'name' => $this->handle,
+            'type' => Type::string(),
+            'description' => 'JSON string or object with lat, lng, zoom, address fields',
         ];
     }
 
@@ -305,23 +303,23 @@ class GeoField extends Field implements PreviewableFieldInterface
     {
         return array_merge(parent::defineRules(), [
             [
-				'lat',
-				'double',
-				'min' => -90,
-				'max' => 90
-			],
-			[
-				'lng',
-				'double',
-				'min' => -180,
-				'max' => 180
-			],
-			[
+                'lat',
+                'double',
+                'min' => -90,
+                'max' => 90,
+            ],
+            [
+                'lng',
+                'double',
+                'min' => -180,
+                'max' => 180,
+            ],
+            [
                 'zoom',
                 'integer',
                 'min' => 0,
-                'max' => 22
-			]
+                'max' => 22,
+            ],
         ]);
     }
 
@@ -341,6 +339,9 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'lng' => $this->lng,
                 'zoom' => $this->zoom,
                 'isInput' => $isInput,
+                'provider' => Geo::getInstance()->getSettings()->getMapProvider(),
+                'tileUrl' => Geo::getInstance()->getSettings()->getTileUrl(),
+                'tileAttribution' => Geo::getInstance()->getSettings()->tileAttribution,
             ],
         ]);
     }
@@ -363,32 +364,33 @@ class GeoField extends Field implements PreviewableFieldInterface
         }
     }
 
-	public function beforeSave (bool $isNew): bool
-	{
-		$this->lat  = (float) $this->lat;
-		$this->lng  = (float) $this->lng;
-		$this->zoom = (int) $this->zoom;
+    public function beforeSave(bool $isNew): bool
+    {
+        $this->lat = (float) $this->lat;
+        $this->lng = (float) $this->lng;
+        $this->zoom = (int) $this->zoom;
 
-		if ($this->country === '*')
-			$this->country = null;
+        if ($this->country === '*') {
+            $this->country = null;
+        }
 
-		return parent::beforeSave($isNew);
-	}
+        return parent::beforeSave($isNew);
+    }
 
     public function getSettingsHtml(): ?string
     {
-         $mapField = $this->renderMapField();
-         $countries = ['*' => Craft::t('geo', 'All Countries')] + GeoService::countryOptions();
-         $handle  = $this->handle ?? 'geo-preview';
+        $mapField = $this->renderMapField();
+        $countries = ['*' => Craft::t('geo', 'All Countries')] + GeoService::countryOptions();
+        $handle = $this->handle ?? 'geo-preview';
         $id = Craft::$app->getView()->formatInputId($handle);
         $namespacedId = Craft::$app->getView()->namespaceInputId($id);
 
-         return Craft::$app->getView()->renderTemplate('geo/fields/GeoSettings', [
+        return Craft::$app->getView()->renderTemplate('geo/fields/GeoSettings', [
             'field' => $this,
-            'map'=> $mapField,
-            'id'=>  $id,
-            'namespacedId'=>  $namespacedId,
-            'countries'=> $countries 
+            'map' => $mapField,
+            'id' => $id,
+            'namespacedId' => $namespacedId,
+            'countries' => $countries,
         ]);
     }
 
@@ -434,10 +436,14 @@ class GeoField extends Field implements PreviewableFieldInterface
             'id' => $id,
             'elementId' => $element?->id,
             'mapdata' => [
-                'lat' => $this->lat,
-                'lng' => $this->lng,
+                'centerLat' => $this->lat,
+                'centerLng' => $this->lng,
                 'zoom' => $this->zoom,
-                'geoToken' => $settings->getGeoToken(),
+                'provider' => $settings->getMapProvider(),
+                'tileUrl' => $settings->getTileUrl(),
+                'tileAttribution' => $settings->tileAttribution,
+                'restrictCountry' => $this->country,
+                'language' => Craft::$app->language,
             ],
             'global_settings' => $settings,
             'settings' => $this->getSettings(),
@@ -464,6 +470,4 @@ class GeoField extends Field implements PreviewableFieldInterface
     {
         return null;
     }
-
- 
 }

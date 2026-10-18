@@ -25,7 +25,7 @@ hero:
 
 ## Overview
 
-**Geo Maps** is a location field for [Craft CMS](https://craftcms.com): search for an address, drop a pin, draw shapes as GeoJSON, then query entries by distance and render static or interactive maps. It uses a Google Maps API key for search, geocoding and map tiles.
+**Geo Maps** is a location field for [Craft CMS](https://craftcms.com): search for an address, drop a pin, draw shapes as GeoJSON, then query entries by distance and render static or interactive maps. It works out of the box with OpenStreetMap, or with Google Maps when you add an API key.
 
 <a href="https://plugins.craftcms.com/geo" target="_blank" class="cta-button">View Geo Maps on the Plugin Store</a>
 

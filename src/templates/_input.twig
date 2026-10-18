@@ -8,16 +8,19 @@
  #}
 
 {% set mapData = mapdata %}
-{% if settings is not empty %}
-	{% set mapData = mapData|merge(settings) %}
-{% endif %}
+{% set mapData = mapData|merge({
+	hideSearch: settings.hideSearch ?? false,
+	hideAddress: settings.hideAddress ?? false,
+	hideMap: settings.hideMap ?? false,
+	minZoom: settings.minZoom ?? null,
+	maxZoom: settings.maxZoom ?? null,
+}) %}
 
 {% if value is not empty %}
 	{% set mapData = mapData|merge(value) %}
 {% endif %}
 
 
-{% if global_settings.mapToken is not empty %}
 	<div x-data="appgeo" x-init="initMap({{mapData|json_encode}},true,{{settings|json_encode()}})" class="supgeo {{settings.hideMap ? ' --hideMap ':''}}" :class="{ ' --showEditor ': showEditor }">
 		<div class="supgeo__wrapper" x-ref="geowrapper">
 			<div
@@ -265,9 +268,3 @@
 			</div>
 		</div>
 	</div>
-{% else %}
-	<div>
-		<p>Please add a valid google token. Go to plugin settings
-			<a href="{{ settingsUrl }}">Settings > Geo Maps</a>.</p>
-	</div>
-{% endif %}

@@ -25,7 +25,7 @@ class GeoCoordsInput extends InputObjectType
         return GqlEntityRegistry::getOrCreate(
             static::getName(),
             fn() => new self([
-                'name'   => static::getName(),
+                'name' => static::getName(),
                 'fields' => [
                     'lat' => [
                         'name' => 'lat',

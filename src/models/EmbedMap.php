@@ -16,18 +16,19 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use sup\craftgeo\Geo;
 use sup\craftgeo\services\GeoService;
+use sup\craftgeo\web\EmbedAsset;
 
 class EmbedMap extends Model
 {
-    public mixed   $center         = null;
+    public mixed   $center = null;
     public mixed   $centerFallback = null;
-    public int     $width          = 640;
-    public int     $height         = 400;
-    public int     $zoom           = 14;
-    public int     $scale          = 1;
-    public array   $markers        = [];
-    public ?string $id             = null;
-    public array   $options        = [];
+    public int     $width = 640;
+    public int     $height = 400;
+    public int     $zoom = 14;
+    public int     $scale = 1;
+    public array   $markers = [];
+    public ?string $id = null;
+    public array   $options = [];
 
     public function __toString(): string
     {
@@ -38,28 +39,34 @@ class EmbedMap extends Model
     {
         $this->setOptions($options);
 
-        $id       = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
-        $mapToken = Geo::getInstance()->getSettings()->getMapToken();
-        $center   = $this->resolveCenter();
-        $markers  = $this->resolveMarkers($center);
+        $id = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
+        $settings = Geo::getInstance()->getSettings();
+        $mapToken = $settings->getMapToken();
+        $center = $this->resolveCenter();
+        $markers = $this->resolveMarkers($center);
 
         $config = Json::encode([
-            'id'      => $id,
-            'center'  => $center,
-            'zoom'    => $this->zoom,
-            'width'   => $this->width,
-            'height'  => $this->height,
+            'id' => $id,
+            'center' => $center,
+            'zoom' => $this->zoom,
+            'width' => $this->width,
+            'height' => $this->height,
             'markers' => $markers,
             'options' => $this->options,
+            'provider' => $settings->getMapProvider(),
+            'tileUrl' => $settings->getTileUrl(),
+            'tileAttribution' => $settings->tileAttribution,
         ]);
 
         $view = Craft::$app->getView();
 
         if ($mapToken) {
             $view->registerJsFile(
-                "https://maps.googleapis.com/maps/api/js?key={$mapToken}&libraries=places",
+                'https://maps.googleapis.com/maps/api/js?' . http_build_query(['key' => $mapToken]),
                 ['position' => \craft\web\View::POS_HEAD]
             );
+        } else {
+            $view->registerAssetBundle(EmbedAsset::class);
         }
 
         $style = "width:{$this->width}px;height:{$this->height}px;";
@@ -71,13 +78,14 @@ class EmbedMap extends Model
                 var el = document.getElementById(config.id);
                 if (!el) return;
 
-                if (typeof L !== 'undefined') {
+                if (config.provider !== 'google' && typeof L !== 'undefined') {
                     var map = L.map(el, config.options || {}).setView(
                         [config.center.lat, config.center.lng],
                         config.zoom
                     );
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OpenStreetMap contributors'
+                    L.tileLayer(config.tileUrl, {
+                        maxZoom: 19,
+                        attribution: config.tileAttribution
                     }).addTo(map);
                     if (config.markers && config.markers.length) {
                         config.markers.forEach(function(marker) {
@@ -142,27 +150,27 @@ class EmbedMap extends Model
         $noscript = '';
         $staticUrl = (new StaticMap())->img([
             'center' => $center,
-            'zoom'   => $this->zoom,
-            'width'  => $this->width,
+            'zoom' => $this->zoom,
+            'width' => $this->width,
             'height' => $this->height,
         ]);
         if ($staticUrl) {
             $noscript = Html::tag('noscript',
                 Html::tag('img', '', [
-                    'src'    => $staticUrl,
-                    'width'  => $this->width,
+                    'src' => $staticUrl,
+                    'width' => $this->width,
                     'height' => $this->height,
-                    'alt'    => 'Map',
-                    'style'  => $style,
+                    'alt' => 'Map',
+                    'style' => $style,
                 ])
             );
         }
 
 
-          $html = Html::tag('div', $noscript, [
-            'id'    => $id,
+        $html = Html::tag('div', $noscript, [
+            'id' => $id,
             'style' => $style,
-            'data'  => ['geo-embed' => true],
+            'data' => ['geo-embed' => true],
         ]);
 
         return  new \Twig\Markup($html, 'UTF-8');
@@ -197,7 +205,7 @@ class EmbedMap extends Model
         }
 
         if ($this->centerFallback) {
-            $fb  = $this->centerFallback;
+            $fb = $this->centerFallback;
             $lat = $fb['lat'] ?? $fb[0] ?? null;
             $lng = $fb['lng'] ?? $fb[1] ?? null;
             if (is_numeric($lat) && is_numeric($lng)) {
@@ -218,7 +226,7 @@ class EmbedMap extends Model
 
         foreach ($this->markers as $marker) {
             $location = $marker['location'] ?? null;
-            $coords   = null;
+            $coords = null;
 
             if (is_array($location)) {
                 $lat = $location['lat'] ?? $location[0] ?? null;
@@ -235,8 +243,8 @@ class EmbedMap extends Model
             }
 
             $resolved[] = [
-                'lat'   => $coords['lat'],
-                'lng'   => $coords['lng'],
+                'lat' => $coords['lat'],
+                'lng' => $coords['lng'],
                 'label' => $marker['label'] ?? null,
                 'color' => $marker['color'] ?? '#ff0000',
             ];

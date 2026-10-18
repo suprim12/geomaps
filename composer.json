@@ -1,5 +1,5 @@
 {
-  "name": "sup/craft-geo",
+  "name": "suprim/craft-geomaps",
   "description": "Location fields for Craft CMS: address autocomplete, GeoJSON drawing, proximity search, static and embedded maps, GraphQL and Feed Me support.",
   "type": "craft-plugin",
   "license": "proprietary",
@@ -16,7 +16,9 @@
   },
   "require-dev": {
     "craftcms/ecs": "dev-main",
-    "craftcms/phpstan": "dev-main"
+    "craftcms/feed-me": "^6.0",
+    "craftcms/phpstan": "dev-main",
+    "phpstan/phpstan": "^2.1"
   },
   "autoload": {
     "psr-4": {

@@ -7,9 +7,10 @@ namespace sup\craftgeo\utilities;
  *
  * @see http://en.wikipedia.org/wiki/Law_of_haversines
  */
-class Haversine {
-        /**
-     * @throws InvalidArgumentException
+class Haversine
+{
+    /**
+     * @throws \InvalidArgumentException
      * @return float Distance in meters
      */
     public function getDistance(mixed $point1, mixed $point2): float
@@ -38,6 +39,3 @@ class Haversine {
         return round($distance, 3);
     }
 }
-
-
-

@@ -75,11 +75,12 @@ class MapService extends Component
     /**
      * Rebuilds the lookup table from stored field content. Returns the number of rows written.
      */
-    public function rebuildLookup(): int
+    public function rebuildLookup(?GeoField $only = null): int
     {
         $count = 0;
+        $fields = $only ? [$only] : Craft::$app->getFields()->getAllFields();
 
-        foreach (Craft::$app->getFields()->getAllFields() as $field) {
+        foreach ($fields as $field) {
             if (!$field instanceof GeoField) {
                 continue;
             }
@@ -101,7 +102,7 @@ class MapService extends Component
                 }
 
                 // Content is keyed by field layout element UID, so check every instance of this field.
-                foreach ($this->layoutElementUids($field) as $uid) {
+                foreach (self::layoutElementUids($field->uid) as $uid) {
                     $value = GeoValue::fromArray($content[$uid] ?? null);
 
                     if ($value && $value->hasCoordinates()) {
@@ -123,15 +124,17 @@ class MapService extends Component
     }
 
     /**
+     * Returns the layout element UIDs (content JSON keys) used by a field.
+     *
      * @return string[]
      */
-    private function layoutElementUids(GeoField $field): array
+    public static function layoutElementUids(string $fieldUid): array
     {
         $uids = [];
 
         foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
             foreach ($layout->getCustomFieldElements() as $layoutElement) {
-                if ($layoutElement->getField()->id === $field->id) {
+                if ($layoutElement->fieldUid === $fieldUid) {
                     $uids[] = $layoutElement->uid;
                 }
             }
@@ -258,8 +261,7 @@ class MapService extends Component
             return true;
         }
 
-        return is_array($orderBy)
-            && count($orderBy) === 1
+        return count($orderBy) === 1
             && ($orderBy[0] ?? null) instanceof OrderByPlaceholderExpression;
     }
 
@@ -273,7 +275,7 @@ class MapService extends Component
         }
 
         $handler = function(PopulateElementEvent $event) use ($handle, $lat, $lng, $perDegree) {
-            $value = $event->element?->getFieldValue($handle);
+            $value = $event->element->getFieldValue($handle);
 
             if ($value instanceof GeoValue && $value->hasCoordinates()) {
                 $value->distance = round(self::distance($lat, $lng, $value->lat, $value->lng, $perDegree), 3);

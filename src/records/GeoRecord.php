@@ -14,8 +14,8 @@ use craft\db\ActiveRecord;
 
 class GeoRecord extends ActiveRecord
 {
-    const TABLE_NAME       = '{{%supgeo}}';
-    const TABLE_NAME_CLEAN = 'supgeo';
+    public const TABLE_NAME = '{{%supgeo}}';
+    public const TABLE_NAME_CLEAN = 'supgeo';
 
     public static function tableName(): string
     {

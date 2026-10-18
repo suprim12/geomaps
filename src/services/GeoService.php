@@ -21,6 +21,7 @@ use yii\base\Component;
 class GeoService extends Component
 {
     public const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
+    public const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org';
 
     /** Results are cached so repeated searches don't burn API quota. */
     public const CACHE_DURATION = 60 * 60 * 24 * 30;
@@ -53,14 +54,30 @@ class GeoService extends Component
      */
     public static function geocode(string $address, ?string $country = null): ?array
     {
-        $params = ['address' => $address];
-
         $country = $country ? strtoupper(trim($country)) : null;
-        if ($country && $country !== '*' && static::isCountryCode($country)) {
+        if (!$country || $country === '*' || !static::isCountryCode($country)) {
+            $country = null;
+        }
+
+        if (self::geocoder() === 'nominatim') {
+            $params = ['q' => $address, 'format' => 'jsonv2', 'limit' => 1];
+            if ($country) {
+                $params['countrycodes'] = strtolower($country);
+            }
+
+            $result = self::nominatim('search', $params)[0] ?? null;
+
+            return isset($result['lat'], $result['lon'])
+                ? ['lat' => (float)$result['lat'], 'lng' => (float)$result['lon']]
+                : null;
+        }
+
+        $params = ['address' => $address];
+        if ($country) {
             $params['components'] = "country:$country";
         }
 
-        $result = static::request($params);
+        $result = self::request($params);
 
         if (!$result) {
             return null;
@@ -80,7 +97,15 @@ class GeoService extends Component
      */
     public static function reverseGeocode(float $lat, float $lng): ?array
     {
-        $result = static::request(['latlng' => "$lat,$lng"]);
+        if (self::geocoder() === 'nominatim') {
+            $result = self::nominatim('reverse', ['lat' => $lat, 'lon' => $lng, 'format' => 'jsonv2', 'addressdetails' => 1]);
+
+            return isset($result['display_name'])
+                ? ['address' => $result['display_name'], 'parts' => $result['address'] ?? []]
+                : null;
+        }
+
+        $result = self::request(['latlng' => "$lat,$lng"]);
 
         if (!$result) {
             return null;
@@ -116,9 +141,80 @@ class GeoService extends Component
         return $countries;
     }
 
+    /**
+     * Returns the ISO 3166-1 alpha-2 code for a country name (in any of the site languages or English).
+     */
+    public static function countryCodeFromName(string $name): ?string
+    {
+        $needle = mb_strtolower(trim($name));
+        if ($needle === '') {
+            return null;
+        }
+
+        if (strlen($needle) === 2 && static::isCountryCode($needle)) {
+            return strtoupper($needle);
+        }
+
+        $repo = Craft::$app->getAddresses()->getCountryRepository();
+        foreach (array_unique([Craft::$app->language, 'en']) as $locale) {
+            foreach ($repo->getList($locale) as $code => $label) {
+                if (mb_strtolower($label) === $needle) {
+                    return $code;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static function isCountryCode(string $code): bool
     {
         return array_key_exists(strtoupper($code), static::countryOptions());
+    }
+
+    private static function geocoder(): string
+    {
+        return Geo::getInstance()->getSettings()->getGeocoder();
+    }
+
+    /**
+     * Queries Nominatim (OpenStreetMap). Results are cached and requests identify the site,
+     * per the Nominatim usage policy: https://operations.osmfoundation.org/policies/nominatim/
+     */
+    private static function nominatim(string $endpoint, array $params): ?array
+    {
+        $params['accept-language'] = Craft::$app->language;
+        $cacheKey = "geo:nominatim:$endpoint:" . md5(Json::encode($params));
+
+        $cached = Craft::$app->getCache()->get($cacheKey);
+        if ($cached !== false) {
+            return $cached ?: null;
+        }
+
+        $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl() ?? '';
+
+        try {
+            $response = Craft::createGuzzleClient(['timeout' => 5])->get(self::NOMINATIM_ENDPOINT . "/$endpoint", [
+                'query' => $params,
+                'headers' => [
+                    'User-Agent' => trim('CraftGeoMaps/1.0 ' . $siteUrl),
+                    'Referer' => $siteUrl,
+                ],
+            ]);
+            $data = Json::decode((string)$response->getBody());
+        } catch (Throwable $e) {
+            Craft::error('Geo Maps: Nominatim request failed: ' . $e->getMessage(), __METHOD__);
+            return null;
+        }
+
+        if (!is_array($data) || isset($data['error'])) {
+            Craft::$app->getCache()->set($cacheKey, [], self::CACHE_DURATION);
+            return null;
+        }
+
+        Craft::$app->getCache()->set($cacheKey, $data, self::CACHE_DURATION);
+
+        return $data ?: null;
     }
 
     /**

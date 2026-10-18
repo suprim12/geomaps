@@ -10,6 +10,8 @@
 namespace sup\craftgeo\models;
 
 use craft\base\Model;
+use craft\helpers\Json;
+use sup\craftgeo\services\GeoService;
 
 /**
  * GeoValue is the object returned by GeoField::normalizeValue().
@@ -26,22 +28,22 @@ class GeoValue extends Model
     // Raw field data
     // -------------------------------------------------------------------------
 
-    public ?float  $lat          = null;
-    public ?float  $lng          = null;
-    public ?int    $zoom         = null;
+    public ?float  $lat = null;
+    public ?float  $lng = null;
+    public ?int    $zoom = null;
     public ?string $full_address = null;
-    public ?string $address1     = null;
-    public ?string $suburb       = null;
-    public ?string $postcode     = null;
-    public ?string $country      = null;
-    public ?string $countryCode  = null;
-    public ?string $geoJson      = null;
+    public ?string $address1 = null;
+    public ?string $suburb = null;
+    public ?string $postcode = null;
+    public ?string $country = null;
+    public ?string $countryCode = null;
+    public ?string $geoJson = null;
 
     /**
      * Distance from the searched location, in the search unit.
      * Only set on results of a proximity search.
      */
-    public ?float  $distance     = null;
+    public ?float  $distance = null;
 
     /**
      * Builds a value from stored/posted data. Returns null when there is nothing to store.
@@ -52,6 +54,10 @@ class GeoValue extends Model
             return null;
         }
 
+        if (self::isSimpleMapData($data)) {
+            $data = self::convertSimpleMapData($data);
+        }
+
         $value = new self();
         $value->lat = self::coordinate($data['lat'] ?? null, 'Latitude', 90, $value->_inputErrors);
         $value->lng = self::coordinate($data['lng'] ?? null, 'Longitude', 180, $value->_inputErrors);
@@ -60,13 +66,13 @@ class GeoValue extends Model
             $value->_inputErrors[] = 'Latitude and longitude must both be set.';
         }
 
-        $value->zoom         = isset($data['zoom']) && is_numeric($data['zoom']) ? (int)$data['zoom'] : null;
+        $value->zoom = isset($data['zoom']) && is_numeric($data['zoom']) ? (int)$data['zoom'] : null;
         $value->full_address = self::stringOrNull($data['full_address'] ?? null);
-        $value->address1     = self::stringOrNull($data['address1'] ?? null);
-        $value->suburb       = self::stringOrNull($data['suburb'] ?? null);
-        $value->postcode     = self::stringOrNull($data['postcode'] ?? null);
-        $value->country      = self::stringOrNull($data['country'] ?? null);
-        $value->countryCode  = self::stringOrNull($data['countryCode'] ?? null);
+        $value->address1 = self::stringOrNull($data['address1'] ?? null);
+        $value->suburb = self::stringOrNull($data['suburb'] ?? null);
+        $value->postcode = self::stringOrNull($data['postcode'] ?? null);
+        $value->country = self::stringOrNull($data['country'] ?? null);
+        $value->countryCode = self::stringOrNull($data['countryCode'] ?? null);
 
         $geoJson = $data['geoJson'] ?? null;
         $value->geoJson = is_array($geoJson) ? json_encode($geoJson) : self::stringOrNull($geoJson);
@@ -103,6 +109,63 @@ class GeoValue extends Model
     public function getInputErrors(): array
     {
         return $this->_inputErrors;
+    }
+
+    /**
+     * Whether the data was saved by Maps (ether/simplemap), which uses `address` and `parts`.
+     */
+    public static function isSimpleMapData(array $data): bool
+    {
+        return !array_key_exists('full_address', $data)
+            && (array_key_exists('address', $data) || array_key_exists('parts', $data));
+    }
+
+    /**
+     * Converts a Maps (ether/simplemap) value — current or legacy parts format — to Geo Maps data.
+     */
+    public static function convertSimpleMapData(array $data): array
+    {
+        $parts = $data['parts'] ?? [];
+        if (is_string($parts)) {
+            $parts = Json::decodeIfJson($parts);
+        }
+        if (!is_array($parts)) {
+            $parts = [];
+        }
+
+        $part = function(string ...$keys) use ($parts): ?string {
+            foreach ($keys as $key) {
+                $v = $parts[$key] ?? null;
+                if (is_string($v) && trim($v) !== '') {
+                    return trim($v);
+                }
+            }
+            return null;
+        };
+
+        $street = trim(implode(' ', array_filter([
+            $part('number', 'street_number'),
+            $part('address', 'route'),
+        ])));
+
+        $country = $part('country');
+        $countryCode = $part('country_short');
+        if (!$countryCode && $country) {
+            $countryCode = GeoService::countryCodeFromName($country);
+        }
+
+        return [
+            'lat' => $data['lat'] ?? null,
+            'lng' => $data['lng'] ?? null,
+            'zoom' => $data['zoom'] ?? null,
+            'full_address' => $data['address'] ?? null,
+            'address1' => $street !== '' ? $street : null,
+            'suburb' => $part('city', 'locality', 'postal_town', 'sublocality', 'neighborhood'),
+            'postcode' => $part('postcode', 'postal_code'),
+            'country' => $country,
+            'countryCode' => $countryCode,
+            'geoJson' => null,
+        ];
     }
 
     private static function stringOrNull(mixed $value): ?string
@@ -143,6 +206,45 @@ class GeoValue extends Model
         return is_array($data) ? $data : null;
     }
 
+    // Maps (ether/simplemap) compatibility, so migrated templates keep working
+    // -------------------------------------------------------------------------
+
+    /**
+     * Alias of `full_address` (Maps by Ether: `entry.map.address`).
+     */
+    public function getAddress(): ?string
+    {
+        return $this->full_address;
+    }
+
+    /**
+     * Address parts in the Maps by Ether shape (`entry.map.parts.city`).
+     */
+    public function getParts(): array
+    {
+        return [
+            'number' => null,
+            'address' => $this->address1,
+            'city' => $this->suburb,
+            'postcode' => $this->postcode,
+            'country' => $this->country,
+            'countryCode' => $this->countryCode,
+        ];
+    }
+
+    /**
+     * Static map image URL (Maps by Ether: `entry.map.img({ width: 600 })`).
+     */
+    public function img(array $options = []): ?string
+    {
+        return $this->getMap()?->img($options);
+    }
+
+    public function imgSrcSet(array $options = []): ?string
+    {
+        return $this->getMap()?->imgSrcSet($options);
+    }
+
     public function __toString(): string
     {
         return (string)($this->full_address ?? ($this->hasCoordinates() ? "{$this->lat}, {$this->lng}" : ''));
@@ -172,9 +274,9 @@ class GeoValue extends Model
         }
 
         if ($this->_staticMap === null) {
-            $this->_staticMap         = new StaticMap();
+            $this->_staticMap = new StaticMap();
             $this->_staticMap->center = ['lat' => $this->lat, 'lng' => $this->lng];
-            $this->_staticMap->zoom   = $this->zoom ?? 14;
+            $this->_staticMap->zoom = $this->zoom ?? 14;
         }
 
         return $this->_staticMap;
@@ -199,7 +301,7 @@ class GeoValue extends Model
         // Field value provides the defaults; caller options take precedence.
         $merged = array_merge([
             'center' => ['lat' => $this->lat, 'lng' => $this->lng],
-            'zoom'   => $this->zoom ?? 14,
+            'zoom' => $this->zoom ?? 14,
         ], $options);
 
         return $model->embed($merged);

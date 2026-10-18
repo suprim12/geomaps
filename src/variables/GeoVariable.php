@@ -47,7 +47,9 @@ class GeoVariable
     {
         $map = new EmbedMap();
         foreach ($options as $key => $value) {
-            if (property_exists($map, $key)) $map->$key = $value;
+            if (property_exists($map, $key)) {
+                $map->$key = $value;
+            }
         }
         return $map;
     }
