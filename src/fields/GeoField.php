@@ -15,28 +15,19 @@ namespace sup\craftgeo\fields;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
-use craft\elements\db\ElementQueryInterface;
-use craft\events\CancelableEvent;
-use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use sup\craftgeo\Geo;
 use sup\craftgeo\services\GeoService;
 use sup\craftgeo\web\GeoAsset;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
 use craft\base\PreviewableFieldInterface;
-use craft\base\Event;
 use craft\elements\db\ElementQuery;
-use craft\gql\GqlEntityRegistry;
-use craft\gql\types\QueryArgument;
+use craft\helpers\UrlHelper;
 use sup\craftgeo\integrations\graphql\types\GeoType;
 use GraphQL\Type\Definition\Type;
 use craft\helpers\Json;
 use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
-use sup\craftgeo\models\EmbedMap;
 use sup\craftgeo\models\GeoValue;
-use sup\craftgeo\models\StaticMap;
-use sup\craftgeo\records\GeoRecord;
 
 
 class GeoField extends Field implements PreviewableFieldInterface
@@ -52,130 +43,76 @@ class GeoField extends Field implements PreviewableFieldInterface
     public ?string $full_address = null;
     public ?string $address1 = null;
     public ?string $suburb = null;
-    public ?int $postcode = null;
+    public ?string $postcode = null;
     public ?string $geoJson = null;
     public bool $hideSearch = false;
     public bool $hideAddress = false;
     public bool $hideMap = false;
     public bool $showLatLng = false;
-	private static mixed $searchParams = null;
 
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
-        if ($element->getIsDraft() || $element->getIsRevision() || !$element->getIsCanonical()) {
-            parent::afterElementSave($element, $isNew);
-            return;
+        // Only live content is searchable; drafts and revisions keep their values in the content column.
+        if (!$element->getIsDraft() && !$element->getIsRevision()) {
+            $value = $element->getFieldValue($this->handle);
+            Geo::getInstance()->maps->saveLookup($this, $element, $value instanceof GeoValue ? $value : null);
         }
-
-        $value = $element->getFieldValue($this->handle);
-
-        if (is_string($value)) {
-            $value = Json::decodeIfJson($value);
-        }
-
-        if (!is_array($value)) {
-            parent::afterElementSave($element, $isNew);
-            return;
-        }
-
-        $lat = isset($value['lat']) && is_numeric($value['lat']) ? (float) $value['lat'] : null;
-        $lng = isset($value['lng']) && is_numeric($value['lng']) ? (float) $value['lng'] : null;
-
-        Craft::$app->db->createCommand()->upsert(
-            '{{%supgeo}}',
-            [
-                'ownerId'     => $element->id,
-                'ownerSiteId' => $element->siteId,
-                'fieldId'     => $this->id,
-                'lat'         => $lat,
-                'lng'         => $lng,
-            ],
-            [
-                'lat' => $lat,
-                'lng' => $lng,
-            ]
-        )->execute();
 
         parent::afterElementSave($element, $isNew);
     }
 
-    public function afterElementDelete(ElementInterface $element): void
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
     {
-        GeoRecord::deleteAll([
-            'ownerId' => $element->id,
-            'fieldId' => $this->id,
-        ]);
+        if (empty($instances) || $value === null || $value === '' || $value === []) {
+            return null;
+        }
 
-        parent::afterElementDelete($element);
+        return Geo::getInstance()->maps->queryCondition(ElementQuery::$activeQuery, $instances, $value);
     }
 
-    public function init(): void
-	{
-		Event::on(
-			ElementQuery::class,
-			ElementQuery::EVENT_AFTER_PREPARE,
-			[$this, 'afterPrepareElementQuery'],
-		);
+    public function getElementValidationRules(): array
+    {
+        return ['validateGeoValue'];
+    }
 
-		parent::init();
-	}
-
-    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
-	{
-		if (empty($instances) || empty($value))
-			return null;
-
-		self::$searchParams = [
-			'field' => $instances[0],
-			'value' => $value,
-		];
-
-		return null;
-	}
-
-    public function beforeElementSave(ElementInterface $element, bool $isNew): bool
+    /**
+     * Validates coordinates and GeoJSON on the element.
+     */
+    public function validateGeoValue(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->handle);
 
-        if (is_string($value)) {
-            $value = Json::decodeIfJson($value);
+        if (!$value instanceof GeoValue) {
+            return;
         }
 
-        if (!is_array($value)) {
-            return parent::beforeElementSave($element, $isNew);
-        }
-       
-        if (isset($value['lat']) || isset($value['lng'])) {
-            $error = $this->validateLatLngValues($value);
-            if ($error !== null) {
-                $element->addError($this->handle, Craft::t('geo', $error));
-                return false;
-            }
-        }
-        if (empty($value['geoJson'])) {
-            return parent::beforeElementSave($element, $isNew);
-        }
-        $geoJson = $value['geoJson'];
-        // Must be valid JSON
-        $decoded = json_decode($geoJson, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $element->addError(
-                $this->handle,
-                Craft::t('geo', 'GeoJSON is not valid JSON: {error}', [
-                    'error' => json_last_error_msg(),
-                ])
-            );
-            return false;
+        foreach ($value->getInputErrors() as $error) {
+            $element->addError("field:$this->handle", Craft::t('geo', $error));
         }
 
-        // Must have a type property
+        if ($value->geoJson === null) {
+            return;
+        }
+
+        $decoded = json_decode($value->geoJson, true);
+
+        if (!is_array($decoded)) {
+            $element->addError("field:$this->handle", Craft::t('geo', 'GeoJSON is not valid JSON.'));
+            return;
+        }
+
+        $error = $this->validateGeoJson($decoded);
+
+        if ($error !== null) {
+            $element->addError("field:$this->handle", Craft::t('geo', $error));
+        }
+    }
+
+    private function validateGeoJson(array $decoded): ?string
+    {
         if (empty($decoded['type'])) {
-            $element->addError(
-                $this->handle,
-                Craft::t('geo', 'GeoJSON must have a "type" property.')
-            );
-            return false;
+            return 'GeoJSON must have a "type" property.';
         }
 
         // Must be a valid GeoJSON type
@@ -192,17 +129,10 @@ class GeoField extends Field implements PreviewableFieldInterface
         ];
 
         if (!in_array($decoded['type'], $validTypes, true)) {
-            $element->addError(
-                $this->handle,
-                Craft::t('geo', 'GeoJSON type "{type}" is not valid. Must be one of: {valid}', [
-                    'type'  => $decoded['type'],
-                    'valid' => implode(', ', $validTypes),
-                ])
-            );
-            return false;
+            return sprintf('GeoJSON type "%s" is not valid. Must be one of: %s', $decoded['type'], implode(', ', $validTypes));
         }
 
-        $error = match ($decoded['type']) {
+        return match ($decoded['type']) {
             'Point'              => $this->validateGeoJsonPoint($decoded),
             'MultiPoint',
             'LineString'         => $this->validateGeoJsonCoordinateArray($decoded, 2),
@@ -214,38 +144,6 @@ class GeoField extends Field implements PreviewableFieldInterface
             'FeatureCollection'  => $this->validateGeoJsonFeatureCollection($decoded),
             default              => null,
         };
-
-        if ($error !== null) {
-            $element->addError($this->handle, Craft::t('geo', $error));
-            return false;
-        }
-
-        return parent::beforeElementSave($element, $isNew);
-    }
-
-    private function  validateLatLngValues(array $value): ?string{
-        $hasLat = isset($value['lat']) && $value['lat'] !== '';
-        $hasLng = isset($value['lng']) && $value['lng'] !== '';
-        if ($hasLat && !$hasLng) {
-         return 'Longitude is required when Latitude is set.';
-        }
-
-        if ($hasLng && !$hasLat) {
-         return 'Latitude is required when Longitude is set.';
-        }
-
-        if($hasLat){
-            if (!is_numeric($value['lat'])) {
-                return 'Latitude must be a number.';
-            }
-        }
-
-        if($hasLng){
-            if (!is_numeric($value['lng'])) {
-              return 'Longitude must be a number.';
-            }
-        }
-        return null;
     }
 
     private function validateGeoJsonPoint(array $data): ?string
@@ -367,19 +265,17 @@ class GeoField extends Field implements PreviewableFieldInterface
 
     public static function icon(): string
     {
-        return 'i-cursor';
+        return 'location-dot';
     }
 
     public static function phpType(): string
     {
-        return 'mixed';
+        return sprintf('\\%s|null', GeoValue::class);
     }
 
     public static function dbType(): array|string|null
     {
-        // Replace with the appropriate data type this field will store in the database,
-        // or `null` if the field is managing its own data storage.
-        return  Schema::TYPE_STRING;
+        return Schema::TYPE_JSON;
     }
 
 
@@ -405,13 +301,6 @@ class GeoField extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function attributeLabels(): array
-    {
-        return array_merge(parent::attributeLabels(), [
-            // ...
-        ]);
-    }
-
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
@@ -430,46 +319,48 @@ class GeoField extends Field implements PreviewableFieldInterface
 			[
                 'zoom',
                 'integer',
-                'min' => 5,
-                'max' => 18
+                'min' => 0,
+                'max' => 22
 			]
         ]);
     }
 
-    public function renderMapField($isInput = false):string{
+    public function renderMapField(bool $isInput = false): string
+    {
         $view = Craft::$app->getView();
-        $handle  = $this->handle ?? 'geo-preview';
-        $locale = Craft::$app->locale->id;
-        $id = Craft::$app->getView()->formatInputId($handle);
-        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
-        
-        $view->registerAssetBundle(GeoAsset::class);
+        $handle = $this->handle ?? 'geo-preview';
+        $namespacedId = $view->namespaceInputId($view->formatInputId($handle));
 
-        $settings = Geo::getInstance()->getSettings();
-        $mapToken =  $settings->getMapToken() ?? null;
-        $geoToken =  $settings->getGeoToken() ?? null;
-        if($mapToken){
-          $view->registerJsFile('https://maps.googleapis.com/maps/api/js?key='.$mapToken.'&loading=async&libraries=places');
-        }
-        $view->registerCssFile('https://unpkg.com/leaflet@latest/dist/leaflet.css');
-		$view->registerCssFile('https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css');
-        $lat  = (float) $this->lat;
-        $lng  = (float) $this->lng;
-        $zoom  = (int) $this->zoom;
+        $this->registerAssets();
 
-    if ($lat == 0 || $lat != null) { $lat = -34.925; }
-    if ($lng == 0 || $lng != null) { $lng = 138.60; }
-       return Craft::$app->getView()->renderTemplate('geo/components/map',[
-            'name' => $this->handle,
+        return $view->renderTemplate('geo/components/map', [
+            'name' => $handle,
             'namespacedId' => $namespacedId,
             'mapdata' => [
-                'lat'=> $lat,
-                'lng'=> $lng,
-                'zoom'=> $zoom,
-                'isInput'=> $isInput,
-                'geoToken'=>$geoToken
-            ]
-       ]);
+                'lat' => $this->lat,
+                'lng' => $this->lng,
+                'zoom' => $this->zoom,
+                'isInput' => $isInput,
+            ],
+        ]);
+    }
+
+    private function registerAssets(): void
+    {
+        $view = Craft::$app->getView();
+        $view->registerAssetBundle(GeoAsset::class);
+
+        $mapToken = Geo::getInstance()->getSettings()->getMapToken();
+
+        if ($mapToken) {
+            $view->registerJsFile(
+                'https://maps.googleapis.com/maps/api/js?' . http_build_query([
+                    'key' => $mapToken,
+                    'loading' => 'async',
+                    'libraries' => 'places',
+                ])
+            );
+        }
     }
 
 	public function beforeSave (bool $isNew): bool
@@ -487,9 +378,7 @@ class GeoField extends Field implements PreviewableFieldInterface
     public function getSettingsHtml(): ?string
     {
          $mapField = $this->renderMapField();
-         $countries = array_merge([
-                '*' => 'All Countries',
-         ], GeoService::$countries);
+         $countries = ['*' => Craft::t('geo', 'All Countries')] + GeoService::countryOptions();
          $handle  = $this->handle ?? 'geo-preview';
         $id = Craft::$app->getView()->formatInputId($handle);
         $namespacedId = Craft::$app->getView()->namespaceInputId($id);
@@ -503,118 +392,73 @@ class GeoField extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    private function createStaticMapModel(?float $lat, ?float $lng, mixed $zoom = null): StaticMap
-    {
-        $map = new StaticMap();
-        $map->center = [$lat, $lng];
-        $map->zoom = $zoom ?? 14;
-        return $map;
-    }
-
-    private function createEmbedMapModel(array $options = [])
-    {
-        $model = new EmbedMap();
-        $model->center = $options['center'];
-        $model->zoom   = $options['zoom'] ?? 14;
- 
-        foreach ($options as $key => $value) {
-            if (property_exists($model, $key)) {
-                $model->$key = $value;
-            }
-        }
- 
-        return $model;
-    }
-
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if (is_string($value) && !empty($value)) {
-            $value = json_decode($value, true) ?? $value;
-        }
- 
-        if (!is_array($value)) {
+        if ($value instanceof GeoValue) {
             return $value;
         }
- 
-        $geoValue = new GeoValue();
- 
-        $geoValue->lat          = isset($value['lat'])      && is_numeric($value['lat'])      ? (float) $value['lat']      : null;
-        $geoValue->lng          = isset($value['lng'])      && is_numeric($value['lng'])      ? (float) $value['lng']      : null;
-        $geoValue->zoom         = isset($value['zoom'])    ? (int)  $value['zoom']  : 14;
-        $geoValue->postcode     = isset($value['postcode'])                                    ? (int)   $value['postcode'] : null;
-        $geoValue->full_address = $value['full_address'] ?? null;
-        $geoValue->address1     = $value['address1']     ?? null;
-        $geoValue->suburb       = $value['suburb']       ?? null;
-        $geoValue->country      = $value['country']      ?? null;
-        $geoValue->countryCode  = $value['countryCode']  ?? null;
-        $geoValue->geoJson      = $value['geoJson']      ?? null;
- 
-        return $geoValue;
+
+        if (is_string($value)) {
+            $value = Json::decodeIfJson($value);
+        }
+
+        return GeoValue::fromArray($value);
+    }
+
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        if (!$value instanceof GeoValue || ($value->isEmpty() && empty($value->getInputErrors()))) {
+            return null;
+        }
+
+        return $value->toArray();
+    }
+
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
+    {
+        return !$value instanceof GeoValue || ($value->isEmpty() && empty($value->getInputErrors()));
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $view = Craft::$app->getView();
-        $locale = Craft::$app->locale->id;
-        $id = Craft::$app->getView()->formatInputId($this->handle);
-        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
+        $id = $view->formatInputId($this->handle);
+        $settings = Geo::getInstance()->getSettings();
 
-        $lat  = (float) $this->lat;
-        $lng  = (float) $this->lng;
-        $zoom  = (int) $this->zoom;
+        $this->registerAssets();
 
-        $settings = Geo::getInstance()->getSettings(); // Global settings
-        $mapToken =  $settings->getMapToken() ?? null;
-        $geoToken =  $settings->getGeoToken() ?? null;
-       
-        $view->registerAssetBundle(GeoAsset::class);
-        if($mapToken){
-          $view->registerJsFile('https://maps.googleapis.com/maps/api/js?key='.  $mapToken . '&libraries=places');
-        }
-        $view->registerCssFile('https://unpkg.com/leaflet@latest/dist/leaflet.css');
-		$view->registerCssFile('https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css');
-
-        return Craft::$app->getView()->renderTemplate('geo/_input',[
-                'name' => $this->handle,
-                'namespacedId' => $namespacedId,
-                'value'=> $value,
-                'id' => $id,
-                'elementId' => $element->id,
-                'mapdata' => [
-                    'lat'=> $lat,
-                    'lng'=> $lng,
-                    'zoom'=> $zoom,
-                    'geoToken'=> $geoToken,
-                ],
-                'global_settings'=> $settings,
-                'settings'=> $this->getSettings()
+        return $view->renderTemplate('geo/_input', [
+            'name' => $this->handle,
+            'namespacedId' => $view->namespaceInputId($id),
+            'value' => $value instanceof GeoValue ? $value->toArray() : null,
+            'id' => $id,
+            'elementId' => $element?->id,
+            'mapdata' => [
+                'lat' => $this->lat,
+                'lng' => $this->lng,
+                'zoom' => $this->zoom,
+                'geoToken' => $settings->getGeoToken(),
+            ],
+            'global_settings' => $settings,
+            'settings' => $this->getSettings(),
+            'settingsUrl' => UrlHelper::cpUrl('settings/plugins/geo'),
         ]);
-    }
-
-    public function getElementValidationRules(): array
-    {
-        return [];
     }
 
     protected function searchKeywords(mixed $value, ElementInterface $element): string
     {
-        return StringHelper::toString($value, ' ');
+        if (!$value instanceof GeoValue) {
+            return '';
+        }
+
+        return implode(' ', array_filter([
+            $value->full_address,
+            $value->address1,
+            $value->suburb,
+            $value->postcode,
+            $value->country,
+        ]));
     }
-
-
-    public function afterPrepareElementQuery(CancelableEvent $event): void{
-        if (!self::$searchParams) return;
-        $query = $event->sender;
-    
-        Geo::getInstance()->map->modifyElementsQuery(
-            $query,
-            self::$searchParams['value'],
-            self::$searchParams['field'],
-        );
-        self::$searchParams = null;
-
-    }
-
 
     public function getElementConditionRuleType(): array|string|null
     {

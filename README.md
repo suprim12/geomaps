@@ -17,7 +17,7 @@ Geo maps is a full-featured geo field for Craft CMS — with search, GeoJSON edi
 
 ## Requirements
 
-This plugin requires Craft CMS 5.9.0 or later, and PHP 8.2 or later.
+This plugin requires Craft CMS 5.10.0 or later, and PHP 8.2 or later.
 
 ## Installation
 

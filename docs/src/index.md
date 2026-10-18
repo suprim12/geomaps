@@ -11,7 +11,7 @@ hero:
       link: /getting-started/installation
     - theme: alt
       text: View on Plugin Store
-      link: https://plugins.craftcms.com/geomaps
+      link: https://plugins.craftcms.com/geo
 ---
 
 ## Features:
@@ -25,9 +25,9 @@ hero:
 
 ## Overview
 
-**Maps** is a beautifully simple, yet deceptively powerful map field for [Craft CMS](https://craftcms.com). It works out of the box with no setup or API tokens needed.
+**Geo Maps** is a location field for [Craft CMS](https://craftcms.com): search for an address, drop a pin, draw shapes as GeoJSON, then query entries by distance and render static or interactive maps. It uses a Google Maps API key for search, geocoding and map tiles.
 
-<a href="https://plugins.craftcms.com/geomaps" target="_blank" class="cta-button">View Maps on the Plugin Store</a>
+<a href="https://plugins.craftcms.com/geo" target="_blank" class="cta-button">View Geo Maps on the Plugin Store</a>
 
 <style>
 .cta-button {

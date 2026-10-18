@@ -66,7 +66,7 @@ class EmbedMap extends Model
 
         $js = <<<JS
         (function() {
-            function initGeoEmbed_{$id}() {
+            function initGeoEmbed() {
                 var config = {$config};
                 var el = document.getElementById(config.id);
                 if (!el) return;
@@ -130,9 +130,9 @@ class EmbedMap extends Model
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initGeoEmbed_{$id});
+                document.addEventListener('DOMContentLoaded', initGeoEmbed);
             } else {
-                initGeoEmbed_{$id}();
+                initGeoEmbed();
             }
         })();
         JS;
@@ -227,7 +227,7 @@ class EmbedMap extends Model
                     $coords = ['lat' => (float) $lat, 'lng' => (float) $lng];
                 }
             } elseif (is_string($location) && !empty($location)) {
-                $coords = \sup\craftgeo\services\GeoService::resolveLocation($location);
+                $coords = GeoService::resolveLocation($location);
             }
 
             if (!$coords) {
