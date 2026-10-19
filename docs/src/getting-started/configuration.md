@@ -19,7 +19,7 @@ Enable the **Maps JavaScript API** and **Places API** for the **Google Maps API 
 :::
 
 ::: warning OpenStreetMap tiles on busy sites
-The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Tile URL** to a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Tile Attribution** to match.
+The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Map Tiles URL** to a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Map Credit** to match.
 :::
 
 ## Config File

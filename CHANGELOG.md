@@ -10,7 +10,7 @@
 - If Google rejects the Maps API key, the field and front-end maps switch to OpenStreetMap and explain why, instead of showing Google’s error.
 - The GeoJSON panel has a title, explanation, close button and an example when empty.
 - Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
-- **Tile URL** and **Tile Attribution** settings for using any raster tile provider.
+- **Map Tiles URL** and **Map Credit** settings for using any raster tile provider.
 - One-click import from Maps (ether/simplemap) under **Utilities → Geo Maps Import**, or `php craft geo/import/simple-map`.
 - Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).

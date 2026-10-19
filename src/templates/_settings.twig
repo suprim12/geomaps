@@ -23,83 +23,61 @@
 {% endif %}
 
 
+<h2>{{ 'Google Maps (optional)'|t('geo') }}</h2>
+<p class="geo-intro">{{ 'Add Google keys to use Google’s map tiles, address search and static map images. Leave them blank to use free OpenStreetMap instead.'|t('geo') }}
+	<a href="https://developers.google.com/maps/get-started" target="_blank" rel="noopener">{{ 'Get a Google key'|t('geo') }}</a></p>
+
 {{ forms.autosuggestField({
-	label: 'Google Maps API Key'|t('geo'),
+	label: 'Google Maps API Key (browser)'|t('geo'),
+	instructions: 'Used in the browser for map tiles, address search and static map images. Enable the **Maps JavaScript API**, **Places API** and **Maps Static API**, and restrict the key to your site’s domains (HTTP referrers), including local ones such as `*.ddev.site/*`.'|t('geo'),
 	id: 'mapToken',
-    suggestEnvVars: true,
 	name: 'mapToken',
-    value: settings.mapToken,
-    disabled:   configFileExists and config.mapToken is defined,
-	instructions: 'Google Maps API key for map tiles and address search in the control panel, and static map images. Leave blank to use OpenStreetMap.'|t('geo'),
-	errors: settings.getErrors('mapToken')
+	suggestEnvVars: true,
+	value: settings.mapToken,
+	placeholder: '$GOOGLE_MAPS_KEY',
+	disabled: configFileExists and config.mapToken is defined,
+	errors: settings.getErrors('mapToken'),
 }) }}
 
-
 {{ forms.autosuggestField({
-	label: 'Google Geocoding API Key'|t('geo'),
+	label: 'Google Geocoding API Key (server)'|t('geo'),
+	instructions: 'Used by your server to look up addresses in location searches. Enable the **Geocoding API** and restrict the key to your server’s IP address. If Google refuses the key, OpenStreetMap is used instead.'|t('geo'),
 	id: 'geoToken',
 	name: 'geoToken',
-    suggestEnvVars: true,
+	suggestEnvVars: true,
 	value: settings.geoToken,
-    disabled:  configFileExists and config.geoToken  is defined,
-	instructions: 'Google Geocoding API key for location search by address. Leave blank to use OpenStreetMap (Nominatim).'|t('geo'),
-	errors: settings.getErrors('geoToken')
+	placeholder: '$GOOGLE_GEOCODING_KEY',
+	disabled: configFileExists and config.geoToken is defined,
+	errors: settings.getErrors('geoToken'),
 }) }}
 
 <hr>
 
+<h2>{{ 'OpenStreetMap'|t('geo') }}</h2>
+<p class="geo-intro">{{ 'Used when there’s no Google key, or if Google rejects it.'|t('geo') }}</p>
+
 {{ forms.autosuggestField({
-	label: 'Tile URL'|t('geo'),
-	instructions: 'Map tiles used when no Google Maps API key is set. The default OpenStreetMap tiles are fine for the control panel; for busy public sites use a tile provider such as Stadia Maps, MapTiler or Thunderforest.'|t('geo'),
+	label: 'Map Tiles URL'|t('geo'),
+	instructions: 'Where the map images come from. `{z}`, `{x}` and `{y}` are filled in for each square of the map. The default OpenStreetMap tiles are free for light use such as the control panel; for maps on busy public sites, sign up with a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com) and paste the URL they give you.'|t('geo'),
 	id: 'tileUrl',
 	name: 'tileUrl',
 	suggestEnvVars: true,
 	value: settings.tileUrl,
 	placeholder: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 	disabled: configFileExists and config.tileUrl is defined,
-	errors: settings.getErrors('tileUrl')
+	errors: settings.getErrors('tileUrl'),
 }) }}
 
 {{ forms.textField({
-	label: 'Tile Attribution'|t('geo'),
-	instructions: 'Credit shown on the map, as required by your tile provider. HTML allowed.'|t('geo'),
+	label: 'Map Credit'|t('geo'),
+	instructions: 'The credit shown in the corner of the map. Tile providers require it, so update it if you change the tiles URL. HTML allowed.'|t('geo'),
 	id: 'tileAttribution',
 	name: 'tileAttribution',
 	value: settings.tileAttribution,
 	disabled: configFileExists and config.tileAttribution is defined,
-	errors: settings.getErrors('tileAttribution')
+	errors: settings.getErrors('tileAttribution'),
 }) }}
 
-<hr>
-
-<div class="geo_info">
-    <a href="https://cloud.google.com/maps-platform/#get-started" target="_blank" rel="nofollow" class="active">
-        <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="29" height="30" viewBox="0 0 29 30"><defs><polygon id="settings-google-a" points=".02 .031 14.098 .031 14.098 22.425 .02 22.425"></polygon></defs> <g fill="none" fill-rule="evenodd"><path fill="#07A25C" d="M0 27.285V6.035a2.238 2.238 0 0 1 2.238-2.237h21.249L0 27.285z"></path> <path fill="#FFE22C" d="M0 27.731v-.446L23.487 3.798h.446a2.239 2.239 0 0 1 2.238 2.238v.446L2.684 29.97h-.446A2.238 2.238 0 0 1 0 27.731"></path> <polygon fill="#6186C3" points="2.684 29.969 13.086 19.568 23.487 29.969"></polygon> <path fill="#FEFEFE" d="M23.487 29.969l-10.56-10.56 2.684-2.684 10.56 10.56v.446a2.239 2.239 0 0 1-2.238 2.238h-.446z"></path> <polygon fill="#DBD9DA" points="26.171 27.285 15.769 16.883 26.171 6.482"></polygon> <path fill="#F5F5F5" d="M10.037 9.45H6.531v1.216h2.075a2.19 2.19 0 1 1-.643-2.36l.97-.948a3.543 3.543 0 1 0 1.104 2.092"></path> <g transform="translate(14.416 .027)"><mask id="settings-google-b" fill="#fff"><use xlink:href="#settings-google-a"></use></mask> <path fill="#DD4231" d="M7.064 22.425h-.01c-.234 0-.357-.177-.383-.368-.569-4.127-1.652-5.678-2.578-7.214C2.554 12.293.02 9.471.02 6.669.02 3.139 2.908.03 7.048.03h.021c4.14 0 7.03 3.109 7.03 6.638 0 2.802-2.536 5.625-4.074 8.174-.927 1.536-2.01 3.087-2.579 7.214-.026.19-.148.368-.382.368" mask="url(#settings-google-b)"></path></g> <path fill="#8E2F22" d="M19.762 5.068a2.425 2.425 0 0 1 3.427 0 2.425 2.425 0 0 1 0 3.426 2.425 2.425 0 0 1-3.427 0 2.426 2.426 0 0 1 0-3.426"></path></g></svg> <span><em>Google Maps (optional)</em>
-        You will need to enable the <strong>Maps JavaScript API</strong> and <strong>Places API</strong> if using Google for the map tiles, and the <strong>Places API</strong> and <strong>Geocoding API</strong> if you are using it for the Geo service.
-    </span></a>
-</div>
-
 {% css %}
-    .geo_info{
-        display:flex;
-        width:50%;
-    }
-     .geo_info svg{
-        width:24px;
-        height:24px;
-        display: flex;
-        flex: 1;
-        max-width: 24px;
-        margin-top:0.3rem
-     }
-       .geo_info span{
-        flex:1;
-       }
-    .geo_info a{
-        display:flex;
-        gap:1rem;
-        align-items:flex-start;
-        color:inherit;
-        text-decoration:none;
-    }
+	.geo-intro { margin: -6px 0 20px; color: var(--medium-text-color); max-width: 70ch; }
 {% endcss %}
