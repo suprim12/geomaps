@@ -20,6 +20,8 @@
 - Geocoding results are cached to save API quota.
 
 ### Changed
+- Rewritten documentation covering the field, templating, location search, maps, GraphQL, Feed Me and console commands.
+- Third-party licences for bundled libraries now ship with the plugin (`THIRD-PARTY-LICENSES.md`).
 - Drawing tools moved to the top-left; circle tools removed because GeoJSON can’t store circles.
 - Google geocoding errors (e.g. a restricted key) now fall back to OpenStreetMap instead of returning no results.
 - Requires Craft CMS 5.10 or later.

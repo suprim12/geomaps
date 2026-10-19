@@ -36,3 +36,10 @@ return [
     'tileAttribution' => '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors',
 ];
 ```
+
+## Map Services’ Terms
+
+Geo Maps talks to third-party map services on your behalf. Their terms apply to your site:
+
+- **OpenStreetMap** data must be credited. Geo Maps shows the credit on every map; keep it visible if you restyle maps. The free `tile.openstreetmap.org` tiles and the Nominatim geocoder are for light use only — see the [tile](https://operations.osmfoundation.org/policies/tiles/) and [Nominatim](https://operations.osmfoundation.org/policies/nominatim/) usage policies.
+- **Google Maps Platform** content (Places search and geocoding results) is meant to be shown on Google maps, and Google limits how long some of it may be stored. If you use Google for address search, use a Google key for your maps too. See the [Google Maps Platform terms](https://cloud.google.com/maps-platform/terms).
