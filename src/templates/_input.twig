@@ -214,22 +214,22 @@
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
 				<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'No location set'|t('geo')|e('js') }}'">{{ 'No location set'|t('geo') }}</span>
 			</span>
-			<button type="button" class="btn small supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geo') }}</button>
+			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geo') }}</button>
 			{% if not hideMap %}
 				<span class="supgeo__hint">{{ 'Search, click the map, or drag the pin.'|t('geo') }}</span>
 			{% endif %}
 		</div>
 
 		<div class="btngroup supgeo__tools">
-			<button type="button" class="btn small" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m8 16-4-4 4-4M16 8l4 4-4 4"/></svg>
+			<button type="button" class="btn" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m8 16-4-4 4-4M16 8l4 4-4 4"/></svg>
 				<span>{{ 'GeoJSON'|t('geo') }}</span>
 			</button>
-			<button type="button" class="btn small" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geo') }}">
+			<button type="button" class="btn" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geo') }}">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
 				<span>{{ 'Download'|t('geo') }}</span>
 			</button>
-			<button type="button" class="btn small" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="{{ 'Upload a GeoJSON file'|t('geo') }}">
+			<button type="button" class="btn" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="{{ 'Upload a GeoJSON file'|t('geo') }}">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>
 				<span>{{ 'Upload'|t('geo') }}</span>
 			</button>
