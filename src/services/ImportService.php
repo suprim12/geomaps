@@ -205,7 +205,8 @@ class ImportService extends Component
     private function convertSettings(array $s, string $source): array
     {
         if ($source === self::SOURCE_GEOMAN) {
-            $settings = ['enableGeoJson' => true];
+            // Geoman fields only hold shapes, so no location pin.
+            $settings = ['enableGeoJson' => true, 'showMarker' => false];
             foreach (['geomanMapLatitude' => 'lat', 'geomanMapLongitude' => 'lng'] as $from => $to) {
                 if (isset($s[$from]) && is_numeric($s[$from])) {
                     $settings[$to] = (float)$s[$from];

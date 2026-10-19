@@ -11,6 +11,7 @@
 	hideAddress: settings.hideAddress ?? false,
 	hideMap: settings.hideMap ?? false,
 	enableGeoJson: settings.enableGeoJson ?? true,
+	showMarker: settings.showMarker ?? true,
 	minZoom: settings.minZoom ?? null,
 	maxZoom: settings.maxZoom ?? null,
 }) %}
@@ -22,6 +23,7 @@
 {% set hideAddress = settings.hideAddress ?? false %}
 {% set hideMap = settings.hideMap ?? false %}
 {% set enableGeoJson = (settings.enableGeoJson ?? true) and not hideMap %}
+{% set showMarker = settings.showMarker ?? true %}
 {% set mapHeight = max(240, (settings.mapHeigth ?? 420)|integer) %}
 
 {% macro textInput(id, name, key, label, attrs) %}
@@ -217,8 +219,14 @@
 					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geo')) }}
 					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geo')) }}
 					{{ _self.textInput(id, name, 'country', 'Country'|t('geo'), { wide: true }) }}
-					{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geo'), { inputmode: 'decimal' }) }}
-					{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geo'), { inputmode: 'decimal' }) }}
+					{% if showMarker %}
+						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geo'), { inputmode: 'decimal' }) }}
+						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geo'), { inputmode: 'decimal' }) }}
+					{% else %}
+						{# Without a pin, the location is set from the centre of the shapes when the entry is saved. #}
+						<input type="hidden" name="{{ name }}[lat]" :value="lat">
+						<input type="hidden" name="{{ name }}[lng]" :value="lng">
+					{% endif %}
 				</div>
 			</div>
 		{% endif %}
@@ -241,7 +249,7 @@
 			</span>
 			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geo') }}</button>
 			{% if not hideMap %}
-				<span class="supgeo__hint">{{ 'Search, click the map, or drag the pin.'|t('geo') }}</span>
+				<span class="supgeo__hint">{{ showMarker ? 'Search, click the map, or drag the pin.'|t('geo') : 'Draw the area with the tools on the left. Its location is the centre of the shapes.'|t('geo') }}</span>
 			{% endif %}
 		</div>
 

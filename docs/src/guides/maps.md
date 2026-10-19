@@ -8,6 +8,8 @@ Render an interactive map centred on a location:
 {{ entry.storeLocation.embed({ height: 360 }) }}
 ```
 
+The field’s shapes are drawn too, and the map zooms to fit them. Fields with **Show Location Pin** turned off (zones, areas) show just their shapes — handy for showing a collection zone or delivery area.
+
 Or build one from scratch with any number of markers:
 
 ```twig
@@ -34,6 +36,9 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `width`, `height` | Size in pixels | `640` × `400` |
 | `markers` | List of `{ location, label, color }`. `location` is `{ lat, lng }` or an address | one marker at the centre |
 | `id` | The map element’s `id` | random |
+| `geoJson` | Shapes to draw: GeoJSON as an array or string | the field’s shapes |
+| `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |
+| `fitShapes` | Zoom to fit the shapes | `true` |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 
 ## Static map images

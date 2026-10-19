@@ -27,6 +27,14 @@
 }) }}
 
 {{ forms.lightswitchField({
+	label: 'Show Location Pin'|t('geo'),
+	instructions: 'Turn off for fields that only hold shapes, such as delivery or bin-collection zones. The entry’s location is then the centre of its shapes, so distance search still works.'|t('geo'),
+	id: 'showMarker',
+	name: 'showMarker',
+	on: field.showMarker
+}) }}
+
+{{ forms.lightswitchField({
 	label: 'Hide Search',
 	instructions: 'Hide the address search. Authors can still click the map or type coordinates.'|t('geo'),
 	id: 'hideSearch',
