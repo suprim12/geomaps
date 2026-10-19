@@ -1,6 +1,6 @@
 # Release Notes for Geo Maps
 
-## 1.0.0 - 2026-10-18
+## 1.0.0 - 2026-10-20
 
 ### Added
 - Redesigned control panel field: search bar, uncovered map, labelled location details beside the map (or below it in narrow spaces such as Matrix blocks and slideouts), and a footer with the current coordinates, **Clear** and GeoJSON tools.
