@@ -36,7 +36,8 @@ class GeoField extends Field implements PreviewableFieldInterface
     public int $zoom = 9;
     public float $minZoom = 3;
     public float $maxZoom = 18;
-    public int $mapHeigth = 500;
+    /** Map height in the control panel, in pixels. (Property name kept for backwards compatibility.) */
+    public int $mapHeigth = 420;
     public ?string $country = null;
     public ?string $countryCode = null;
     public ?string $full_address = null;
@@ -313,6 +314,12 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'double',
                 'min' => -180,
                 'max' => 180,
+            ],
+            [
+                'mapHeigth',
+                'integer',
+                'min' => 240,
+                'max' => 1200,
             ],
             [
                 'zoom',
