@@ -6,6 +6,8 @@
 - Redesigned control panel field: search bar, uncovered map, labelled location details beside the map (or below it in narrow spaces such as Matrix blocks and slideouts), and a footer with the current coordinates, **Clear** and GeoJSON tools.
 - Click the map to drop the pin.
 - **Map Height** field setting.
+- **Show Location Pin** field setting for shape-only fields (zones, areas). The location becomes the centre of the shapes, and Craft Geoman imports use it.
+- `embed()` draws the field’s shapes and fits the map to them; new `geoJson`, `marker` and `fitShapes` options.
 - **Enable Drawing & GeoJSON** field setting, for fields that only need a single location.
 - **Limit Search to Countries** field setting: restrict address search to up to five countries (replaces the single country setting; existing values carry over).
 - If Google rejects the Maps API key, the field and front-end maps switch to OpenStreetMap and explain why, instead of showing Google’s error.

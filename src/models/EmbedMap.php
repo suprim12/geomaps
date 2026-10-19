@@ -29,6 +29,12 @@ class EmbedMap extends Model
     public array   $markers = [];
     public ?string $id = null;
     public array   $options = [];
+    /** GeoJSON (array or string) to draw on the map. */
+    public mixed   $geoJson = null;
+    /** Whether to show a pin at the centre when no markers are given. */
+    public bool    $marker = true;
+    /** Zoom the map to fit the shapes. */
+    public bool    $fitShapes = true;
 
     public function __toString(): string
     {
@@ -52,6 +58,8 @@ class EmbedMap extends Model
             'width' => $this->width,
             'height' => $this->height,
             'markers' => $markers,
+            'geoJson' => $this->resolveGeoJson(),
+            'fitShapes' => $this->fitShapes,
             'options' => $this->options,
             'provider' => $settings->getMapProvider(),
             'tileUrl' => $settings->getTileUrl(),
@@ -88,6 +96,12 @@ class EmbedMap extends Model
         (function() {
             var config = {$config};
 
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, function(c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
             function renderLeaflet(el) {
                 if (typeof L === 'undefined') return;
                 var map = L.map(el, config.options || {}).setView([config.center.lat, config.center.lng], config.zoom);
@@ -97,11 +111,22 @@ class EmbedMap extends Model
                     var m = L.circleMarker([marker.lat, marker.lng], {
                         radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
                     });
-                    if (marker.label) m.bindPopup(String(marker.label).replace(/[&<>"']/g, function(c) {
-                        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-                    }));
+                    if (marker.label) m.bindPopup(escapeHtml(marker.label));
                     m.addTo(map);
                 });
+                if (config.geoJson) {
+                    var shapes = L.geoJSON(config.geoJson, {
+                        style: function(feature) {
+                            var p = (feature && feature.properties) || {};
+                            return { color: p.stroke || p.color || '#2563eb', weight: 2, fillColor: p.fill || p.color || '#2563eb', fillOpacity: 0.2 };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            var name = feature && feature.properties && (feature.properties.name || feature.properties.title);
+                            if (name) layer.bindPopup(escapeHtml(name));
+                        },
+                    }).addTo(map);
+                    if (config.fitShapes && shapes.getLayers().length) map.fitBounds(shapes.getBounds(), { padding: [20, 20], maxZoom: 17 });
+                }
             }
 
             function renderGoogle(el) {
@@ -122,6 +147,17 @@ class EmbedMap extends Model
                         },
                     });
                 });
+                if (config.geoJson) {
+                    var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
+                        ? config.geoJson : { type: 'Feature', properties: {}, geometry: config.geoJson };
+                    map.data.addGeoJson(gj);
+                    map.data.setStyle({ strokeColor: '#2563eb', strokeWeight: 2, fillColor: '#2563eb', fillOpacity: 0.2 });
+                    if (config.fitShapes) {
+                        var bounds = new google.maps.LatLngBounds();
+                        map.data.forEach(function(f) { f.getGeometry().forEachLatLng(function(ll) { bounds.extend(ll); }); });
+                        if (!bounds.isEmpty()) map.fitBounds(bounds, 20);
+                    }
+                }
             }
 
             function init() {
@@ -225,8 +261,19 @@ class EmbedMap extends Model
         return ['lat' => 0.0, 'lng' => 0.0];
     }
 
+    private function resolveGeoJson(): ?array
+    {
+        $geoJson = is_string($this->geoJson) ? json_decode($this->geoJson, true) : $this->geoJson;
+
+        return is_array($geoJson) && !empty($geoJson['type']) ? $geoJson : null;
+    }
+
     private function resolveMarkers(array $center): array
     {
+        if (empty($this->markers) && !$this->marker) {
+            return [];
+        }
+
         if (empty($this->markers)) {
             return [['lat' => $center['lat'], 'lng' => $center['lng'], 'label' => null, 'color' => '#ff0000']];
         }

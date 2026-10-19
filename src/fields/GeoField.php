@@ -54,6 +54,11 @@ class GeoField extends Field implements PreviewableFieldInterface
     public bool $showLatLng = false;
     /** Whether authors can draw shapes and edit GeoJSON. */
     public bool $enableGeoJson = true;
+    /**
+     * Whether the field has a location pin. Turn off for shape-only fields (e.g. collection zones);
+     * their location is then the centre of the shapes.
+     */
+    public bool $showMarker = true;
 
 
     /**
@@ -87,6 +92,24 @@ class GeoField extends Field implements PreviewableFieldInterface
         $codes = array_map(fn($code) => strtoupper(trim((string)$code)), (array)$codes);
 
         return array_values(array_unique(array_filter($codes, fn($code) => $code !== '' && GeoService::isCountryCode($code))));
+    }
+
+    public function beforeElementSave(ElementInterface $element, bool $isNew): bool
+    {
+        // Shape-only fields: keep the location at the centre of the shapes so distance search works.
+        if (!$this->showMarker) {
+            $value = $element->getFieldValue($this->handle);
+            $centre = $value instanceof GeoValue && $value->geoJson !== null
+                ? GeoValue::geoJsonCentre($value->getGeoJsonData() ?? [])
+                : null;
+
+            if ($centre) {
+                $value->lat = round($centre['lat'], 6);
+                $value->lng = round($centre['lng'], 6);
+            }
+        }
+
+        return parent::beforeElementSave($element, $isNew);
     }
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
@@ -460,7 +483,10 @@ class GeoField extends Field implements PreviewableFieldInterface
             $value = Json::decodeIfJson($value);
         }
 
-        return GeoValue::fromArray($value);
+        $geoValue = GeoValue::fromArray($value);
+        $geoValue?->setShowMarker($this->showMarker);
+
+        return $geoValue;
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed

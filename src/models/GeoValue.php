@@ -335,6 +335,14 @@ class GeoValue extends Model
     /** @var string[] */
     private array $_inputErrors = [];
 
+    /** Whether the field shows a location pin (set by the field; used as the embed() default). */
+    private bool $_showMarker = true;
+
+    public function setShowMarker(bool $showMarker): void
+    {
+        $this->_showMarker = $showMarker;
+    }
+
     /**
      * Returns the StaticMap model for this value.
      *
@@ -373,10 +381,12 @@ class GeoValue extends Model
     {
         $model = new EmbedMap();
 
-        // Field value provides the defaults; caller options take precedence.
+        // Field value provides the defaults (location, zoom, shapes, pin); caller options take precedence.
         $merged = array_merge([
             'center' => ['lat' => $this->lat, 'lng' => $this->lng],
             'zoom' => $this->zoom ?? 14,
+            'geoJson' => $this->getGeoJsonData(),
+            'marker' => $this->_showMarker,
         ], $options);
 
         return $model->embed($merged);
