@@ -44,6 +44,20 @@
 
 
 {{ forms.textField({
+	label: 'Map Height'|t('geo'),
+	instructions: 'Height of the map in the control panel, in pixels.'|t('geo'),
+	id: 'mapHeigth',
+	name: 'mapHeigth',
+	type: 'number',
+	value: field.mapHeigth,
+	min: 240,
+	max: 1200,
+	step: 10,
+	size: 6,
+	errors: field.getErrors('mapHeigth'),
+}) }}
+
+{{ forms.textField({
 	label: 'Min Zoom',
 	instructions: 'The minimum level the user can zoom the map out to.',
 	id: 'minZoom',
@@ -53,6 +67,7 @@
 	min: 0,
 	max: 18,
 	step: 0.01,
+	size: 6,
 }) }}
 
 {{ forms.textField({
@@ -65,6 +80,7 @@
 	min: 0,
 	max: 18,
 	step: 0.01,
+	size: 6,
 }) }}
 
 {{ forms.selectField({

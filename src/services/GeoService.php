@@ -22,6 +22,7 @@ class GeoService extends Component
 {
     public const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
     public const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org';
+    private const GOOGLE_UNAVAILABLE_KEY = 'geo:google-geocoding-unavailable';
 
     /** Results are cached so repeated searches don't burn API quota. */
     public const CACHE_DURATION = 60 * 60 * 24 * 30;
@@ -60,16 +61,7 @@ class GeoService extends Component
         }
 
         if (self::geocoder() === 'nominatim') {
-            $params = ['q' => $address, 'format' => 'jsonv2', 'limit' => 1];
-            if ($country) {
-                $params['countrycodes'] = strtolower($country);
-            }
-
-            $result = self::nominatim('search', $params)[0] ?? null;
-
-            return isset($result['lat'], $result['lon'])
-                ? ['lat' => (float)$result['lat'], 'lng' => (float)$result['lon']]
-                : null;
+            return self::geocodeWithNominatim($address, $country);
         }
 
         $params = ['address' => $address];
@@ -78,6 +70,11 @@ class GeoService extends Component
         }
 
         $result = self::request($params);
+
+        if ($result === false) {
+            // Google refused or failed (bad key, quota, network); keep search working with OpenStreetMap.
+            return self::geocodeWithNominatim($address, $country);
+        }
 
         if (!$result) {
             return null;
@@ -98,14 +95,14 @@ class GeoService extends Component
     public static function reverseGeocode(float $lat, float $lng): ?array
     {
         if (self::geocoder() === 'nominatim') {
-            $result = self::nominatim('reverse', ['lat' => $lat, 'lon' => $lng, 'format' => 'jsonv2', 'addressdetails' => 1]);
-
-            return isset($result['display_name'])
-                ? ['address' => $result['display_name'], 'parts' => $result['address'] ?? []]
-                : null;
+            return self::reverseGeocodeWithNominatim($lat, $lng);
         }
 
         $result = self::request(['latlng' => "$lat,$lng"]);
+
+        if ($result === false) {
+            return self::reverseGeocodeWithNominatim($lat, $lng);
+        }
 
         if (!$result) {
             return null;
@@ -172,6 +169,29 @@ class GeoService extends Component
         return array_key_exists(strtoupper($code), static::countryOptions());
     }
 
+    private static function geocodeWithNominatim(string $address, ?string $country): ?array
+    {
+        $params = ['q' => $address, 'format' => 'jsonv2', 'limit' => 1];
+        if ($country) {
+            $params['countrycodes'] = strtolower($country);
+        }
+
+        $result = self::nominatim('search', $params)[0] ?? null;
+
+        return isset($result['lat'], $result['lon'])
+            ? ['lat' => (float)$result['lat'], 'lng' => (float)$result['lon']]
+            : null;
+    }
+
+    private static function reverseGeocodeWithNominatim(float $lat, float $lng): ?array
+    {
+        $result = self::nominatim('reverse', ['lat' => $lat, 'lon' => $lng, 'format' => 'jsonv2', 'addressdetails' => 1]);
+
+        return isset($result['display_name'])
+            ? ['address' => $result['display_name'], 'parts' => $result['address'] ?? []]
+            : null;
+    }
+
     private static function geocoder(): string
     {
         return Geo::getInstance()->getSettings()->getGeocoder();
@@ -218,21 +238,25 @@ class GeoService extends Component
     }
 
     /**
-     * Sends a Geocoding API request and returns the first result.
+     * Sends a Geocoding API request.
+     *
+     * Returns the first result, null when nothing was found, or false when Google refused or failed
+     * (so callers can fall back to OpenStreetMap).
      */
-    private static function request(array $params): ?array
+    private static function request(array $params): array|false|null
     {
         $apiKey = Geo::getInstance()->getSettings()->getGeoToken();
+        $cache = Craft::$app->getCache();
 
-        if (!$apiKey) {
-            Craft::warning('Geo Maps: geocoding skipped because no Geocoding API key is configured.', __METHOD__);
-            return null;
+        // After a refusal (bad key, quota), skip Google for a while instead of failing every search.
+        if (!$apiKey || $cache->get(self::GOOGLE_UNAVAILABLE_KEY)) {
+            return false;
         }
 
         $params['language'] = Craft::$app->language;
         $cacheKey = 'geo:geocode:' . md5(Json::encode($params));
 
-        $cached = Craft::$app->getCache()->get($cacheKey);
+        $cached = $cache->get($cacheKey);
         if ($cached !== false) {
             return $cached ?: null;
         }
@@ -243,25 +267,29 @@ class GeoService extends Component
             ]);
             $data = Json::decode((string)$response->getBody());
         } catch (Throwable $e) {
-            Craft::error('Geo Maps: geocoding request failed: ' . $e->getMessage(), __METHOD__);
-            return null;
+            Craft::error('Geo Maps: Google geocoding request failed, using OpenStreetMap instead: ' . $e->getMessage(), __METHOD__);
+            return false;
         }
 
         $status = $data['status'] ?? 'UNKNOWN';
 
         if ($status === 'ZERO_RESULTS') {
-            Craft::$app->getCache()->set($cacheKey, [], self::CACHE_DURATION);
+            $cache->set($cacheKey, [], self::CACHE_DURATION);
             return null;
         }
 
         if ($status !== 'OK' || empty($data['results'][0])) {
-            // Don't cache errors like OVER_QUERY_LIMIT or REQUEST_DENIED.
-            Craft::warning("Geo Maps: geocoding returned $status" . (isset($data['error_message']) ? ": {$data['error_message']}" : ''), __METHOD__);
-            return null;
+            Craft::warning("Geo Maps: Google geocoding returned $status, using OpenStreetMap instead" . (isset($data['error_message']) ? ": {$data['error_message']}" : ''), __METHOD__);
+
+            if (in_array($status, ['REQUEST_DENIED', 'OVER_QUERY_LIMIT', 'OVER_DAILY_LIMIT'], true)) {
+                $cache->set(self::GOOGLE_UNAVAILABLE_KEY, $status, 600);
+            }
+
+            return false;
         }
 
         $result = $data['results'][0];
-        Craft::$app->getCache()->set($cacheKey, $result, self::CACHE_DURATION);
+        $cache->set($cacheKey, $result, self::CACHE_DURATION);
 
         return $result;
     }
