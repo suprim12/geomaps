@@ -19,7 +19,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/' },
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Configuration', link: '/getting-started/configuration' },
-          { text: 'Migrating from Maps', link: '/getting-started/migrating-from-maps' },
+          { text: 'Migrating from Maps or Geoman', link: '/getting-started/migrating-from-maps' },
         ],
       },
       {

@@ -56,6 +56,8 @@ class GeoValue extends Model
 
         if (self::isSimpleMapData($data)) {
             $data = self::convertSimpleMapData($data);
+        } elseif (self::isGeoJsonData($data)) {
+            $data = self::convertGeoJsonData($data);
         }
 
         $value = new self();
@@ -168,6 +170,78 @@ class GeoValue extends Model
         ];
     }
 
+    public const GEOJSON_TYPES = [
+        'Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon',
+        'GeometryCollection', 'Feature', 'FeatureCollection',
+    ];
+
+    /**
+     * Whether the data is bare GeoJSON, as saved by Craft Geoman (handplant/craft-geoman).
+     */
+    public static function isGeoJsonData(array $data): bool
+    {
+        return isset($data['type'])
+            && in_array($data['type'], self::GEOJSON_TYPES, true)
+            && !array_key_exists('lat', $data)
+            && !array_key_exists('geoJson', $data);
+    }
+
+    /**
+     * Wraps bare GeoJSON as Geo Maps data, using the centre of its shapes as the location.
+     */
+    public static function convertGeoJsonData(array $geoJson): array
+    {
+        $centre = self::geoJsonCentre($geoJson);
+
+        return [
+            'lat' => $centre['lat'] ?? null,
+            'lng' => $centre['lng'] ?? null,
+            'geoJson' => json_encode($geoJson),
+        ];
+    }
+
+    /**
+     * Centre of the bounding box of every coordinate in a GeoJSON object, or null if it has none.
+     *
+     * @return array{lat: float, lng: float}|null
+     */
+    public static function geoJsonCentre(array $geoJson): ?array
+    {
+        $minLat = $minLng = INF;
+        $maxLat = $maxLng = -INF;
+
+        $walk = function(mixed $node) use (&$walk, &$minLat, &$minLng, &$maxLat, &$maxLng): void {
+            if (!is_array($node)) {
+                return;
+            }
+            // A position is [lng, lat, ...].
+            if (isset($node[0], $node[1]) && is_numeric($node[0]) && is_numeric($node[1])) {
+                $minLng = min($minLng, (float)$node[0]);
+                $maxLng = max($maxLng, (float)$node[0]);
+                $minLat = min($minLat, (float)$node[1]);
+                $maxLat = max($maxLat, (float)$node[1]);
+                return;
+            }
+            foreach (['coordinates', 'geometry', 'geometries', 'features'] as $key) {
+                if (isset($node[$key])) {
+                    $walk($node[$key]);
+                }
+            }
+            if (array_is_list($node)) {
+                foreach ($node as $child) {
+                    $walk($child);
+                }
+            }
+        };
+        $walk($geoJson);
+
+        if ($minLat === INF) {
+            return null;
+        }
+
+        return ['lat' => ($minLat + $maxLat) / 2, 'lng' => ($minLng + $maxLng) / 2];
+    }
+
     private static function stringOrNull(mixed $value): ?string
     {
         if ($value === null || is_array($value) || is_object($value)) {
@@ -247,7 +321,8 @@ class GeoValue extends Model
 
     public function __toString(): string
     {
-        return (string)($this->full_address ?? ($this->hasCoordinates() ? "{$this->lat}, {$this->lng}" : ''));
+        // Address first; shape-only values print their GeoJSON (as Craft Geoman fields did).
+        return (string)($this->full_address ?? $this->geoJson ?? ($this->hasCoordinates() ? "{$this->lat}, {$this->lng}" : ''));
     }
 
     // -------------------------------------------------------------------------

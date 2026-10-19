@@ -8,7 +8,7 @@ Geo maps is a full-featured geo field for Craft CMS — with search, GeoJSON edi
 
 ## Features
 - Works out of the box with OpenStreetMap — or add a Google key for Google tiles, Places search and static maps.
-- One-click import from Maps (ether/simplemap): fields, content and templates carry over.
+- One-click import from Maps (ether/simplemap) and Craft Geoman: fields, content and most templates carry over.
 - Search by Location: Filter entries by proximity to a given location. Sort by distance and display results on a map.
 - GeoJson Editing: Edit and manage GeoJson data directly within the Craft control panel.
 - Feature Editor panel with Properties, GeoJSON tabs.

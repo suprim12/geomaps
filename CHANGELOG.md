@@ -12,7 +12,7 @@
 - The GeoJSON panel has a title, explanation, close button and an example when empty.
 - Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
 - **Map Tiles URL** and **Map Credit** settings for using any raster tile provider.
-- One-click import from Maps (ether/simplemap) under **Utilities → Geo Maps Import**, or `php craft geo/import/simple-map`.
+- Import from Maps (ether/simplemap) and Craft Geoman (handplant/craft-geoman) under **Utilities → Geo Maps Import** — one field at a time or all at once — or with `php craft geo/import [--field=handle]`.
 - Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).
 - Location search accepts a `coordinate`, a `{ lat, lng }` object, an address string, or another Geo Maps value.
@@ -21,6 +21,8 @@
 - Geocoding results are cached to save API quota.
 
 ### Changed
+- The GeoJSON editor loads only when its panel is opened, roughly halving the control panel script loaded on entry pages (283 KB → 149 KB gzipped).
+- Field settings no longer store leftover value properties in project config.
 - Rewritten documentation covering the field, templating, location search, maps, GraphQL, Feed Me and console commands.
 - Third-party licences for bundled libraries now ship with the plugin (`THIRD-PARTY-LICENSES.md`).
 - Drawing tools moved to the top-left; circle tools removed because GeoJSON can’t store circles.

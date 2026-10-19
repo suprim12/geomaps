@@ -33,6 +33,9 @@ class GeoAsset extends AssetBundle
             'js/supgeo.js',
         ];
 
+        // An ES module, so the GeoJSON editor can be loaded only when it's opened.
+        $this->jsOptions = ['type' => 'module'];
+
         parent::init();
     }
 }
