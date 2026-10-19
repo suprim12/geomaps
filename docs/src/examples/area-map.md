@@ -2,6 +2,8 @@
 
 Show every zone, region or delivery area on a single map, each in its own colour with its name in a popup.
 
+![Three collection zones on one map in blue, green and orange, with a legend; Zone C has a hole cut out](/examples/area-map.jpg)
+
 ## The template
 
 ```twig

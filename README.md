@@ -50,6 +50,8 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 ### Find the nearest stores
 
+![Store locator](https://raw.githubusercontent.com/suprim12/craft-geomaps/main/docs/src/public/examples/store-locator.jpg)
+
 ```twig
 {% set stores = craft.entries()
   .section('stores')
@@ -64,6 +66,8 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 `location` also accepts `{ lat: …, lng: … }` or another entry’s location. Results are nearest first.
 
 ### Find the zone that contains an address
+
+![Bin collection zone lookup](https://raw.githubusercontent.com/suprim12/craft-geomaps/main/docs/src/public/examples/zone-lookup.jpg)
 
 ```twig
 {% set zone = craft.entries()
