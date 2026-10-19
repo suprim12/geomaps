@@ -7,10 +7,10 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\migrations;
+namespace suprim\geomaps\migrations;
 
 use craft\db\Migration;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 
 /**
  * Versions before 1.0.0 never wrote coordinates to the lookup table, so location search returned nothing.
@@ -19,7 +19,7 @@ class m261018_000000_rebuild_lookup extends Migration
 {
     public function safeUp(): bool
     {
-        Geo::getInstance()->maps->rebuildLookup();
+        Plugin::getInstance()->maps->rebuildLookup();
         return true;
     }
 

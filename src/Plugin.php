@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo;
+namespace suprim\geomaps;
 
 use Craft;
 use craft\base\Model;
@@ -22,20 +22,20 @@ use craft\services\Fields;
 use craft\services\Gql;
 use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
-use sup\craftgeo\fields\GeoField;
-use sup\craftgeo\integrations\feedme\fields\GeoFeedMeField as FieldsGeoFeedMeField;
-use sup\craftgeo\integrations\graphql\types\GeoCoordsInput;
-use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
-use sup\craftgeo\integrations\graphql\types\GeoType;
-use sup\craftgeo\jobs\RebuildLookup;
-use sup\craftgeo\models\Settings;
-use sup\craftgeo\records\GeoRecord;
-use sup\craftgeo\services\GeoService;
-use sup\craftgeo\services\ImportService;
-use sup\craftgeo\services\MapService;
-use sup\craftgeo\services\ZoneService;
-use sup\craftgeo\utilities\ImportUtility;
-use sup\craftgeo\variables\GeoVariable;
+use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\integrations\feedme\fields\GeoFeedMeField as FieldsGeoFeedMeField;
+use suprim\geomaps\integrations\graphql\types\GeoCoordsInput;
+use suprim\geomaps\integrations\graphql\types\GeoQueryArgument;
+use suprim\geomaps\integrations\graphql\types\GeoType;
+use suprim\geomaps\jobs\RebuildLookup;
+use suprim\geomaps\models\Settings;
+use suprim\geomaps\records\GeoRecord;
+use suprim\geomaps\services\GeoService;
+use suprim\geomaps\services\ImportService;
+use suprim\geomaps\services\MapService;
+use suprim\geomaps\services\ZoneService;
+use suprim\geomaps\utilities\ImportUtility;
+use suprim\geomaps\variables\GeoVariable;
 use yii\base\Event;
 
 /**
@@ -46,7 +46,7 @@ use yii\base\Event;
  * @method Settings getSettings()
  */
 
-class Geo extends BasePlugin
+class Plugin extends BasePlugin
 {
     public string $schemaVersion = '1.0.2';
     public bool $hasCpSettings = true;
@@ -72,12 +72,12 @@ class Geo extends BasePlugin
 
     public function createInstallMigration(): ?\craft\db\Migration
     {
-        return new \sup\craftgeo\migrations\Install();
+        return new \suprim\geomaps\migrations\Install();
     }
 
     public function createUninstallMigration(): ?\craft\db\Migration
     {
-        return new \sup\craftgeo\migrations\Uninstall();
+        return new \suprim\geomaps\migrations\Uninstall();
     }
 
     protected function createSettingsModel(): ?Model
@@ -88,10 +88,10 @@ class Geo extends BasePlugin
 
     protected function settingsHtml(): ?string
     {
-        return Craft::$app->view->renderTemplate('geo/_settings.twig', [
+        return Craft::$app->view->renderTemplate('geomaps/_settings.twig', [
             'plugin' => $this,
             'settings' => $this->getSettings(),
-            'config' => Craft::$app->config->getConfigFromFile('geo'),
+            'config' => Craft::$app->config->getConfigFromFile('geomaps'),
         ]);
     }
 

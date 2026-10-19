@@ -97,5 +97,5 @@ See [Store Locator](/examples/store-locator) and [Bin Collection Zones](/example
 Address and place names are geocoded with Google when a **Google Geocoding API Key** is set, otherwise with OpenStreetMap (Nominatim). Results are cached for 30 days. If an address can’t be found, the search returns no results.
 
 ::: tip
-Coordinates are indexed when entries are saved. After importing content directly into the database, run `php craft geo/lookup/rebuild` — see [Console Commands](/guides/console).
+Coordinates are indexed when entries are saved. After importing content directly into the database, run `php craft geomaps/lookup/rebuild` — see [Console Commands](/guides/console).
 :::

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\records;
+namespace suprim\geomaps\records;
 
 use craft\db\ActiveRecord;
 

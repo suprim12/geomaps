@@ -16,20 +16,20 @@
         <blockquote class="note">
             <p>
                 {{ 'Some settings are being overridden by your' }}
-                <code>config/geo.php</code>
+                <code>config/geomaps.php</code>
             </p>
         </blockquote>
     </div>
 {% endif %}
 
 
-<h2>{{ 'Google Maps (optional)'|t('geo') }}</h2>
-<p class="geo-intro">{{ 'Add Google keys to use Google’s map tiles, address search and static map images. Leave them blank to use free OpenStreetMap instead.'|t('geo') }}
-	<a href="https://developers.google.com/maps/get-started" target="_blank" rel="noopener">{{ 'Get a Google key'|t('geo') }}</a></p>
+<h2>{{ 'Google Maps (optional)'|t('geomaps') }}</h2>
+<p class="geo-intro">{{ 'Add Google keys to use Google’s map tiles, address search and static map images. Leave them blank to use free OpenStreetMap instead.'|t('geomaps') }}
+	<a href="https://developers.google.com/maps/get-started" target="_blank" rel="noopener">{{ 'Get a Google key'|t('geomaps') }}</a></p>
 
 {{ forms.autosuggestField({
-	label: 'Google Maps API Key (browser)'|t('geo'),
-	instructions: 'Used in the browser for map tiles, address search and static map images. Enable the **Maps JavaScript API**, **Places API** and **Maps Static API**, and restrict the key to your site’s domains (HTTP referrers), including local ones such as `*.ddev.site/*`.'|t('geo'),
+	label: 'Google Maps API Key (browser)'|t('geomaps'),
+	instructions: 'Used in the browser for map tiles, address search and static map images. Enable the **Maps JavaScript API**, **Places API** and **Maps Static API**, and restrict the key to your site’s domains (HTTP referrers), including local ones such as `*.ddev.site/*`.'|t('geomaps'),
 	id: 'mapToken',
 	name: 'mapToken',
 	suggestEnvVars: true,
@@ -40,8 +40,8 @@
 }) }}
 
 {{ forms.autosuggestField({
-	label: 'Google Geocoding API Key (server)'|t('geo'),
-	instructions: 'Used by your server to look up addresses in location searches. Enable the **Geocoding API** and restrict the key to your server’s IP address. If Google refuses the key, OpenStreetMap is used instead.'|t('geo'),
+	label: 'Google Geocoding API Key (server)'|t('geomaps'),
+	instructions: 'Used by your server to look up addresses in location searches. Enable the **Geocoding API** and restrict the key to your server’s IP address. If Google refuses the key, OpenStreetMap is used instead.'|t('geomaps'),
 	id: 'geoToken',
 	name: 'geoToken',
 	suggestEnvVars: true,
@@ -53,12 +53,12 @@
 
 <hr>
 
-<h2>{{ 'OpenStreetMap'|t('geo') }}</h2>
-<p class="geo-intro">{{ 'Used when there’s no Google key, or if Google rejects it.'|t('geo') }}</p>
+<h2>{{ 'OpenStreetMap'|t('geomaps') }}</h2>
+<p class="geo-intro">{{ 'Used when there’s no Google key, or if Google rejects it.'|t('geomaps') }}</p>
 
 {{ forms.autosuggestField({
-	label: 'Map Tiles URL'|t('geo'),
-	instructions: 'Where the map images come from. `{z}`, `{x}` and `{y}` are filled in for each square of the map. The default OpenStreetMap tiles are free for light use such as the control panel; for maps on busy public sites, sign up with a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com) and paste the URL they give you.'|t('geo'),
+	label: 'Map Tiles URL'|t('geomaps'),
+	instructions: 'Where the map images come from. `{z}`, `{x}` and `{y}` are filled in for each square of the map. The default OpenStreetMap tiles are free for light use such as the control panel; for maps on busy public sites, sign up with a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com) and paste the URL they give you.'|t('geomaps'),
 	id: 'tileUrl',
 	name: 'tileUrl',
 	suggestEnvVars: true,
@@ -69,8 +69,8 @@
 }) }}
 
 {{ forms.textField({
-	label: 'Map Credit'|t('geo'),
-	instructions: 'The credit shown in the corner of the map. Tile providers require it, so update it if you change the tiles URL. HTML allowed.'|t('geo'),
+	label: 'Map Credit'|t('geomaps'),
+	instructions: 'The credit shown in the corner of the map. Tile providers require it, so update it if you change the tiles URL. HTML allowed.'|t('geomaps'),
 	id: 'tileAttribution',
 	name: 'tileAttribution',
 	value: settings.tileAttribution,

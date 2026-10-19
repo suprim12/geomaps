@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo\services;
+namespace suprim\geomaps\services;
 
 use craft\helpers\Json;
 use yii\base\Component;

@@ -7,12 +7,12 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\utilities;
+namespace suprim\geomaps\utilities;
 
 use Craft;
 use craft\base\Utility;
 use craft\helpers\UrlHelper;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 
 /**
  * One-click import from Maps by Ether (ether/simplemap).
@@ -21,12 +21,12 @@ class ImportUtility extends Utility
 {
     public static function displayName(): string
     {
-        return Craft::t('geo', 'Geo Maps Import');
+        return Craft::t('geomaps', 'Geo Maps Import');
     }
 
     public static function id(): string
     {
-        return 'geo-import';
+        return 'geomaps-import';
     }
 
     public static function icon(): ?string
@@ -36,8 +36,8 @@ class ImportUtility extends Utility
 
     public static function contentHtml(): string
     {
-        return Craft::$app->getView()->renderTemplate('geo/utilities/import', [
-            'fields' => Geo::getInstance()->import->getImportableFields(),
+        return Craft::$app->getView()->renderTemplate('geomaps/utilities/import', [
+            'fields' => Plugin::getInstance()->import->getImportableFields(),
             'simpleMapInstalled' => Craft::$app->getPlugins()->isPluginInstalled('simplemap'),
             'pluginsUrl' => UrlHelper::cpUrl('settings/plugins'),
         ]);

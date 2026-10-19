@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo\integrations\graphql\types;
+namespace suprim\geomaps\integrations\graphql\types;
 
 use craft\gql\base\SingularTypeInterface;
 use craft\gql\GqlEntityRegistry;

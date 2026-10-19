@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\models;
+namespace suprim\geomaps\models;
 
 use craft\base\Model;
 use craft\helpers\Json;
-use sup\craftgeo\services\GeoService;
+use suprim\geomaps\services\GeoService;
 
 /**
  * GeoValue is the object returned by GeoField::normalizeValue().
@@ -298,7 +298,7 @@ class GeoValue extends Model
 
         $point = GeoService::resolveLocation($location, $country);
 
-        return $point !== null && \sup\craftgeo\Geo::getInstance()->zones->contains($data, (float)$point['lat'], (float)$point['lng']);
+        return $point !== null && \suprim\geomaps\Plugin::getInstance()->zones->contains($data, (float)$point['lat'], (float)$point['lng']);
     }
 
     // Maps (ether/simplemap) compatibility, so migrated templates keep working

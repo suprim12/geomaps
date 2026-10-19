@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo\web;
+namespace suprim\geomaps\web;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;

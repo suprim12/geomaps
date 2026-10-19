@@ -1,5 +1,5 @@
 {
-  "name": "suprim/craft-geomaps",
+  "name": "suprim/geomaps",
   "description": "Location fields for Craft CMS: address autocomplete, GeoJSON drawing, proximity search, static and embedded maps, GraphQL and Feed Me support.",
   "type": "craft-plugin",
   "license": "proprietary",
@@ -22,15 +22,15 @@
   },
   "autoload": {
     "psr-4": {
-      "sup\\craftgeo\\": "src/"
+      "suprim\\geomaps\\": "src/"
     }
   },
   "extra": {
-    "handle": "geo",
+    "handle": "geomaps",
     "name": "Geo Maps",
     "developer": "suprim golay",
     "documentationUrl": "https://github.com/suprim12/craft-geomaps",
-    "class": "sup\\craftgeo\\Geo",
+    "class": "suprim\\geomaps\\Plugin",
     "developerUrl": "https://suprimgolay.com.np",
     "developerEmail": "suprimtech@gmail.com",
     "changelogUrl": "https://raw.githubusercontent.com/suprim12/craft-geomaps/main/CHANGELOG.md"

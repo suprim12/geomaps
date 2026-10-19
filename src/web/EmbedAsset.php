@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\web;
+namespace suprim\geomaps\web;
 
 use craft\web\AssetBundle;
 

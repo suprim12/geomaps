@@ -42,8 +42,8 @@
 		<div class="supgeo__searchbar" x-ref="apgeo-search">
 			<span class="supgeo__search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
 			<input type="text" class="supgeo__search-input text fullwidth"
-				placeholder="{{ 'Search for an address or place'|t('geo') }}"
-				aria-label="{{ 'Search for an address or place'|t('geo') }}"
+				placeholder="{{ 'Search for an address or place'|t('geomaps') }}"
+				aria-label="{{ 'Search for an address or place'|t('geomaps') }}"
 				x-model="searchQuery" @input="onSearchInput()" @keydown="onSearchKeydown($event)" @blur="closeSuggestions()"
 				autocomplete="off" role="combobox" aria-autocomplete="list" :aria-expanded="suggestionsOpen"
 				:aria-activedescendant="activeSuggestion >= 0 ? '{{ id }}-suggestion-' + activeSuggestion : null">
@@ -67,8 +67,8 @@
 	{% if not hideMap %}
 	<div class="supgeo__notice" x-cloak x-show="googleFailed">
 		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
-		<span>{{ 'Google Maps rejected the API key, so OpenStreetMap is being used.'|t('geo') }} {% if currentUser.admin ?? false %}<a href="{{ settingsUrl }}">{{ 'Check the key'|t('geo') }}</a>{% endif %}</span>
-		<button type="button" class="supgeo__notice-close" @click="googleFailed = false" aria-label="{{ 'Dismiss'|t('geo') }}">
+		<span>{{ 'Google Maps rejected the API key, so OpenStreetMap is being used.'|t('geomaps') }} {% if currentUser.admin ?? false %}<a href="{{ settingsUrl }}">{{ 'Check the key'|t('geomaps') }}</a>{% endif %}</span>
+		<button type="button" class="supgeo__notice-close" @click="googleFailed = false" aria-label="{{ 'Dismiss'|t('geomaps') }}">
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
 		</button>
 	</div>
@@ -81,10 +81,10 @@
 			<div class="supgeo__geojson" x-cloak x-show="showEditor">
 				<div class="supgeo__panel-head">
 					<div>
-						<div class="supgeo__panel-title">{{ 'GeoJSON'|t('geo') }}</div>
-						<div class="supgeo__panel-desc">{{ 'The shapes drawn on the map. Edit here to update them.'|t('geo') }}</div>
+						<div class="supgeo__panel-title">{{ 'GeoJSON'|t('geomaps') }}</div>
+						<div class="supgeo__panel-desc">{{ 'The shapes drawn on the map. Edit here to update them.'|t('geomaps') }}</div>
 					</div>
-					<button type="button" class="supgeo__panel-close" @click="toggleEditor()" title="{{ 'Close GeoJSON'|t('geo') }}" aria-label="{{ 'Close GeoJSON'|t('geo') }}">
+					<button type="button" class="supgeo__panel-close" @click="toggleEditor()" title="{{ 'Close GeoJSON'|t('geomaps') }}" aria-label="{{ 'Close GeoJSON'|t('geomaps') }}">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
 					</button>
 				</div>
@@ -212,16 +212,16 @@
 
 		{% if not hideAddress %}
 			<div class="supgeo__details" x-show="!showEditor">
-				<div class="supgeo__details-head">{{ 'Location details'|t('geo') }}</div>
+				<div class="supgeo__details-head">{{ 'Location details'|t('geomaps') }}</div>
 				<div class="supgeo__grid">
-					{{ _self.textInput(id, name, 'full_address', 'Full address'|t('geo'), { wide: true }) }}
-					{{ _self.textInput(id, name, 'address1', 'Street address'|t('geo'), { wide: true }) }}
-					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geo')) }}
-					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geo')) }}
-					{{ _self.textInput(id, name, 'country', 'Country'|t('geo'), { wide: true }) }}
+					{{ _self.textInput(id, name, 'full_address', 'Full address'|t('geomaps'), { wide: true }) }}
+					{{ _self.textInput(id, name, 'address1', 'Street address'|t('geomaps'), { wide: true }) }}
+					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geomaps')) }}
+					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geomaps')) }}
+					{{ _self.textInput(id, name, 'country', 'Country'|t('geomaps'), { wide: true }) }}
 					{% if showMarker %}
-						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geo'), { inputmode: 'decimal' }) }}
-						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geo'), { inputmode: 'decimal' }) }}
+						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geomaps'), { inputmode: 'decimal' }) }}
+						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geomaps'), { inputmode: 'decimal' }) }}
 					{% else %}
 						{# Without a pin, the location is set from the centre of the shapes when the entry is saved. #}
 						<input type="hidden" name="{{ name }}[lat]" :value="lat">
@@ -245,27 +245,27 @@
 		<div class="supgeo__status">
 			<span class="supgeo__chip" :class="{ '--empty': !hasLocation }">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-				<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'No location set'|t('geo')|e('js') }}'">{{ 'No location set'|t('geo') }}</span>
+				<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'No location set'|t('geomaps')|e('js') }}'">{{ 'No location set'|t('geomaps') }}</span>
 			</span>
-			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geo') }}</button>
+			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geomaps') }}</button>
 			{% if not hideMap %}
-				<span class="supgeo__hint">{{ showMarker ? 'Search, click the map, or drag the pin.'|t('geo') : 'Draw the area with the tools on the left. Its location is the centre of the shapes.'|t('geo') }}</span>
+				<span class="supgeo__hint">{{ showMarker ? 'Search, click the map, or drag the pin.'|t('geomaps') : 'Draw the area with the tools on the left. Its location is the centre of the shapes.'|t('geomaps') }}</span>
 			{% endif %}
 		</div>
 
 		{% if enableGeoJson %}
 		<div class="btngroup supgeo__tools">
-			<button type="button" class="btn supgeo__toggle" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor.toString()" :title="showEditor ? '{{ 'Hide the GeoJSON editor'|t('geo')|e('js') }}' : '{{ 'View and edit shapes as GeoJSON'|t('geo')|e('js') }}'">
+			<button type="button" class="btn supgeo__toggle" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor.toString()" :title="showEditor ? '{{ 'Hide the GeoJSON editor'|t('geomaps')|e('js') }}' : '{{ 'View and edit shapes as GeoJSON'|t('geomaps')|e('js') }}'">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m8 16-4-4 4-4M16 8l4 4-4 4"/></svg>
-				<span x-text="showEditor ? '{{ 'Hide GeoJSON'|t('geo')|e('js') }}' : '{{ 'Edit GeoJSON'|t('geo')|e('js') }}'">{{ 'Edit GeoJSON'|t('geo') }}</span>
+				<span x-text="showEditor ? '{{ 'Hide GeoJSON'|t('geomaps')|e('js') }}' : '{{ 'Edit GeoJSON'|t('geomaps')|e('js') }}'">{{ 'Edit GeoJSON'|t('geomaps') }}</span>
 			</button>
-			<button type="button" class="btn" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geo') }}">
+			<button type="button" class="btn" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geomaps') }}">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
-				<span>{{ 'Download'|t('geo') }}</span>
+				<span>{{ 'Download'|t('geomaps') }}</span>
 			</button>
-			<button type="button" class="btn" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="{{ 'Upload a GeoJSON file'|t('geo') }}">
+			<button type="button" class="btn" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="{{ 'Upload a GeoJSON file'|t('geomaps') }}">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>
-				<span>{{ 'Upload'|t('geo') }}</span>
+				<span>{{ 'Upload'|t('geomaps') }}</span>
 			</button>
 		</div>
 		{% endif %}

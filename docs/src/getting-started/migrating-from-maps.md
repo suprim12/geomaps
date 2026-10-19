@@ -11,8 +11,8 @@ Geo Maps can take over existing [Maps](https://plugins.craftcms.com/simplemap) (
 Or from the terminal:
 
 ```bash
-php craft geo/import                      # every field
-php craft geo/import --field=storeMap     # one field
+php craft geomaps/import                      # every field
+php craft geomaps/import --field=storeMap     # one field
 ```
 
 Saved values are copied across, including on drafts and revisions, and indexed for location search. The old plugin’s own data is left untouched.

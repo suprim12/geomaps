@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\controllers;
+namespace suprim\geomaps\controllers;
 
 use Craft;
 use craft\web\Controller;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 use Throwable;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -30,7 +30,7 @@ class ImportController extends Controller
         $this->requireAdmin();
         $this->requireCpRequest();
 
-        $service = Geo::getInstance()->import;
+        $service = Plugin::getInstance()->import;
         $fieldId = $this->request->getBodyParam('fieldId');
 
         try {
@@ -45,10 +45,10 @@ class ImportController extends Controller
             }
         } catch (Throwable $e) {
             Craft::error($e->getMessage(), __METHOD__);
-            return $this->asFailure(Craft::t('geo', 'Import failed: {error}', ['error' => $e->getMessage()]));
+            return $this->asFailure(Craft::t('geomaps', 'Import failed: {error}', ['error' => $e->getMessage()]));
         }
 
-        return $this->asSuccess(Craft::t('geo', 'Imported {fields} field(s) and {values} location(s).', [
+        return $this->asSuccess(Craft::t('geomaps', 'Imported {fields} field(s) and {values} location(s).', [
             'fields' => count($results),
             'values' => array_sum($results),
         ]));

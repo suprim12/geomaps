@@ -10,15 +10,15 @@
  */
 
 
-namespace sup\craftgeo\integrations\feedme\fields;
+namespace suprim\geomaps\integrations\feedme\fields;
 
 use Craft;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 use craft\helpers\Json;
-use sup\craftgeo\fields\GeoField;
-use sup\craftgeo\services\GeoService;
+use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\services\GeoService;
 
 class GeoFeedMeField extends Field implements FieldInterface
 {
@@ -28,22 +28,22 @@ class GeoFeedMeField extends Field implements FieldInterface
 
     public function getMappingTemplate(): string
     {
-        return 'geo/feedme-field';
+        return 'geomaps/feedme-field';
     }
 
 //     // Define the sub-fields Feed Me will map to
     public function getMappingFields(): array
     {
         return [
-            'lat' => Craft::t('geo', 'Latitude'),
-            'lng' => Craft::t('geo', 'Longitude'),
-            'zoom' => Craft::t('geo', 'Zoom'),
-            'full_address' => Craft::t('geo', 'Full Address'),
-            'address1' => Craft::t('geo', 'Address Line 1'),
-            'suburb' => Craft::t('geo', 'Suburb'),
-            'postcode' => Craft::t('geo', 'Postcode'),
-            'country' => Craft::t('geo', 'Country'),
-            'geoJson' => Craft::t('geo', 'GeoJSON'),
+            'lat' => Craft::t('geomaps', 'Latitude'),
+            'lng' => Craft::t('geomaps', 'Longitude'),
+            'zoom' => Craft::t('geomaps', 'Zoom'),
+            'full_address' => Craft::t('geomaps', 'Full Address'),
+            'address1' => Craft::t('geomaps', 'Address Line 1'),
+            'suburb' => Craft::t('geomaps', 'Suburb'),
+            'postcode' => Craft::t('geomaps', 'Postcode'),
+            'country' => Craft::t('geomaps', 'Country'),
+            'geoJson' => Craft::t('geomaps', 'GeoJSON'),
         ];
     }
 

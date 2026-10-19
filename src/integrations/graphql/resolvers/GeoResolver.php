@@ -10,7 +10,7 @@
  */
 
 
-namespace sup\craftgeo\integrations\graphql\resolvers;
+namespace suprim\geomaps\integrations\graphql\resolvers;
 
 use craft\gql\base\Resolver;
 use craft\helpers\Json;

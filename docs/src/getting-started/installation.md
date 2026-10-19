@@ -9,8 +9,8 @@ In the control panel, go to **Plugin Store**, search for **Geo Maps** and click 
 ## With Composer
 
 ```bash
-composer require suprim/craft-geomaps
-php craft plugin/install geo
+composer require suprim/geomaps
+php craft plugin/install geomaps
 ```
 
 ## Next steps
