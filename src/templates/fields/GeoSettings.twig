@@ -66,34 +66,36 @@
 }) }}
 
 {{ forms.textField({
-	label: 'Min Zoom',
-	instructions: 'The minimum level the user can zoom the map out to.',
+	label: 'Min Zoom'|t('geo'),
+	instructions: 'How far authors can zoom out (0 = whole world).'|t('geo'),
 	id: 'minZoom',
 	name: 'minZoom',
 	type: 'number',
 	value: field.minZoom,
+	errors: field.getErrors('minZoom'),
 	min: 0,
 	max: 18,
-	step: 0.01,
+	step: 1,
 	size: 6,
 }) }}
 
 {{ forms.textField({
-	label: 'Max Zoom',
-	instructions: 'The maximum level the user can zoom the map in to.',
+	label: 'Max Zoom'|t('geo'),
+	instructions: 'How far authors can zoom in (18 = street level).'|t('geo'),
 	id: 'maxZoom',
 	name: 'maxZoom',
 	type: 'number',
 	value: field.maxZoom,
+	errors: field.getErrors('maxZoom'),
 	min: 0,
 	max: 18,
-	step: 0.01,
+	step: 1,
 	size: 6,
 }) }}
 
 {{ forms.selectField({
-	label: 'Preferred Country',
-	instructions: 'Address search results are limited to this country.'|t('geo'),
+	label: 'Limit Search to Country'|t('geo'),
+	instructions: 'Only show address search results in this country. Choose “All Countries” to search everywhere.'|t('geo'),
 	id: 'country',
 	name: 'country',
 	options: countries,

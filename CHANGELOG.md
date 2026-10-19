@@ -52,3 +52,5 @@
 - Duplicate OpenStreetMap search suggestions.
 - GeoJSON saved as a bare geometry (without `properties`) broke the map.
 - Marker labels in front-end Leaflet maps weren’t escaped.
+- **Min Zoom** and **Max Zoom** field settings had no effect.
+- The field-settings map showed Google’s error panel when the key was rejected.

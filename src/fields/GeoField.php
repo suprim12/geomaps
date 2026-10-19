@@ -34,8 +34,8 @@ class GeoField extends Field implements PreviewableFieldInterface
     public float $lat = -34.925;
     public float $lng = 138.60;
     public int $zoom = 9;
-    public float $minZoom = 3;
-    public float $maxZoom = 18;
+    public int $minZoom = 3;
+    public int $maxZoom = 18;
     /** Map height in the control panel, in pixels. (Property name kept for backwards compatibility.) */
     public int $mapHeigth = 420;
     public ?string $country = null;
@@ -317,6 +317,9 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'min' => -180,
                 'max' => 180,
             ],
+            [['minZoom', 'maxZoom'], 'integer', 'min' => 0, 'max' => 22],
+            ['maxZoom', 'compare', 'compareAttribute' => 'minZoom', 'operator' => '>=', 'type' => 'number',
+                'message' => Craft::t('geo', 'Max Zoom must be greater than or equal to Min Zoom.'), ],
             [
                 'mapHeigth',
                 'integer',
