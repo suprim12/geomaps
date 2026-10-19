@@ -49,6 +49,21 @@ class GeoQueryArgument extends InputObjectType
                 'type' => Type::float(),
                 'description' => 'Radius to search within',
             ],
+            'contains' => [
+                'name' => 'contains',
+                'type' => Type::string(),
+                'description' => 'Find entries whose areas contain this address or place',
+            ],
+            'containsCoordinate' => [
+                'name' => 'containsCoordinate',
+                'type' => GeoCoordsInput::getType(),
+                'description' => 'Find entries whose areas contain this lat/lng coordinate',
+            ],
+            'country' => [
+                'name' => 'country',
+                'type' => Type::string(),
+                'description' => 'Two-letter country code to narrow address lookups',
+            ],
             'unit' => [
                 'name' => 'unit',
                 'type' => Type::string(),

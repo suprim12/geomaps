@@ -25,6 +25,11 @@ class Install extends Migration
                 'fieldId' => $this->integer()->notNull(),
                 'lat' => $this->double(),
                 'lng' => $this->double(),
+                'shape' => $this->mediumText(),
+                'minLat' => $this->double(),
+                'maxLat' => $this->double(),
+                'minLng' => $this->double(),
+                'maxLng' => $this->double(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
@@ -32,6 +37,7 @@ class Install extends Migration
 
             $this->createIndex(null, '{{%supgeo}}', ['ownerId', 'ownerSiteId', 'fieldId'], true);
             $this->createIndex(null, '{{%supgeo}}', ['lat', 'lng']);
+            $this->createIndex(null, '{{%supgeo}}', ['fieldId', 'minLat', 'maxLat']);
 
             $this->addForeignKey(null, '{{%supgeo}}', 'ownerId',     '{{%elements}}', 'id', 'CASCADE');
             $this->addForeignKey(null, '{{%supgeo}}', 'ownerSiteId', '{{%sites}}',    'id', 'CASCADE');
