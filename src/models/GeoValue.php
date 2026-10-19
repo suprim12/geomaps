@@ -280,6 +280,27 @@ class GeoValue extends Model
         return is_array($data) ? $data : null;
     }
 
+    /**
+     * Whether this value’s areas (polygons) contain a place: an address, `{ lat, lng }` or another value.
+     *
+     *   {% if zone.binZone.contains('12 Smith St, Norwood SA') %}
+     */
+    public function contains(mixed $location, ?string $country = null): bool
+    {
+        $data = $this->getGeoJsonData();
+        if (!$data) {
+            return false;
+        }
+
+        if ($location instanceof self) {
+            $location = ['lat' => $location->lat, 'lng' => $location->lng];
+        }
+
+        $point = GeoService::resolveLocation($location, $country);
+
+        return $point !== null && \sup\craftgeo\Geo::getInstance()->zones->contains($data, (float)$point['lat'], (float)$point['lng']);
+    }
+
     // Maps (ether/simplemap) compatibility, so migrated templates keep working
     // -------------------------------------------------------------------------
 

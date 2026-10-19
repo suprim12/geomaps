@@ -54,6 +54,31 @@ Results are nearest first unless you set another order. To sort explicitly:
 .orderBy('title')           {# alphabetical; distance is still set #}
 ```
 
+## Find the area containing a place
+
+Use `contains` to find entries whose drawn **areas** (polygons) contain an address or point — for example, which bin-collection zone, delivery area or sales territory a customer is in.
+
+```twig
+{% set zone = craft.entries()
+    .section('binZones')
+    .zoneArea({ contains: '175 The Parade, Norwood SA 5067', country: 'AU' })
+    .one() %}
+
+{% if zone %}
+    Your collection day is {{ zone.zoneArea.getGeoJsonData().properties.collectionDay }}.
+{% else %}
+    That address isn’t in a collection zone.
+{% endif %}
+```
+
+`contains` accepts an address, a `{ lat, lng }` object or another Geo Maps value. Holes in polygons are respected (a park cut out of a zone isn’t part of it), and a point exactly on the border between two zones belongs to only one of them. If areas overlap, every matching entry is returned.
+
+Only polygons and multipolygons count as areas; markers and lines are ignored. To check a single entry instead, use [`contains()`](/guides/templating#methods) on its value.
+
+::: tip
+Turn off **Show Location Pin** on fields that only hold areas — see [The Field](/guides/field#field-settings).
+:::
+
 ## With or without a location
 
 ```twig

@@ -6,6 +6,7 @@
 - Redesigned control panel field: search bar, uncovered map, labelled location details beside the map (or below it in narrow spaces such as Matrix blocks and slideouts), and a footer with the current coordinates, **Clear** and GeoJSON tools.
 - Click the map to drop the pin.
 - **Map Height** field setting.
+- `contains` location search: find entries whose areas contain an address or point (e.g. which bin-collection zone or delivery area a customer is in), plus `contains()` on field values and `contains` / `containsCoordinate` in GraphQL. Holes are respected.
 - **Show Location Pin** field setting for shape-only fields (zones, areas). The location becomes the centre of the shapes, and Craft Geoman imports use it.
 - `embed()` draws the field’s shapes and fits the map to them; new `geoJson`, `marker` and `fitShapes` options.
 - **Enable Drawing & GeoJSON** field setting, for fields that only need a single location.

@@ -20,6 +20,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use sup\craftgeo\fields\GeoField;
+use sup\craftgeo\Geo;
 use sup\craftgeo\models\GeoValue;
 use sup\craftgeo\records\GeoRecord;
 use WeakMap;
@@ -58,18 +59,42 @@ class MapService extends Component
             'fieldId' => $field->id,
         ];
 
-        if (!$value || !$value->hasCoordinates()) {
+        $columns = $value ? $this->lookupColumns($value) : null;
+
+        if (!$columns) {
             Db::delete(GeoRecord::TABLE_NAME, $key);
             return;
         }
 
-        Db::upsert(GeoRecord::TABLE_NAME, $key + [
+        Db::upsert(GeoRecord::TABLE_NAME, $key + $columns, $columns);
+    }
+
+    /**
+     * Index columns for a value: its point (for distance search) and its polygons (for `contains` search).
+     * Returns null when there’s nothing to index.
+     */
+    public function lookupColumns(GeoValue $value): ?array
+    {
+        $polygons = [];
+        $data = $value->getGeoJsonData();
+        if ($data) {
+            $polygons = Geo::getInstance()->zones->polygons($data);
+        }
+        $bounds = $polygons ? Geo::getInstance()->zones->bounds($polygons) : null;
+
+        if (!$value->hasCoordinates() && !$bounds) {
+            return null;
+        }
+
+        return [
             'lat' => $value->lat,
             'lng' => $value->lng,
-        ], [
-            'lat' => $value->lat,
-            'lng' => $value->lng,
-        ]);
+            'shape' => $bounds ? Json::encode($polygons) : null,
+            'minLat' => $bounds['minLat'] ?? null,
+            'maxLat' => $bounds['maxLat'] ?? null,
+            'minLng' => $bounds['minLng'] ?? null,
+            'maxLng' => $bounds['maxLng'] ?? null,
+        ];
     }
 
     /**
@@ -104,15 +129,14 @@ class MapService extends Component
                 // Content is keyed by field layout element UID, so check every instance of this field.
                 foreach (self::layoutElementUids($field->uid) as $uid) {
                     $value = GeoValue::fromArray($content[$uid] ?? null);
+                    $columns = $value ? $this->lookupColumns($value) : null;
 
-                    if ($value && $value->hasCoordinates()) {
+                    if ($columns) {
                         Db::upsert(GeoRecord::TABLE_NAME, [
                             'ownerId' => $row['elementId'],
                             'ownerSiteId' => $row['siteId'],
                             'fieldId' => $field->id,
-                            'lat' => $value->lat,
-                            'lng' => $value->lng,
-                        ], ['lat' => $value->lat, 'lng' => $value->lng]);
+                        ] + $columns, $columns);
                         $count++;
                         break;
                     }
@@ -180,6 +204,15 @@ class MapService extends Component
             return null;
         }
 
+        // GraphQL passes coordinates for `contains` separately.
+        if (isset($value['containsCoordinate']) && !isset($value['contains'])) {
+            $value['contains'] = $value['containsCoordinate'];
+        }
+
+        if (array_key_exists('contains', $value)) {
+            return $this->containsCondition($fieldIds, $value['contains'], $value['country'] ?? null);
+        }
+
         $location = $value['coordinate'] ?? $value['location'] ?? null;
 
         if ($location instanceof GeoValue) {
@@ -240,6 +273,53 @@ class MapService extends Component
             ['between', "$alias.lng", $lng - $lngDelta, $lng + $lngDelta],
             new Expression(sprintf('%s <= %F', $distanceSql, $radius)),
         ];
+    }
+
+    /**
+     * Condition matching elements whose polygons contain a point (an address, `{ lat, lng }` or GeoValue).
+     *
+     * Candidates are narrowed by bounding box in SQL, then checked exactly (holes respected).
+     *
+     * @param int[] $fieldIds
+     */
+    private function containsCondition(array $fieldIds, mixed $location, ?string $country): array|false
+    {
+        if ($location instanceof GeoValue) {
+            $location = ['lat' => $location->lat, 'lng' => $location->lng];
+        }
+
+        $point = GeoService::resolveLocation($location, $country);
+
+        if (!$point) {
+            return false;
+        }
+
+        $lat = (float)$point['lat'];
+        $lng = (float)$point['lng'];
+        $zones = Geo::getInstance()->zones;
+        $matches = [];
+
+        $candidates = (new Query())
+            ->select(['ownerId', 'ownerSiteId', 'shape'])
+            ->from(GeoRecord::TABLE_NAME)
+            ->where(['fieldId' => $fieldIds])
+            ->andWhere(['<=', 'minLat', $lat])
+            ->andWhere(['>=', 'maxLat', $lat])
+            ->andWhere(['<=', 'minLng', $lng])
+            ->andWhere(['>=', 'maxLng', $lng]);
+
+        foreach ($candidates->each() as $row) {
+            $polygons = Json::decodeIfJson((string)$row['shape']);
+            if (is_array($polygons) && $zones->polygonsContain($polygons, $lat, $lng)) {
+                $matches[] = ['elements.id' => (int)$row['ownerId'], 'elements_sites.siteId' => (int)$row['ownerSiteId']];
+            }
+        }
+
+        if (!$matches) {
+            return false;
+        }
+
+        return ['in', ['elements.id', 'elements_sites.siteId'], $matches];
     }
 
     /**

@@ -58,6 +58,15 @@ with variables:
 
 Results are nearest first, and `distance` is set in the requested unit.
 
+## Finding the area containing a place
+
+```graphql
+{
+  byAddress: entries(section: "binZones", zoneArea: { contains: "175 The Parade, Norwood SA 5067", country: "AU" }) { title }
+  byPoint: entries(section: "binZones", zoneArea: { containsCoordinate: { lat: -34.921, lng: 138.631 } }) { title }
+}
+```
+
 ## Saving values
 
 Mutations accept the value as a JSON string:

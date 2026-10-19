@@ -38,6 +38,7 @@ Outputting the value directly prints the full address (or the coordinates if the
 |---|---|
 | `hasCoordinates()` | Whether both `lat` and `lng` are set |
 | `getGeoJsonData()` | The GeoJSON decoded to an array, or `null` |
+| `contains(place)` | Whether the value’s areas (polygons) contain an address, `{ lat, lng }` or another value |
 | `embed(options)` | An interactive map centred on this location — see [Maps](/guides/maps) |
 | `img(options)` / `imgSrcSet(options)` | A static map image URL — see [Maps](/guides/maps) |
 
