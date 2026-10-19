@@ -175,7 +175,7 @@ class ImportService extends Component
 
         $country = $s['country'] ?? null;
         if (is_string($country) && $country !== '' && GeoService::isCountryCode($country)) {
-            $settings['country'] = strtoupper($country);
+            $settings['countries'] = [strtoupper($country)];
         }
 
         return $settings;

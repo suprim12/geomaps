@@ -93,12 +93,14 @@
 	size: 6,
 }) }}
 
-{{ forms.selectField({
-	label: 'Limit Search to Country'|t('geo'),
-	instructions: 'Only show address search results in this country. Choose “All Countries” to search everywhere.'|t('geo'),
-	id: 'country',
-	name: 'country',
+{{ forms.selectizeField({
+	label: 'Limit Search to Countries'|t('geo'),
+	instructions: 'Only show address search results in these countries (up to 5). Leave empty to search everywhere.'|t('geo'),
+	id: 'countries',
+	name: 'countries',
+	multi: true,
 	options: countries,
-	value: field.country,
+	values: field.getSearchCountries(),
+	errors: field.getErrors('countries'),
 }) }}
 

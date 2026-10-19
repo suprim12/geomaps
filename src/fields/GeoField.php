@@ -38,7 +38,10 @@ class GeoField extends Field implements PreviewableFieldInterface
     public int $maxZoom = 18;
     /** Map height in the control panel, in pixels. (Property name kept for backwards compatibility.) */
     public int $mapHeigth = 420;
+    /** @deprecated Single-country setting from before 1.0; read into $countries. */
     public ?string $country = null;
+    /** @var string[] ISO 3166-1 alpha-2 codes that address search is limited to (empty = all). */
+    public array $countries = [];
     public ?string $countryCode = null;
     public ?string $full_address = null;
     public ?string $address1 = null;
@@ -52,6 +55,28 @@ class GeoField extends Field implements PreviewableFieldInterface
     /** Whether authors can draw shapes and edit GeoJSON. */
     public bool $enableGeoJson = true;
 
+
+    /** Google Places accepts at most five country restrictions. */
+    public const MAX_SEARCH_COUNTRIES = 5;
+
+    /**
+     * Valid, upper-cased country codes that address search is limited to.
+     *
+     * @return string[]
+     */
+    public function getSearchCountries(): array
+    {
+        $codes = $this->countries;
+
+        // Fields saved before multi-country support stored a single code.
+        if (empty($codes) && $this->country && $this->country !== '*') {
+            $codes = [$this->country];
+        }
+
+        $codes = array_map(fn($code) => strtoupper(trim((string)$code)), (array)$codes);
+
+        return array_values(array_unique(array_filter($codes, fn($code) => $code !== '' && GeoService::isCountryCode($code))));
+    }
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
@@ -318,6 +343,12 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'max' => 180,
             ],
             [['minZoom', 'maxZoom'], 'integer', 'min' => 0, 'max' => 22],
+            ['countries', function(string $attribute) {
+                $codes = $this->getSearchCountries();
+                if (count($codes) > self::MAX_SEARCH_COUNTRIES) {
+                    $this->addError($attribute, Craft::t('geo', 'Choose up to {max} countries (Google’s limit), or none to search everywhere.', ['max' => self::MAX_SEARCH_COUNTRIES]));
+                }
+            }],
             ['maxZoom', 'compare', 'compareAttribute' => 'minZoom', 'operator' => '>=', 'type' => 'number',
                 'message' => Craft::t('geo', 'Max Zoom must be greater than or equal to Min Zoom.'), ],
             [
@@ -382,9 +413,8 @@ class GeoField extends Field implements PreviewableFieldInterface
         $this->lng = (float) $this->lng;
         $this->zoom = (int) $this->zoom;
 
-        if ($this->country === '*') {
-            $this->country = null;
-        }
+        $this->countries = $this->getSearchCountries();
+        $this->country = null;
 
         return parent::beforeSave($isNew);
     }
@@ -392,7 +422,10 @@ class GeoField extends Field implements PreviewableFieldInterface
     public function getSettingsHtml(): ?string
     {
         $mapField = $this->renderMapField();
-        $countries = ['*' => Craft::t('geo', 'All Countries')] + GeoService::countryOptions();
+        $countries = [];
+        foreach (GeoService::countryOptions() as $code => $label) {
+            $countries[] = ['label' => $label, 'value' => $code];
+        }
         $handle = $this->handle ?? 'geo-preview';
         $id = Craft::$app->getView()->formatInputId($handle);
         $namespacedId = Craft::$app->getView()->namespaceInputId($id);
@@ -454,7 +487,7 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'provider' => $settings->getMapProvider(),
                 'tileUrl' => $settings->getTileUrl(),
                 'tileAttribution' => $settings->tileAttribution,
-                'restrictCountry' => $this->country,
+                'restrictCountries' => $this->getSearchCountries(),
                 'language' => Craft::$app->language,
             ],
             'global_settings' => $settings,

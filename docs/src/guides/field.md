@@ -31,7 +31,7 @@ GeoJSON has no circle type, so circle tools aren’t offered — draw a polygon 
 | Hide Map | Shows only search and the address inputs. Also hides drawing. |
 | Map Height | Height of the map in the control panel, in pixels. |
 | Min Zoom / Max Zoom | How far authors can zoom out and in (0 = whole world, 18 = street level). |
-| Limit Search to Country | Only shows address search results in this country. |
+| Limit Search to Countries | Only shows address search results in up to 5 chosen countries. Leave empty to search everywhere. |
 
 ## Validation
 
