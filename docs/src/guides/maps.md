@@ -34,7 +34,9 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `center` | `{ lat, lng }`, `[lat, lng]` or an address | the field value |
 | `zoom` | Zoom level | `14` |
 | `width`, `height` | Size in pixels | `640` × `400` |
-| `markers` | List of `{ location, label, color }`. `location` is `{ lat, lng }` or an address | one marker at the centre |
+| `markers` | List of `{ location, label, color, icon, html, open }`. `location` is `{ lat, lng }` or an address. See [Custom Pins & Info Windows](/examples/custom-pins) | one marker at the centre |
+| `icon` | Pin image for every marker: a URL or `{ url, width, height }` | round coloured pin |
+| `html` | Info window HTML for the centre pin (when there are no `markers`) | — |
 | `id` | The map element’s `id` | random |
 | `geoJson` | Shapes to draw: GeoJSON as an array or string | the field’s shapes |
 | `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |

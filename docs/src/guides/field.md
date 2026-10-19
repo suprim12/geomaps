@@ -1,5 +1,7 @@
 # The Field
 
+![The Geo Maps field in the entry editor: address search, a map with drawing tools, and the location details beside it](/images/field.jpg)
+
 ## Setting a location
 
 Authors can set a location three ways:
@@ -8,11 +10,15 @@ Authors can set a location three ways:
 - **Click the map** — drops the pin where you click and looks up the address.
 - **Drag the pin** — fine-tune the position; the address updates to match.
 
+![Typing an address shows matching places to pick from](/images/field-search.jpg)
+
 The address details (full address, street, suburb, postcode, country) and the coordinates fill in automatically and can be edited by hand. **Clear** removes the location.
 
 ## Drawing shapes
 
 Use the toolbar on the left of the map to add markers, lines, rectangles and polygons, then edit, move, cut or delete them. Click a shape to open its panel, where you can add properties (text, numbers, true/false, colours or JSON) and copy its GeoJSON.
+
+![A zone drawn on the map, with its GeoJSON open beside it](/images/field-geojson.jpg)
 
 **Edit GeoJSON** opens the GeoJSON for the whole field beside the map. Changes in the editor update the map and vice versa. **Upload** loads a `.geojson` file and **Download** saves the current shapes.
 
@@ -21,6 +27,8 @@ GeoJSON has no circle type, so circle tools aren’t offered — draw a polygon 
 :::
 
 ## Field settings
+
+![The Geo Maps field settings](/images/field-settings.jpg)
 
 | Setting | What it does |
 |---|---|

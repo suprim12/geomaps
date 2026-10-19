@@ -17,4 +17,4 @@ php craft plugin/install geomaps
 
 1. Optionally add Google API keys under **Settings → Geo Maps** ([Configuration](/getting-started/configuration)). Without them, Geo Maps uses OpenStreetMap.
 2. Create a field: **Settings → Fields → New field**, then choose **Geo Maps** as the field type ([The Field](/guides/field)).
-3. Moving from Maps (Ether)? See [Migrating from Maps](/getting-started/migrating-from-maps).
+3. Switching from another map plugin? See [Importing Existing Fields](/getting-started/importing).

@@ -16,7 +16,7 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 - **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google static map images, straight from Twig.
 - **Flexible field settings.** Hide the pin, drawing, search, address or map; set zoom limits; limit search to up to 5 countries.
 - **GraphQL and Feed Me.** Query, search and save locations in headless projects, and import locations from feeds.
-- **One-click import.** Convert Maps (ether/simplemap) and Craft Geoman fields in place. Handles, layouts, content and most templates carry over.
+- **One-click import.** Already using another map plugin? Convert its fields in place. Handles, layouts, content and most templates carry over.
 
 ## Requirements
 
@@ -122,7 +122,7 @@ Complete examples in the docs:
 - [Bin collection zones](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/zone-lookup.md), including a GraphQL version that doesn't reload the page
 - [Map of areas](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/area-map.md), with one colour per zone
 
-## Switching from Maps or Geoman
+## Switching from another map plugin
 
 Go to **Utilities → Geo Maps Import** and click **Import** on a field, or **Import all**. From the command line:
 
@@ -131,7 +131,7 @@ php craft geomaps/import                    # every field
 php craft geomaps/import --field=storeMap   # one field
 ```
 
-Templates written for Maps (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()`) keep working.
+Common template patterns (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()`) keep working.
 
 ## License
 

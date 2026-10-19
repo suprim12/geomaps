@@ -5,6 +5,9 @@ hero:
   name: Geo Maps
   text: Locations, shapes and distance search for Craft CMS
   tagline: Pin an address, draw areas, and find the nearest entries — with OpenStreetMap out of the box or Google Maps when you add a key.
+  image:
+    src: /images/field.jpg
+    alt: The Geo Maps field in the Craft control panel
   actions:
     - theme: brand
       text: Get started
@@ -30,5 +33,5 @@ features:
   - title: No key required
     details: Works with OpenStreetMap by default. Add a Google key for Google tiles, Places search and static images.
   - title: Switch in one click
-    details: Convert Maps (Ether) and Craft Geoman fields in place — handles, layouts, content and most templates carry over.
+    details: Already using another map plugin? Convert its fields in place — handles, layouts, content and most templates carry over.
 ---

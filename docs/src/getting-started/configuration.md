@@ -2,6 +2,8 @@
 
 Configure **Geo Maps** in the control panel under **Settings → Geo Maps**, or with a `config/geomaps.php` file.
 
+![The Geo Maps plugin settings: optional Google keys, and the OpenStreetMap tiles URL and credit](/images/plugin-settings.jpg)
+
 ## Map Providers
 
 Geo Maps works without any API keys. Add a Google key when you want Google’s map tiles, Places search or static map images.

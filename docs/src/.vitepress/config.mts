@@ -19,7 +19,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/' },
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Configuration', link: '/getting-started/configuration' },
-          { text: 'Migrating from Maps or Geoman', link: '/getting-started/migrating-from-maps' },
+          { text: 'Importing Existing Fields', link: '/getting-started/importing' },
         ],
       },
       {
@@ -39,6 +39,7 @@ export default defineConfig({
         items: [
           { text: 'Store Locator', link: '/examples/store-locator' },
           { text: 'Location Page', link: '/examples/location-page' },
+          { text: 'Custom Pins & Info Windows', link: '/examples/custom-pins' },
           { text: 'Bin Collection Zones', link: '/examples/zone-lookup' },
           { text: 'Map of Areas', link: '/examples/area-map' },
         ],

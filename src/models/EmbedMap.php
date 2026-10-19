@@ -35,6 +35,10 @@ class EmbedMap extends Model
     public bool    $marker = true;
     /** Zoom the map to fit the shapes. */
     public bool    $fitShapes = true;
+    /** Default pin image for every marker: a URL, or `{ url, width, height }`. */
+    public mixed   $icon = null;
+    /** Info window HTML for the centre pin (when no `markers` are given). Not escaped. */
+    public mixed   $html = null;
 
     public function __toString(): string
     {
@@ -64,7 +68,7 @@ class EmbedMap extends Model
             'provider' => $settings->getMapProvider(),
             'tileUrl' => $settings->getTileUrl(),
             'tileAttribution' => $settings->tileAttribution,
-        ]);
+        ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); // safe inside <script>
 
         $view = Craft::$app->getView();
 
@@ -108,11 +112,25 @@ class EmbedMap extends Model
                 L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
                 (config.markers || []).forEach(function(marker) {
                     if (marker.lat == null || marker.lng == null) return;
-                    var m = L.circleMarker([marker.lat, marker.lng], {
-                        radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
-                    });
-                    if (marker.label) m.bindPopup(escapeHtml(marker.label));
+                    var m;
+                    if (marker.icon) {
+                        var w = marker.icon.width, h = marker.icon.height;
+                        m = L.marker([marker.lat, marker.lng], {
+                            title: marker.label || '',
+                            alt: marker.label || '',
+                            icon: L.icon({ iconUrl: marker.icon.url, iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h] }),
+                        });
+                    } else {
+                        m = L.circleMarker([marker.lat, marker.lng], {
+                            radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+                        });
+                    }
+                    var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
+                    if (content) {
+                        m.bindPopup(content, { maxWidth: 320 });
+                    }
                     m.addTo(map);
+                    if (content && marker.open) m.openPopup();
                 });
                 if (config.geoJson) {
                     var shapes = L.geoJSON(config.geoJson, {
@@ -134,18 +152,30 @@ class EmbedMap extends Model
                     center: { lat: config.center.lat, lng: config.center.lng },
                     zoom: config.zoom,
                 }, config.options || {}));
+                var infoWindow = new google.maps.InfoWindow({ maxWidth: 320 });
                 (config.markers || []).forEach(function(marker) {
                     if (marker.lat == null || marker.lng == null) return;
-                    new google.maps.Marker({
+                    var icon = marker.icon ? {
+                        url: marker.icon.url,
+                        scaledSize: new google.maps.Size(marker.icon.width, marker.icon.height),
+                        anchor: new google.maps.Point(marker.icon.width / 2, marker.icon.height),
+                    } : {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: marker.color || '#ff0000', fillOpacity: 1,
+                        strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
+                    };
+                    var m = new google.maps.Marker({
                         position: { lat: marker.lat, lng: marker.lng },
                         map: map,
                         title: marker.label || null,
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            fillColor: marker.color || '#ff0000', fillOpacity: 1,
-                            strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
-                        },
+                        icon: icon,
                     });
+                    var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
+                    if (content) {
+                        var open = function() { infoWindow.setContent(content); infoWindow.open({ anchor: m, map: map }); };
+                        m.addListener('click', open);
+                        if (marker.open) open();
+                    }
                 });
                 if (config.geoJson) {
                     var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
@@ -274,8 +304,18 @@ class EmbedMap extends Model
             return [];
         }
 
+        $defaultIcon = $this->resolveIcon($this->icon);
+
         if (empty($this->markers)) {
-            return [['lat' => $center['lat'], 'lng' => $center['lng'], 'label' => null, 'color' => '#ff0000']];
+            return [[
+                'lat' => $center['lat'],
+                'lng' => $center['lng'],
+                'label' => null,
+                'color' => '#ff0000',
+                'icon' => $defaultIcon,
+                'html' => $this->html !== null ? (string)$this->html : null,
+                'open' => false,
+            ]];
         }
 
         $resolved = [];
@@ -298,14 +338,41 @@ class EmbedMap extends Model
                 $coords = $center;
             }
 
+            $html = $marker['html'] ?? null;
+
             $resolved[] = [
                 'lat' => $coords['lat'],
                 'lng' => $coords['lng'],
-                'label' => $marker['label'] ?? null,
+                'label' => isset($marker['label']) ? (string)$marker['label'] : null,
                 'color' => $marker['color'] ?? '#ff0000',
+                'icon' => array_key_exists('icon', $marker) ? $this->resolveIcon($marker['icon']) : $defaultIcon,
+                'html' => $html !== null && $html !== '' ? (string)$html : null,
+                'open' => !empty($marker['open']),
             ];
         }
 
         return $resolved;
+    }
+
+    /**
+     * Normalises a pin image: a URL string, or `{ url, width, height }` (default 32 × 32 pixels).
+     *
+     * @return array{url: string, width: int, height: int}|null
+     */
+    private function resolveIcon(mixed $icon): ?array
+    {
+        if (is_string($icon) || $icon instanceof \Stringable) {
+            $icon = ['url' => (string)$icon];
+        }
+
+        if (!is_array($icon) || empty($icon['url'])) {
+            return null;
+        }
+
+        return [
+            'url' => (string)$icon['url'],
+            'width' => max(1, (int)($icon['width'] ?? 32)),
+            'height' => max(1, (int)($icon['height'] ?? $icon['width'] ?? 32)),
+        ];
     }
 }

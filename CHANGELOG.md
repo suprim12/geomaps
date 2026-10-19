@@ -1,5 +1,13 @@
 # Release Notes for Geo Maps
 
+## Unreleased
+
+### Added
+- Custom pin images and info windows for `embed()` maps: new `icon`, `html` and `open` marker options, plus a top-level `icon` for every marker. Works with OpenStreetMap and Google maps.
+
+### Security
+- Map settings written into the page are now escaped so content such as entry titles can’t break out of the inline script.
+
 ## 1.0.0 - 2026-10-20
 
 ### Added
@@ -7,7 +15,7 @@
 - Click the map to drop the pin.
 - **Map Height** field setting.
 - `contains` location search: find entries whose areas contain an address or point (e.g. which bin-collection zone or delivery area a customer is in), plus `contains()` on field values and `contains` / `containsCoordinate` in GraphQL. Holes are respected.
-- **Show Location Pin** field setting for shape-only fields (zones, areas). The location becomes the centre of the shapes, and Craft Geoman imports use it.
+- **Show Location Pin** field setting for shape-only fields (zones, areas). The location becomes the centre of the shapes.
 - `embed()` draws the field’s shapes and fits the map to them; new `geoJson`, `marker` and `fitShapes` options.
 - **Enable Drawing & GeoJSON** field setting, for fields that only need a single location.
 - **Limit Search to Countries** field setting: restrict address search to up to five countries (replaces the single country setting; existing values carry over).
@@ -15,8 +23,8 @@
 - The GeoJSON panel has a title, explanation, close button and an example when empty.
 - Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
 - **Map Tiles URL** and **Map Credit** settings for using any raster tile provider.
-- Import from Maps (ether/simplemap) and Craft Geoman (handplant/craft-geoman) under **Utilities → Geo Maps Import** — one field at a time or all at once — or with `php craft geomaps/import [--field=handle]`.
-- Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
+- Import existing fields from other map and GeoJSON plugins under **Utilities → Geo Maps Import** — one field at a time or all at once — or with `php craft geomaps/import [--field=handle]`.
+- `address`, `parts`, `img()` and `imgSrcSet()` on field values, so imported templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).
 - Location search accepts a `coordinate`, a `{ lat, lng }` object, an address string, or another Geo Maps value.
 - `:empty:` / `:notempty:` query params (a pin or a drawn area counts as a value).
@@ -31,10 +39,10 @@
 - Drawing tools moved to the top-left; circle tools removed because GeoJSON can’t store circles.
 - Google geocoding errors (e.g. a restricted key) now fall back to OpenStreetMap instead of returning no results.
 - Requires Craft CMS 5.10 or later.
-- Leaflet and Geoman styles are now bundled instead of loaded from unpkg.
+- Leaflet and drawing-tool styles are now bundled instead of loaded from unpkg.
 - Country options come from Craft’s address repository.
 - Postcodes are stored as strings, so leading zeros and alphanumeric postcodes are kept.
-- The `craft.maps` Twig variable was removed (it clashed with Maps by Ether); use `craft.geomaps`.
+- The `craft.maps` Twig variable was removed (it clashed with another plugin); use `craft.geomaps`.
 
 ### Fixed
 - Location search never returned results because coordinates weren’t written to the search index. Existing content is reindexed on update.
