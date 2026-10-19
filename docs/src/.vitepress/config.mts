@@ -5,6 +5,16 @@ export default defineConfig({
   description: 'Locations, shapes and distance search for Craft CMS',
   base: '/',
 
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '64x64', href: '/favicon.png' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' }],
+    ['meta', { name: 'theme-color', content: '#12141c' }],
+    ['link', { rel: 'preconnect', href: 'https://api.fontshare.com' }],
+    ['link', { rel: 'preconnect', href: 'https://cdn.fontshare.com', crossorigin: '' }],
+    ['link', { rel: 'stylesheet', href: 'https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500&display=swap' }],
+  ],
+
   themeConfig: {
     logo: { src: '/logo.svg', width: 24, height: 24 },
     siteTitle: 'Geo Maps',

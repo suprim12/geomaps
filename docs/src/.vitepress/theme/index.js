@@ -1,14 +1,15 @@
 import DefaultTheme from 'vitepress/theme'
 import { nextTick, watch } from 'vue'
+import GeoHome from './GeoHome.vue'
 import './custom.css'
 
-// Reveal home page sections as they reach the screen. A scroll check (not an observer) so sections
-// skipped by a fast scroll or a jump are still revealed.
+// Reveal home page parts as they reach the screen. A scroll check (not an observer) so parts
+// skipped by a fast scroll or a jump are still revealed; nothing is hidden without the script.
 let stop = null
 
-function revealHome() {
+function reveal() {
   stop?.()
-  const targets = [...document.querySelectorAll('.home-hero-shot, .home section > *')]
+  const targets = [...document.querySelectorAll('.gh [data-reveal]')]
   if (!targets.length) return
 
   document.documentElement.classList.add('geo-motion')
@@ -39,8 +40,9 @@ function revealHome() {
 
 export default {
   extends: DefaultTheme,
-  enhanceApp({ router }) {
+  enhanceApp({ app, router }) {
+    app.component('GeoHome', GeoHome)
     if (typeof window === 'undefined') return
-    watch(() => router.route.path, () => nextTick(revealHome), { immediate: true })
+    watch(() => router.route.path, () => nextTick(reveal), { immediate: true })
   },
 }
