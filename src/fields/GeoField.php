@@ -56,6 +56,17 @@ class GeoField extends Field implements PreviewableFieldInterface
     public bool $enableGeoJson = true;
 
 
+    /**
+     * Properties that are kept only so field configs saved by earlier versions still load.
+     * They aren't settings and are no longer written to project config.
+     */
+    private const LEGACY_PROPERTIES = ['country', 'countryCode', 'full_address', 'address1', 'suburb', 'postcode', 'geoJson', 'showLatLng'];
+
+    public function settingsAttributes(): array
+    {
+        return array_values(array_diff(parent::settingsAttributes(), self::LEGACY_PROPERTIES));
+    }
+
     /** Google Places accepts at most five country restrictions. */
     public const MAX_SEARCH_COUNTRIES = 5;
 

@@ -132,10 +132,17 @@ class GeoService extends Component
      */
     public static function countryOptions(): array
     {
-        $countries = Craft::$app->getAddresses()->getCountryRepository()->getList(Craft::$app->language);
-        asort($countries);
+        // Loading the country list parses locale data, so keep it for the rest of the request.
+        static $cache = [];
+        $language = Craft::$app->language;
 
-        return $countries;
+        if (!isset($cache[$language])) {
+            $countries = Craft::$app->getAddresses()->getCountryRepository()->getList($language);
+            asort($countries);
+            $cache[$language] = $countries;
+        }
+
+        return $cache[$language];
     }
 
     /**

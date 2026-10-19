@@ -6,19 +6,26 @@
 	* @copyright Copyright (c) 2026 Suprim Golay
 #}
 
-<h2>{{ 'Import from Maps (Ether)'|t('geo') }}</h2>
+<h2>{{ 'Import map fields'|t('geo') }}</h2>
 
 {% if fields is empty %}
-	<p>{{ 'No Maps fields were found. There’s nothing to import.'|t('geo') }}</p>
+	<p>{{ 'No Maps (Ether) or Craft Geoman fields were found. There’s nothing to import.'|t('geo') }}</p>
 {% else %}
-	<p>{{ 'Each Maps field below is converted to a Geo Maps field in place. Handles, field layouts and saved locations are kept, so templates using `.lat`, `.lng`, `.address`, `.parts`, `.img()` and location search keep working.'|t('geo')|md(inlineOnly=true) }}</p>
+	<p>{{ 'Converts fields from Maps (Ether) and Craft Geoman into Geo Maps fields in place. Handles, field layouts and saved locations are kept, so most templates keep working. Import fields one at a time, or all at once.'|t('geo') }}</p>
+
+	<p class="warning has-icon">
+		<span class="icon" aria-hidden="true"></span>
+		<span>{{ 'Back up your database first. Importing changes field types, which updates project config — commit the change and deploy it as usual. Other environments read the old values automatically and index them in the background.'|t('geo') }}</span>
+	</p>
 
 	<table class="data fullwidth">
 		<thead>
 			<tr>
 				<th>{{ 'Field'|t('app') }}</th>
 				<th>{{ 'Handle'|t('app') }}</th>
-				<th>{{ 'Saved locations'|t('geo') }}</th>
+				<th>{{ 'From'|t('geo') }}</th>
+				<th>{{ 'Saved values'|t('geo') }}</th>
+				<th class="thin"></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -26,28 +33,38 @@
 				<tr>
 					<td>{{ item.field.name }}</td>
 					<td><code>{{ item.field.handle }}</code></td>
+					<td>{{ item.sourceName }}</td>
 					<td>{{ item.values|number }}</td>
+					<td class="thin">
+						<form method="post" accept-charset="UTF-8">
+							{{ actionInput('geo/import') }}
+							{{ csrfInput() }}
+							{{ redirectInput('utilities/geo-import') }}
+							{{ hiddenInput('fieldId', item.field.id) }}
+							<button type="submit" class="btn small">{{ 'Import'|t('geo') }}</button>
+						</form>
+					</td>
 				</tr>
 			{% endfor %}
 		</tbody>
 	</table>
 
-	<form class="utility" method="post" accept-charset="UTF-8" style="margin-top: 24px">
-		{{ actionInput('geo/import/simple-map') }}
-		{{ csrfInput() }}
-		{{ redirectInput('utilities/geo-import') }}
+	{% if fields|length > 1 %}
+		<form method="post" accept-charset="UTF-8" style="margin-top: 20px">
+			{{ actionInput('geo/import') }}
+			{{ csrfInput() }}
+			{{ redirectInput('utilities/geo-import') }}
+			<button type="submit" class="btn submit">{{ 'Import all {count} fields'|t('geo', { count: fields|length }) }}</button>
+		</form>
+	{% endif %}
 
-		<p class="warning has-icon">
-			<span class="icon" aria-hidden="true"></span>
-			<span>{{ 'Back up your database first. This changes field types, which also updates project config — commit the change and deploy it as usual. Other environments will read the old values automatically and index them in the background.'|t('geo') }}</span>
-		</p>
-
-		<div class="buttons">
-			<button type="submit" class="btn submit">{{ 'Import {count} field(s)'|t('geo', { count: fields|length }) }}</button>
-		</div>
-	</form>
+	<h3 style="margin-top: 32px">{{ 'Templates'|t('geo') }}</h3>
+	<ul class="bullets">
+		<li>{{ 'Maps (Ether): `.lat`, `.lng`, `.address`, `.parts`, `.img()` and location search keep working. Replace `craft.maps` with `craft.geomaps`.'|t('geo')|md(inlineOnly=true) }}</li>
+		<li>{{ 'Craft Geoman: `{{ entry.field }}` still outputs the GeoJSON, and entries become searchable by distance using the centre of their shapes.'|t('geo')|md(inlineOnly=true) }}</li>
+	</ul>
 {% endif %}
 
 {% if simpleMapInstalled and fields is empty %}
-	<p>{{ 'You can now uninstall Maps from the <a href="{url}">Plugins</a> page.'|t('geo', { url: pluginsUrl })|raw }}</p>
+	<p>{{ 'You can now uninstall the old map plugins from the <a href="{url}">Plugins</a> page.'|t('geo', { url: pluginsUrl })|raw }}</p>
 {% endif %}

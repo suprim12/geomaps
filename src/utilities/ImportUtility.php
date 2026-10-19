@@ -37,7 +37,7 @@ class ImportUtility extends Utility
     public static function contentHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('geo/utilities/import', [
-            'fields' => Geo::getInstance()->import->getSimpleMapFields(),
+            'fields' => Geo::getInstance()->import->getImportableFields(),
             'simpleMapInstalled' => Craft::$app->getPlugins()->isPluginInstalled('simplemap'),
             'pluginsUrl' => UrlHelper::cpUrl('settings/plugins'),
         ]);

@@ -1,20 +1,24 @@
-# Migrating from Maps (Ether)
+# Migrating from Maps or Craft Geoman
 
-Geo Maps can take over your existing [Maps](https://plugins.craftcms.com/simplemap) (`ether/simplemap`) fields in one click. Each field keeps its handle, field layouts and saved locations.
+Geo Maps can take over existing [Maps](https://plugins.craftcms.com/simplemap) (`ether/simplemap`) and [Craft Geoman](https://plugins.craftcms.com/craft-geoman) (`handplant/craft-geoman`) fields. Each field keeps its handle, field layouts and saved values.
 
 ## 1. Import
 
 1. Back up your database.
-2. Install Geo Maps alongside Maps.
-3. Go to **Utilities → Geo Maps Import** and click **Import**.
+2. Install Geo Maps alongside the old plugin.
+3. Go to **Utilities → Geo Maps Import**. Click **Import** next to a field to convert just that one, or **Import all**.
 
 Or from the terminal:
 
 ```bash
-php craft geo/import/simple-map
+php craft geo/import                      # every field
+php craft geo/import --field=storeMap     # one field
 ```
 
-Every Maps field is converted to a Geo Maps field. Saved addresses, coordinates and zoom levels are copied across, including on drafts and revisions, and indexed for location search. The Maps plugin’s own data is left untouched.
+Saved values are copied across, including on drafts and revisions, and indexed for location search. The old plugin’s own data is left untouched.
+
+- **Maps:** addresses, address parts, coordinates and zoom levels.
+- **Craft Geoman:** shapes become the field’s GeoJSON, and each entry’s location is set to the centre of its shapes so it can be found with [location search](/guides/search).
 
 ## 2. Deploy
 
@@ -22,7 +26,11 @@ The import changes field types, so it updates your [project config](https://craf
 
 ## 3. Check your templates
 
-Most templates keep working unchanged:
+::: v-pre
+**From Craft Geoman:** `{{ entry.myField }}` still outputs the GeoJSON. You can also use `entry.myField.getGeoJsonData()` and the [map helpers](/guides/maps).
+:::
+
+**From Maps**, most templates keep working unchanged:
 
 | Maps | Geo Maps |
 |---|---|
@@ -36,6 +44,6 @@ Most templates keep working unchanged:
 | `craft.maps.*` | Use `craft.geomaps.*` |
 | `parts.state`, `parts.county`, `what3words` | Not available |
 
-## 4. Uninstall Maps
+## 4. Uninstall the old plugin
 
-Once you’ve checked everything on production, uninstall Maps from **Settings → Plugins**.
+Once you’ve checked everything on production, uninstall it from **Settings → Plugins**.

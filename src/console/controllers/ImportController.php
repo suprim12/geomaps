@@ -15,30 +15,55 @@ use sup\craftgeo\Geo;
 use yii\console\ExitCode;
 
 /**
- * Imports fields and content from other map plugins.
+ * Imports fields and content from Maps (Ether) and Craft Geoman.
  */
 class ImportController extends Controller
 {
     /**
-     * Converts every Maps (ether/simplemap) field to a Geo Maps field, keeping handles, layouts and content.
+     * @var string|null Handle of a single field to import. Imports every importable field when omitted.
      */
-    public function actionSimpleMap(): int
+    public ?string $field = null;
+
+    public function options($actionID): array
+    {
+        return array_merge(parent::options($actionID), ['field']);
+    }
+
+    /**
+     * Converts Maps (Ether) and Craft Geoman fields to Geo Maps fields, keeping handles, layouts and content.
+     */
+    public function actionIndex(): int
     {
         $service = Geo::getInstance()->import;
-        $fields = $service->getSimpleMapFields();
+        $items = $service->getImportableFields();
 
-        if (empty($fields)) {
-            $this->stdout("No Maps fields found.\n");
+        if ($this->field !== null) {
+            $items = array_values(array_filter($items, fn($item) => $item['field']->handle === $this->field));
+            if (empty($items)) {
+                $this->stderr("No importable field with the handle “{$this->field}”.\n", Console::FG_RED);
+                return ExitCode::DATAERR;
+            }
+        }
+
+        if (empty($items)) {
+            $this->stdout("No Maps (Ether) or Craft Geoman fields found.\n");
             return ExitCode::OK;
         }
 
-        foreach ($fields as $item) {
-            $field = $item['field'];
-            $this->stdout("Importing {$field->handle} … ");
-            $count = $service->importField($field);
+        foreach ($items as $item) {
+            $this->stdout("Importing {$item['field']->handle} ({$item['sourceName']}) … ");
+            $count = $service->importField($item['field']);
             $this->stdout("$count location(s)\n", Console::FG_GREEN);
         }
 
         return ExitCode::OK;
+    }
+
+    /**
+     * Same as geo/import (kept for compatibility).
+     */
+    public function actionSimpleMap(): int
+    {
+        return $this->actionIndex();
     }
 }
