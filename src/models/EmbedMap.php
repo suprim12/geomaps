@@ -60,87 +60,96 @@ class EmbedMap extends Model
 
         $view = Craft::$app->getView();
 
+        // Leaflet is always loaded so maps can fall back to OpenStreetMap if Google rejects the key.
+        $view->registerAssetBundle(EmbedAsset::class);
+
         if ($mapToken) {
+            // Catch Google rejecting the key (it reports this asynchronously via window.gm_authFailure).
+            $view->registerJs(<<<'HOOK'
+            if (!window.__supgeoAuthHooked) {
+                window.__supgeoAuthHooked = true;
+                var previous = window.gm_authFailure;
+                window.gm_authFailure = function() {
+                    window.__supgeoGoogleFailed = true;
+                    window.dispatchEvent(new CustomEvent('supgeo:google-failed'));
+                    if (typeof previous === 'function') previous();
+                };
+            }
+            HOOK, \craft\web\View::POS_HEAD, 'supgeo-google-auth');
             $view->registerJsFile(
                 'https://maps.googleapis.com/maps/api/js?' . http_build_query(['key' => $mapToken]),
                 ['position' => \craft\web\View::POS_HEAD]
             );
-        } else {
-            $view->registerAssetBundle(EmbedAsset::class);
         }
 
         $style = "width:{$this->width}px;height:{$this->height}px;";
 
         $js = <<<JS
         (function() {
-            function initGeoEmbed() {
-                var config = {$config};
+            var config = {$config};
+
+            function renderLeaflet(el) {
+                if (typeof L === 'undefined') return;
+                var map = L.map(el, config.options || {}).setView([config.center.lat, config.center.lng], config.zoom);
+                L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
+                (config.markers || []).forEach(function(marker) {
+                    if (marker.lat == null || marker.lng == null) return;
+                    var m = L.circleMarker([marker.lat, marker.lng], {
+                        radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+                    });
+                    if (marker.label) m.bindPopup(String(marker.label).replace(/[&<>"']/g, function(c) {
+                        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                    }));
+                    m.addTo(map);
+                });
+            }
+
+            function renderGoogle(el) {
+                var map = new google.maps.Map(el, Object.assign({
+                    center: { lat: config.center.lat, lng: config.center.lng },
+                    zoom: config.zoom,
+                }, config.options || {}));
+                (config.markers || []).forEach(function(marker) {
+                    if (marker.lat == null || marker.lng == null) return;
+                    new google.maps.Marker({
+                        position: { lat: marker.lat, lng: marker.lng },
+                        map: map,
+                        title: marker.label || null,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: marker.color || '#ff0000', fillOpacity: 1,
+                            strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
+                        },
+                    });
+                });
+            }
+
+            function init() {
                 var el = document.getElementById(config.id);
                 if (!el) return;
 
-                if (config.provider !== 'google' && typeof L !== 'undefined') {
-                    var map = L.map(el, config.options || {}).setView(
-                        [config.center.lat, config.center.lng],
-                        config.zoom
-                    );
-                    L.tileLayer(config.tileUrl, {
-                        maxZoom: 19,
-                        attribution: config.tileAttribution
-                    }).addTo(map);
-                    if (config.markers && config.markers.length) {
-                        config.markers.forEach(function(marker) {
-                            if (marker.lat == null || marker.lng == null) return;
-                            var color = marker.color || '#ff0000';
-                            var m = L.circleMarker([marker.lat, marker.lng], {
-                                radius: 8,
-                                fillColor: color,
-                                color: '#fff',
-                                weight: 2,
-                                opacity: 1,
-                                fillOpacity: 0.9,
-                            });
-                            if (marker.label) m.bindPopup(marker.label);
-                            m.addTo(map);
-                        });
-                    }
+                var useGoogle = config.provider === 'google' && !window.__supgeoGoogleFailed
+                    && typeof google !== 'undefined' && google.maps && google.maps.Map;
+
+                if (!useGoogle) {
+                    renderLeaflet(el);
                     return;
                 }
 
-                if (typeof google !== 'undefined' && google.maps) {
-                    var map = new google.maps.Map(el, Object.assign({
-                        center: { lat: config.center.lat, lng: config.center.lng },
-                        zoom: config.zoom,
-                    }, config.options || {}));
+                renderGoogle(el);
 
-                    if (config.markers && config.markers.length) {
-                        config.markers.forEach(function(marker) {
-                            if (marker.lat == null || marker.lng == null) return;
-                            var color = marker.color || '#ff0000';
-                            new google.maps.Marker({
-                                position: { lat: marker.lat, lng: marker.lng },
-                                map: map,
-                                label: marker.label || null,
-                                icon: {
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    fillColor: color,
-                                    fillOpacity: 1,
-                                    strokeColor: '#ffffff',
-                                    strokeWeight: 2,
-                                    scale: 8,
-                                },
-                            });
-                        });
-                    }
-                    return;
-                }
-
-                console.warn('GeoMaps: No map library found. Include Leaflet or Google Maps.');
+                // Google rejected the key: redraw this map with OpenStreetMap.
+                window.addEventListener('supgeo:google-failed', function() {
+                    var fresh = el.cloneNode(false);
+                    el.parentNode.replaceChild(fresh, el);
+                    renderLeaflet(fresh);
+                }, { once: true });
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initGeoEmbed);
+                document.addEventListener('DOMContentLoaded', init);
             } else {
-                initGeoEmbed();
+                init();
             }
         })();
         JS;
