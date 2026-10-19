@@ -7,26 +7,25 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\models;
+namespace suprim\geomaps\models;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\App;
-use sup\craftgeo\Geo;
-use sup\craftgeo\services\GeoService;
+use suprim\geomaps\Plugin;
 
 class StaticMap extends Model
 {
-    public mixed  $center         = null;
+    public mixed  $center = null;
     public mixed  $centerFallback = null;
-    public int    $width          = 640;
-    public int    $height         = 400;
-    public int    $zoom           = 14;
-    public int    $scale          = 1;
-    public array  $markers        = [];
-    public string $format         = 'png';
-    public string $mapType        = 'roadmap';
-    public mixed $colorScheme        = null;
+    public mixed  $mapId = null;
+    public int    $width = 640;
+    public int    $height = 400;
+    public int    $zoom = 14;
+    public int    $scale = 1;
+    public array  $markers = [];
+    public string $format = 'png';
+    public string $mapType = 'roadmap';
+    public mixed $colorScheme = null;
     private ?string $_resolvedCenter = null;
 
     public function img(array $options = []): ?string
@@ -65,39 +64,36 @@ class StaticMap extends Model
 
     private function buildUrl(int $scale = 1): ?string
     {
-        $settings = Geo::getInstance()->getSettings();
-        $apiKey   = $settings->getMapToken();
+        $settings = Plugin::getInstance()->getSettings();
+        $apiKey = $settings->getMapToken();
 
         if (!$apiKey) {
-            Craft::warning('GeoMaps: mapToken is required for static maps', 'geo');
+            Craft::warning('GeoMaps: mapToken is required for static maps', 'geomaps');
             return null;
         }
         $center = $this->_resolvedCenter ?? $this->resolveCenter();
 
-        if (!$center) {
-            Craft::warning('GeoMaps: could not resolve center for static map', 'geo');
+        if (!$center && count($this->markers) <= 0) {
+            Craft::warning('GeoMaps: could not resolve center for static map', 'geomaps');
             return null;
         }
 
-        $params = [
-            'key'     => $apiKey,
-            'size'    => $this->width . 'x' . $this->height,
-            'zoom'    => $this->zoom,
-            'scale'   => $scale,
-            'format'  => $this->format,
-            'center'  => $center,
-            'maptype' => $this->mapType ?? 'roadmap',
-            'mapId' => "DEMO_MAP_ID",
-            'colorScheme' => $this->colorScheme ?? null
-        ];
+        $params = array_filter([
+            'center' => $center,
+            'size' => $this->width . 'x' . $this->height,
+            'zoom' => $this->zoom,
+            'scale' => $scale,
+            'format' => $this->format,
+            'maptype' => $this->mapType ?: 'roadmap',
+            'map_id' => $this->mapId ?: null,
+            'colorScheme' => $this->colorScheme ?: null,
+            'key' => $apiKey,
+        ], fn($v) => $v !== null && $v !== '');
 
-        // Build markers
-        $markerParams = $this->buildMarkerParams($center);
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
-        $query = http_build_query($params);
-
-        foreach ($markerParams as $marker) {
-            $query .= '&markers=' . urlencode($marker);
+        foreach ($this->buildMarkerParams($center) as $marker) {
+            $query .= '&markers=' . rawurlencode($marker);
         }
 
         return 'https://maps.googleapis.com/maps/api/staticmap?' . $query;
@@ -117,12 +113,11 @@ class StaticMap extends Model
         }
 
         if (is_string($center) && !empty(trim($center))) {
-            return urlencode(trim($center));
+            return trim($center);
         }
 
         if ($this->centerFallback) {
             $fb = $this->centerFallback;
-
             $lat = $fb['lat'] ?? $fb[0] ?? null;
             $lng = $fb['lng'] ?? $fb[1] ?? null;
 
@@ -131,15 +126,34 @@ class StaticMap extends Model
             }
         }
 
+        // Last resort: derive center from the first marker's location
+        $first = $this->markers[0] ?? null;
+        if ($first !== null) {
+            $location = $first['location'] ?? null;
+
+            if (is_array($location)) {
+                $lat = $location['lat'] ?? $location[0] ?? null;
+                $lng = $location['lng'] ?? $location[1] ?? null;
+
+                if (is_numeric($lat) && is_numeric($lng)) {
+                    return "{$lat},{$lng}";
+                }
+            }
+
+            if (is_string($location) && !empty(trim($location))) {
+                return trim($location);
+            }
+        }
+
         return null;
     }
 
-    private function buildMarkerParams(string $center): array
+    private function buildMarkerParams(?string $center): array
     {
         $markers = $this->markers;
 
         if (empty($markers)) {
-            return ["color:red|{$center}"];
+            return $center ? ["color:red|{$center}"] : [];
         }
 
         $params = [];
@@ -152,7 +166,7 @@ class StaticMap extends Model
             $parts[] = "color:0x{$color}";
 
             if (!empty($marker['label'])) {
-                $label   = strtoupper(substr($marker['label'], 0, 1));
+                $label = strtoupper(substr($marker['label'], 0, 1));
                 $parts[] = "label:{$label}";
             }
 
@@ -165,8 +179,8 @@ class StaticMap extends Model
                     $parts[] = "{$lat},{$lng}";
                 }
             } elseif (is_string($location) && !empty($location)) {
-                $parts[] = urlencode($location);
-            } else {
+                $parts[] = $location;
+            } elseif ($center) {
                 $parts[] = $center;
             }
 

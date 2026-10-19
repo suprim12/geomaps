@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\integrations\graphql\types;
+namespace suprim\geomaps\integrations\graphql\types;
 
 use craft\gql\GqlEntityRegistry;
 use GraphQL\Type\Definition\InputObjectType;
@@ -25,7 +25,7 @@ class GeoCoordsInput extends InputObjectType
         return GqlEntityRegistry::getOrCreate(
             static::getName(),
             fn() => new self([
-                'name'   => static::getName(),
+                'name' => static::getName(),
                 'fields' => [
                     'lat' => [
                         'name' => 'lat',

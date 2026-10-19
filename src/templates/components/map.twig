@@ -8,24 +8,17 @@
  #}
 
 
-<div x-data="appgeo" x-intersect.once="initMap({{mapdata|json_encode}})" class="supgeo">
-	<div class="supgeo__wrapper">
-		<input 
-		    type="hidden"
-			name="{{'lat'}}" 
-			x-model="lat"
-		>
-
-		<input 
-		    type="hidden"
-			name="{{ 'lng'}}" 
-			x-model="lng"
-		>
-
-		<div class="field">
-			<div x-ref="apgeo-search" class="input"></div>
+<div x-data="appgeo" x-intersect.once="initMap({{ mapdata|json_encode }})" class="supgeo" :class="{ '--googleFailed': googleFailed || provider === 'osm' }" style="--supgeo-map-h: 320px">
+	<input type="hidden" name="lat" x-model="lat">
+	<input type="hidden" name="lng" x-model="lng">
+	<div class="supgeo__layout" x-ref="geowrapper">
+		<div class="supgeo__stage">
+			<div x-ref="appgeo-map" class="supgeo__map"></div>
 		</div>
-
-		<div x-ref="appgeo-map" class="supgeo__map --small"></div>
+	</div>
+	<div class="supgeo__footer">
+		<span class="supgeo__chip" :class="{ '--empty': !hasLocation }">
+			<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'Click the map or drag the pin to set the starting point'|t('geomaps')|e('js') }}'"></span>
+		</span>
 	</div>
 </div>

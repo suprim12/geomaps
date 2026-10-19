@@ -1,90 +1,97 @@
-{# 
+{#
 	* Geo Maps plugin for Craft CMS
 	*
 	* @link      https://suprimgolay.com.np/craft-plugins
 	* @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
 	* @copyright Copyright (c) 2026 Suprim Golay
-	* 
- #}
+#}
 
-{% set mapData = mapdata %}
-{% if settings is not empty %}
-	{% set mapData = mapData|merge(settings) %}
-{% endif %}
-
+{% set mapData = mapdata|merge({
+	hideSearch: settings.hideSearch ?? false,
+	hideAddress: settings.hideAddress ?? false,
+	hideMap: settings.hideMap ?? false,
+	enableGeoJson: settings.enableGeoJson ?? true,
+	showMarker: settings.showMarker ?? true,
+	minZoom: settings.minZoom ?? null,
+	maxZoom: settings.maxZoom ?? null,
+}) %}
 {% if value is not empty %}
 	{% set mapData = mapData|merge(value) %}
 {% endif %}
 
+{% set hideSearch = settings.hideSearch ?? false %}
+{% set hideAddress = settings.hideAddress ?? false %}
+{% set hideMap = settings.hideMap ?? false %}
+{% set enableGeoJson = (settings.enableGeoJson ?? true) and not hideMap %}
+{% set showMarker = settings.showMarker ?? true %}
+{% set mapHeight = max(240, (settings.mapHeigth ?? 420)|integer) %}
 
-{% if global_settings.mapToken is not empty %}
-	<div x-data="appgeo" x-init="initMap({{mapData|json_encode}},true,{{settings|json_encode()}})" class="supgeo {{settings.hideMap ? ' --hideMap ':''}}" :class="{ ' --showEditor ': showEditor }">
-		<div class="supgeo__wrapper" x-ref="geowrapper">
-			<div
-				class="supgeo__map_search">
-				{# Autocomplete Panel #}
-				<div class="supgeo__wrapper_map">
-					{% if settings.hideSearch == false %}
-						<div class="supgeo__search" x-show="!notokenAdded && !showEditor">
-							<div class="supgeo__search_icon">
-								<svg width="25" height="24" fill="none" viewbox="0 0 25 24">
-									<path fill="#5e5e5e" fill-rule="evenodd" d="M15.56 13.27 21.29 19l-1.49 1.49-5.73-5.73A6.4 6.4 0 0110.3 16a6.5 6.5 0 116.5-6.5c0 1.41-.47 2.7-1.24 3.77M10.3 5a4.5 4.5 0 10-.01 8.99A4.5 4.5 0 0010.3 5" clip-rule="evenodd"></path>
-								</svg>
-							</div>
-							<div x-ref="apgeo-search" class="supgeo-search-wrapper" x-show="!hideSearch">
-								<input type="text" class="supgeo-search-input text fullwidth" placeholder="Search for a place…" x-model="searchQuery" @input="onSearchInput()" @keydown="onSearchKeydown($event)" @blur="closeSuggestions()" autocomplete="off" role="combobox" aria-autocomplete="list" :aria-expanded="suggestionsOpen" :aria-activedescendant="activeSuggestion >= 0 ? 'supgeo-suggestion-' + activeSuggestion : null"/>
-								<div x-ref="supgeo-places-attr" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
-								<span class="supgeo-search-spinner" x-show="loadingSuggestions" aria-hidden="true"></span>
-								<ul class="supgeo-suggestions" x-show="suggestionsOpen" x-transition:enter="supgeo-suggestions-enter" x-transition:enter-start="supgeo-suggestions-enter-start" x-transition:enter-end="supgeo-suggestions-enter-end" role="listbox">
-									<template x-for="(s, i) in suggestions" :key="s.placeId">
-										<li :id="'supgeo-suggestion-' + i" class="supgeo-suggestion-item" :class="{ '--active': activeSuggestion === i }" role="option" :aria-selected="activeSuggestion === i" @mousedown.prevent="selectSuggestion(s)" @mousemove="activeSuggestion = i">
-											<span class="supgeo-suggestion-main" x-text="s.mainText"></span>
-											<span class="supgeo-suggestion-secondary" x-text="s.secondaryText"></span>
-										</li>
-									</template>
-								</ul>
-							</div>
-							<button x-cloak class="supgeo__search_clear" type="button" x-show="full_address != null" @click="clearAddress()" title="clear address" aria-label="Clear search">
-								<svg width="21" height="20" fill="none" viewbox="0 0 21 20">
-									<path fill="#1f1f1f" fill-rule="evenodd" d="M10.8 0a10 10 0 100 20 10 10 0 100-20m2.59 6L10.8 8.59 8.21 6 6.8 7.41 9.39 10 6.8 12.59 8.21 14l2.59-2.59L13.39 14l1.41-1.41L12.21 10l2.59-2.59zM2.8 10a8.01 8.01 0 0016 0 8.01 8.01 0 00-16 0" clip-rule="evenodd"></path>
-								</svg>
-							</button>
-						</div>
-					{% endif %}
-					{% set hideAdress = settings.hideAddress ?? false  %}
-					{% if hideAdress  == false %}
-						<div class="supgeo_field" x-show="!notokenAdded && !showEditor && !featureEditorOpen">
-							<div class="input">
-								<input x-model="full_address" name="{{ name }}[full_address]" class="text fullwidth" type="text" placeholder="Full Address">
-							</div>
-							<div class="input">
-								<input x-model="address1" name="{{ name }}[address1]" class="text fullwidth" type="text" placeholder="Address Line 1">
-							</div>
-							<div class="input">
-								<input x-model="suburb" name="{{ name }}[suburb]" class="text fullwidth" type="text" placeholder="Suburb">
-							</div>
-							<div class="input">
-								<input x-model="postcode" name="{{ name }}[postcode]" type="text" class="text fullwidth" placeholder="Postcode">
-							</div>
-							<div class="input">
-								<input x-model="country" name="{{ name }}[country]" class="text fullwidth" type="text" placeholder="Country">
-							</div>
-							<div class="input">
-								<input hidden x-model="countryCode" name="{{ name }}[countryCode]" class="text fullwidth" type="text" placeholder="countryCode">
-							</div>
-							<div class="supgeo_input__group">
-								<div class="input">
-									<input x-model="lat" name="{{ name }}[lat]" type="text" class="text fullwidth" placeholder="Latitude">
-								</div>
-								<div class="input">
-									<input x-model="lng" name="{{ name }}[lng]" type="text" class="text fullwidth" placeholder="Longtitude">
-								</div>
-							</div>
-						</div>
-					{% endif %}
+{% macro textInput(id, name, key, label, attrs) %}
+	<div class="supgeo__input{{ attrs.wide ?? false ? ' --wide' }}">
+		<label class="supgeo__label" for="{{ id }}-{{ key }}">{{ label }}</label>
+		<input id="{{ id }}-{{ key }}" class="text fullwidth" type="text" name="{{ name }}[{{ key }}]" x-model="{{ key }}" autocomplete="off"{% if attrs.inputmode ?? false %} inputmode="{{ attrs.inputmode }}"{% endif %}{% if attrs.placeholder ?? false %} placeholder="{{ attrs.placeholder }}"{% endif %}>
+	</div>
+{% endmacro %}
+
+<div x-data="appgeo" x-init="initMap({{ mapData|json_encode }}, true, {{ settings|json_encode }})"
+	class="supgeo{{ hideMap ? ' --hideMap' }}{{ hideAddress ? ' --noDetails' }}"
+	:class="{ '--showEditor': showEditor, '--googleFailed': googleFailed || provider === 'osm' }"
+	style="--supgeo-map-h: {{ mapHeight }}px">
+
+	{% if not hideSearch %}
+		<div class="supgeo__searchbar" x-ref="apgeo-search">
+			<span class="supgeo__search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+			<input type="text" class="supgeo__search-input text fullwidth"
+				placeholder="{{ 'Search for an address or place'|t('geomaps') }}"
+				aria-label="{{ 'Search for an address or place'|t('geomaps') }}"
+				x-model="searchQuery" @input="onSearchInput()" @keydown="onSearchKeydown($event)" @blur="closeSuggestions()"
+				autocomplete="off" role="combobox" aria-autocomplete="list" :aria-expanded="suggestionsOpen"
+				:aria-activedescendant="activeSuggestion >= 0 ? '{{ id }}-suggestion-' + activeSuggestion : null">
+			<span class="supgeo__spinner" x-cloak x-show="loadingSuggestions" aria-hidden="true"></span>
+			<div x-ref="supgeo-places-attr" class="supgeo__sr" aria-hidden="true"></div>
+			<ul class="supgeo-suggestions" x-cloak x-show="suggestionsOpen" role="listbox"
+				x-transition:enter="supgeo-suggestions-enter" x-transition:enter-start="supgeo-suggestions-enter-start" x-transition:enter-end="supgeo-suggestions-enter-end">
+				<template x-for="(s, i) in suggestions" :key="s.placeId">
+					<li :id="'{{ id }}-suggestion-' + i" class="supgeo-suggestion-item" :class="{ '--active': activeSuggestion === i }" role="option" :aria-selected="activeSuggestion === i" @mousedown.prevent="selectSuggestion(s)" @mousemove="activeSuggestion = i">
+						<svg class="supgeo-suggestion-pin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+						<span class="supgeo-suggestion-text">
+							<span class="supgeo-suggestion-main" x-text="s.mainText"></span>
+							<span class="supgeo-suggestion-secondary" x-text="s.secondaryText"></span>
+						</span>
+					</li>
+				</template>
+			</ul>
+		</div>
+	{% endif %}
+
+	{% if not hideMap %}
+	<div class="supgeo__notice" x-cloak x-show="googleFailed">
+		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+		<span>{{ 'Google Maps rejected the API key, so OpenStreetMap is being used.'|t('geomaps') }} {% if currentUser.admin ?? false %}<a href="{{ settingsUrl }}">{{ 'Check the key'|t('geomaps') }}</a>{% endif %}</span>
+		<button type="button" class="supgeo__notice-close" @click="googleFailed = false" aria-label="{{ 'Dismiss'|t('geomaps') }}">
+			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+		</button>
+	</div>
+	{% endif %}
+
+	<div class="supgeo__layout" x-ref="geowrapper">
+		<div class="supgeo__stage">
+			<div x-ref="appgeo-map" class="supgeo__map"></div>
+			{% if enableGeoJson %}
+			<div class="supgeo__geojson" x-cloak x-show="showEditor">
+				<div class="supgeo__panel-head">
+					<div>
+						<div class="supgeo__panel-title">{{ 'GeoJSON'|t('geomaps') }}</div>
+						<div class="supgeo__panel-desc">{{ 'The shapes drawn on the map. Edit here to update them.'|t('geomaps') }}</div>
+					</div>
+					<button type="button" class="supgeo__panel-close" @click="toggleEditor()" title="{{ 'Close GeoJSON'|t('geomaps') }}" aria-label="{{ 'Close GeoJSON'|t('geomaps') }}">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+					</button>
 				</div>
-				{# Main Map Panel #}
-				<div x-ref="appgeo-map" class="supgeo__map --small"></div>
+				<div x-ref="geojson-editor" class="geojson-editor"></div>
+			</div>
+			{% endif %}
+
 				{# Property Value Editor Panel #}
 				<div class="supgeo__prop-modal-overlay" x-cloak x-show="featurePropEditorOpen" @click.self="closePropEditor()">
 					<div class="supgeo__prop-modal">
@@ -200,38 +207,71 @@
 							</button>
 						</div>
 					</div>
+			</div>
+		</div>
+
+		{% if not hideAddress %}
+			<div class="supgeo__details" x-show="!showEditor">
+				<div class="supgeo__details-head">{{ 'Location details'|t('geomaps') }}</div>
+				<div class="supgeo__grid">
+					{{ _self.textInput(id, name, 'full_address', 'Full address'|t('geomaps'), { wide: true }) }}
+					{{ _self.textInput(id, name, 'address1', 'Street address'|t('geomaps'), { wide: true }) }}
+					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geomaps')) }}
+					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geomaps')) }}
+					{{ _self.textInput(id, name, 'country', 'Country'|t('geomaps'), { wide: true }) }}
+					{% if showMarker %}
+						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geomaps'), { inputmode: 'decimal' }) }}
+						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geomaps'), { inputmode: 'decimal' }) }}
+					{% else %}
+						{# Without a pin, the location is set from the centre of the shapes when the entry is saved. #}
+						<input type="hidden" name="{{ name }}[lat]" :value="lat">
+						<input type="hidden" name="{{ name }}[lng]" :value="lng">
+					{% endif %}
 				</div>
 			</div>
-			{# GeoJson Editor Panel #}
-			<textarea hidden name="{{name}}[geoJson]" x-model="geojsonText"></textarea>
-			<div x-ref="geojson-editor" class="geojson-editor" :class="{ active: showEditor }"></div>
+		{% endif %}
+	</div>
+
+	{# Values must still post when the details panel is hidden. #}
+	{% if hideAddress %}
+		{% for key in ['full_address', 'address1', 'suburb', 'postcode', 'country', 'lat', 'lng'] %}
+			<input type="hidden" name="{{ name }}[{{ key }}]" :value="{{ key }}">
+		{% endfor %}
+	{% endif %}
+	<input type="hidden" name="{{ name }}[countryCode]" :value="countryCode">
+	<textarea hidden name="{{ name }}[geoJson]" x-model="geojsonText"></textarea>
+
+	<div class="supgeo__footer">
+		<div class="supgeo__status">
+			<span class="supgeo__chip" :class="{ '--empty': !hasLocation }">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+				<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'No location set'|t('geomaps')|e('js') }}'">{{ 'No location set'|t('geomaps') }}</span>
+			</span>
+			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geomaps') }}</button>
+			{% if not hideMap %}
+				<span class="supgeo__hint">{{ showMarker ? 'Search, click the map, or drag the pin.'|t('geomaps') : 'Draw the area with the tools on the left. Its location is the centre of the shapes.'|t('geomaps') }}</span>
+			{% endif %}
 		</div>
-		{# GeoTool Bar Panel #}
-		<div class="supgeo_tools">
-			<div class="btngroup">
-				<button @click="toggleEditor()" type="button" class=" btn">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="height: 15px; width: 15px; margin-right: 5px" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-						<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-					</svg>
-					 <span x-text="showEditor ? 'Hide GeoJSON Editor' : 'GeoJSON Editor'">GeoJSON Editor</span>
-				</button>
-				<button class="btn" type="button" title="Download" @click.prevent="download({{ elementId }})">
-					<svg xmlns="http://www.w3.org/2000/svg" style="height: 15px; width: 15px; margin-right: 5px" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-					</svg>
-					Download
-				</button>
-				<button type="button" class="btn" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="Upload GeoJSON file">
-					<svg xmlns="http://www.w3.org/2000/svg" style="height: 15px; width: 15px; margin-right: 5px" width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-						<polyline points="17 8 12 3 7 8"/>
-						<line x1="12" y1="3" x2="12" y2="15"/>
-					</svg>
-					Upload
-				</button>
-			</div>
-			<div class="supgeo-upload-wrap">
+
+		{% if enableGeoJson %}
+		<div class="btngroup supgeo__tools">
+			<button type="button" class="btn supgeo__toggle" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor.toString()" :title="showEditor ? '{{ 'Hide the GeoJSON editor'|t('geomaps')|e('js') }}' : '{{ 'View and edit shapes as GeoJSON'|t('geomaps')|e('js') }}'">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m8 16-4-4 4-4M16 8l4 4-4 4"/></svg>
+				<span x-text="showEditor ? '{{ 'Hide GeoJSON'|t('geomaps')|e('js') }}' : '{{ 'Edit GeoJSON'|t('geomaps')|e('js') }}'">{{ 'Edit GeoJSON'|t('geomaps') }}</span>
+			</button>
+			<button type="button" class="btn" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geomaps') }}">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+				<span>{{ 'Download'|t('geomaps') }}</span>
+			</button>
+			<button type="button" class="btn" @click="triggerUpload()" :disabled="uploadStatus === 'reading' || uploadStatus === 'parsing'" title="{{ 'Upload a GeoJSON file'|t('geomaps') }}">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20V9m0 0-4 4m4-4 4 4M5 4h14"/></svg>
+				<span>{{ 'Upload'|t('geomaps') }}</span>
+			</button>
+		</div>
+		{% endif %}
+	</div>
+
+	<div class="supgeo-upload-wrap">
 				<input type="file" accept=".geojson,.json,application/json,application/geo+json" x-ref="geojson-upload-input" class="supgeo-upload-hidden" @change="uploadGeoJSON($event.target.files[0]); $event.target.value = ''"/>
 				<div class="supgeo-upload-progress" x-show="uploadStatus !== null" x-transition:enter="supgeo-fade-enter" x-transition:enter-start="supgeo-fade-enter-start" x-transition:leave="supgeo-fade-leave" x-transition:leave-end="supgeo-fade-leave-end">
 					<div class="supgeo-progress-track" x-show="uploadStatus !== 'error'" role="progressbar" :aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100">
@@ -263,11 +303,4 @@
 				</div>
 
 			</div>
-		</div>
-	</div>
-{% else %}
-	<div>
-		<p>Please add a valid google token. Go to plugin settings
-			<a href="/admin/settings/plugins/geo">Settings > Geo Maps</a>.</p>
-	</div>
-{% endif %}
+</div>

@@ -7,27 +7,34 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\models;
+namespace suprim\geomaps\models;
 
 use Craft;
 use craft\base\Model;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use sup\craftgeo\Geo;
-use sup\craftgeo\services\GeoService;
+use suprim\geomaps\Plugin;
+use suprim\geomaps\services\GeoService;
+use suprim\geomaps\web\EmbedAsset;
 
 class EmbedMap extends Model
 {
-    public mixed   $center         = null;
+    public mixed   $center = null;
     public mixed   $centerFallback = null;
-    public int     $width          = 640;
-    public int     $height         = 400;
-    public int     $zoom           = 14;
-    public int     $scale          = 1;
-    public array   $markers        = [];
-    public ?string $id             = null;
-    public array   $options        = [];
+    public int     $width = 640;
+    public int     $height = 400;
+    public int     $zoom = 14;
+    public int     $scale = 1;
+    public array   $markers = [];
+    public ?string $id = null;
+    public array   $options = [];
+    /** GeoJSON (array or string) to draw on the map. */
+    public mixed   $geoJson = null;
+    /** Whether to show a pin at the centre when no markers are given. */
+    public bool    $marker = true;
+    /** Zoom the map to fit the shapes. */
+    public bool    $fitShapes = true;
 
     public function __toString(): string
     {
@@ -38,26 +45,47 @@ class EmbedMap extends Model
     {
         $this->setOptions($options);
 
-        $id       = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
-        $mapToken = Geo::getInstance()->getSettings()->getMapToken();
-        $center   = $this->resolveCenter();
-        $markers  = $this->resolveMarkers($center);
+        $id = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
+        $settings = Plugin::getInstance()->getSettings();
+        $mapToken = $settings->getMapToken();
+        $center = $this->resolveCenter();
+        $markers = $this->resolveMarkers($center);
 
         $config = Json::encode([
-            'id'      => $id,
-            'center'  => $center,
-            'zoom'    => $this->zoom,
-            'width'   => $this->width,
-            'height'  => $this->height,
+            'id' => $id,
+            'center' => $center,
+            'zoom' => $this->zoom,
+            'width' => $this->width,
+            'height' => $this->height,
             'markers' => $markers,
+            'geoJson' => $this->resolveGeoJson(),
+            'fitShapes' => $this->fitShapes,
             'options' => $this->options,
+            'provider' => $settings->getMapProvider(),
+            'tileUrl' => $settings->getTileUrl(),
+            'tileAttribution' => $settings->tileAttribution,
         ]);
 
         $view = Craft::$app->getView();
 
+        // Leaflet is always loaded so maps can fall back to OpenStreetMap if Google rejects the key.
+        $view->registerAssetBundle(EmbedAsset::class);
+
         if ($mapToken) {
+            // Catch Google rejecting the key (it reports this asynchronously via window.gm_authFailure).
+            $view->registerJs(<<<'HOOK'
+            if (!window.__supgeoAuthHooked) {
+                window.__supgeoAuthHooked = true;
+                var previous = window.gm_authFailure;
+                window.gm_authFailure = function() {
+                    window.__supgeoGoogleFailed = true;
+                    window.dispatchEvent(new CustomEvent('supgeo:google-failed'));
+                    if (typeof previous === 'function') previous();
+                };
+            }
+            HOOK, \craft\web\View::POS_HEAD, 'supgeo-google-auth');
             $view->registerJsFile(
-                "https://maps.googleapis.com/maps/api/js?key={$mapToken}&libraries=places",
+                'https://maps.googleapis.com/maps/api/js?' . http_build_query(['key' => $mapToken]),
                 ['position' => \craft\web\View::POS_HEAD]
             );
         }
@@ -66,73 +94,98 @@ class EmbedMap extends Model
 
         $js = <<<JS
         (function() {
-            function initGeoEmbed_{$id}() {
-                var config = {$config};
+            var config = {$config};
+
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, function(c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
+            function renderLeaflet(el) {
+                if (typeof L === 'undefined') return;
+                var map = L.map(el, config.options || {}).setView([config.center.lat, config.center.lng], config.zoom);
+                L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
+                (config.markers || []).forEach(function(marker) {
+                    if (marker.lat == null || marker.lng == null) return;
+                    var m = L.circleMarker([marker.lat, marker.lng], {
+                        radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+                    });
+                    if (marker.label) m.bindPopup(escapeHtml(marker.label));
+                    m.addTo(map);
+                });
+                if (config.geoJson) {
+                    var shapes = L.geoJSON(config.geoJson, {
+                        style: function(feature) {
+                            var p = (feature && feature.properties) || {};
+                            return { color: p.stroke || p.color || '#2563eb', weight: 2, fillColor: p.fill || p.color || '#2563eb', fillOpacity: 0.2 };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            var name = feature && feature.properties && (feature.properties.name || feature.properties.title);
+                            if (name) layer.bindPopup(escapeHtml(name));
+                        },
+                    }).addTo(map);
+                    if (config.fitShapes && shapes.getLayers().length) map.fitBounds(shapes.getBounds(), { padding: [20, 20], maxZoom: 17 });
+                }
+            }
+
+            function renderGoogle(el) {
+                var map = new google.maps.Map(el, Object.assign({
+                    center: { lat: config.center.lat, lng: config.center.lng },
+                    zoom: config.zoom,
+                }, config.options || {}));
+                (config.markers || []).forEach(function(marker) {
+                    if (marker.lat == null || marker.lng == null) return;
+                    new google.maps.Marker({
+                        position: { lat: marker.lat, lng: marker.lng },
+                        map: map,
+                        title: marker.label || null,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: marker.color || '#ff0000', fillOpacity: 1,
+                            strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
+                        },
+                    });
+                });
+                if (config.geoJson) {
+                    var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
+                        ? config.geoJson : { type: 'Feature', properties: {}, geometry: config.geoJson };
+                    map.data.addGeoJson(gj);
+                    map.data.setStyle({ strokeColor: '#2563eb', strokeWeight: 2, fillColor: '#2563eb', fillOpacity: 0.2 });
+                    if (config.fitShapes) {
+                        var bounds = new google.maps.LatLngBounds();
+                        map.data.forEach(function(f) { f.getGeometry().forEachLatLng(function(ll) { bounds.extend(ll); }); });
+                        if (!bounds.isEmpty()) map.fitBounds(bounds, 20);
+                    }
+                }
+            }
+
+            function init() {
                 var el = document.getElementById(config.id);
                 if (!el) return;
 
-                if (typeof L !== 'undefined') {
-                    var map = L.map(el, config.options || {}).setView(
-                        [config.center.lat, config.center.lng],
-                        config.zoom
-                    );
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OpenStreetMap contributors'
-                    }).addTo(map);
-                    if (config.markers && config.markers.length) {
-                        config.markers.forEach(function(marker) {
-                            if (marker.lat == null || marker.lng == null) return;
-                            var color = marker.color || '#ff0000';
-                            var m = L.circleMarker([marker.lat, marker.lng], {
-                                radius: 8,
-                                fillColor: color,
-                                color: '#fff',
-                                weight: 2,
-                                opacity: 1,
-                                fillOpacity: 0.9,
-                            });
-                            if (marker.label) m.bindPopup(marker.label);
-                            m.addTo(map);
-                        });
-                    }
+                var useGoogle = config.provider === 'google' && !window.__supgeoGoogleFailed
+                    && typeof google !== 'undefined' && google.maps && google.maps.Map;
+
+                if (!useGoogle) {
+                    renderLeaflet(el);
                     return;
                 }
 
-                if (typeof google !== 'undefined' && google.maps) {
-                    var map = new google.maps.Map(el, Object.assign({
-                        center: { lat: config.center.lat, lng: config.center.lng },
-                        zoom: config.zoom,
-                    }, config.options || {}));
+                renderGoogle(el);
 
-                    if (config.markers && config.markers.length) {
-                        config.markers.forEach(function(marker) {
-                            if (marker.lat == null || marker.lng == null) return;
-                            var color = marker.color || '#ff0000';
-                            new google.maps.Marker({
-                                position: { lat: marker.lat, lng: marker.lng },
-                                map: map,
-                                label: marker.label || null,
-                                icon: {
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    fillColor: color,
-                                    fillOpacity: 1,
-                                    strokeColor: '#ffffff',
-                                    strokeWeight: 2,
-                                    scale: 8,
-                                },
-                            });
-                        });
-                    }
-                    return;
-                }
-
-                console.warn('GeoMaps: No map library found. Include Leaflet or Google Maps.');
+                // Google rejected the key: redraw this map with OpenStreetMap.
+                window.addEventListener('supgeo:google-failed', function() {
+                    var fresh = el.cloneNode(false);
+                    el.parentNode.replaceChild(fresh, el);
+                    renderLeaflet(fresh);
+                }, { once: true });
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initGeoEmbed_{$id});
+                document.addEventListener('DOMContentLoaded', init);
             } else {
-                initGeoEmbed_{$id}();
+                init();
             }
         })();
         JS;
@@ -142,27 +195,27 @@ class EmbedMap extends Model
         $noscript = '';
         $staticUrl = (new StaticMap())->img([
             'center' => $center,
-            'zoom'   => $this->zoom,
-            'width'  => $this->width,
+            'zoom' => $this->zoom,
+            'width' => $this->width,
             'height' => $this->height,
         ]);
         if ($staticUrl) {
             $noscript = Html::tag('noscript',
                 Html::tag('img', '', [
-                    'src'    => $staticUrl,
-                    'width'  => $this->width,
+                    'src' => $staticUrl,
+                    'width' => $this->width,
                     'height' => $this->height,
-                    'alt'    => 'Map',
-                    'style'  => $style,
+                    'alt' => 'Map',
+                    'style' => $style,
                 ])
             );
         }
 
 
-          $html = Html::tag('div', $noscript, [
-            'id'    => $id,
+        $html = Html::tag('div', $noscript, [
+            'id' => $id,
             'style' => $style,
-            'data'  => ['geo-embed' => true],
+            'data' => ['geo-embed' => true],
         ]);
 
         return  new \Twig\Markup($html, 'UTF-8');
@@ -197,7 +250,7 @@ class EmbedMap extends Model
         }
 
         if ($this->centerFallback) {
-            $fb  = $this->centerFallback;
+            $fb = $this->centerFallback;
             $lat = $fb['lat'] ?? $fb[0] ?? null;
             $lng = $fb['lng'] ?? $fb[1] ?? null;
             if (is_numeric($lat) && is_numeric($lng)) {
@@ -208,8 +261,19 @@ class EmbedMap extends Model
         return ['lat' => 0.0, 'lng' => 0.0];
     }
 
+    private function resolveGeoJson(): ?array
+    {
+        $geoJson = is_string($this->geoJson) ? json_decode($this->geoJson, true) : $this->geoJson;
+
+        return is_array($geoJson) && !empty($geoJson['type']) ? $geoJson : null;
+    }
+
     private function resolveMarkers(array $center): array
     {
+        if (empty($this->markers) && !$this->marker) {
+            return [];
+        }
+
         if (empty($this->markers)) {
             return [['lat' => $center['lat'], 'lng' => $center['lng'], 'label' => null, 'color' => '#ff0000']];
         }
@@ -218,7 +282,7 @@ class EmbedMap extends Model
 
         foreach ($this->markers as $marker) {
             $location = $marker['location'] ?? null;
-            $coords   = null;
+            $coords = null;
 
             if (is_array($location)) {
                 $lat = $location['lat'] ?? $location[0] ?? null;
@@ -227,7 +291,7 @@ class EmbedMap extends Model
                     $coords = ['lat' => (float) $lat, 'lng' => (float) $lng];
                 }
             } elseif (is_string($location) && !empty($location)) {
-                $coords = \sup\craftgeo\services\GeoService::resolveLocation($location);
+                $coords = GeoService::resolveLocation($location);
             }
 
             if (!$coords) {
@@ -235,8 +299,8 @@ class EmbedMap extends Model
             }
 
             $resolved[] = [
-                'lat'   => $coords['lat'],
-                'lng'   => $coords['lng'],
+                'lat' => $coords['lat'],
+                'lng' => $coords['lng'],
                 'label' => $marker['label'] ?? null,
                 'color' => $marker['color'] ?? '#ff0000',
             ];

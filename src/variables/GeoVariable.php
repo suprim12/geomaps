@@ -8,10 +8,10 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\variables;
+namespace suprim\geomaps\variables;
 
-use sup\craftgeo\models\EmbedMap;
-use sup\craftgeo\models\StaticMap;
+use suprim\geomaps\models\EmbedMap;
+use suprim\geomaps\models\StaticMap;
 
 class GeoVariable
 {
@@ -38,7 +38,7 @@ class GeoVariable
         return $map;
     }
 
-    public function embed(array $options = []): string
+    public function embed(array $options = []): \Twig\Markup
     {
         return (new EmbedMap())->embed($options);
     }
@@ -47,7 +47,9 @@ class GeoVariable
     {
         $map = new EmbedMap();
         foreach ($options as $key => $value) {
-            if (property_exists($map, $key)) $map->$key = $value;
+            if (property_exists($map, $key)) {
+                $map->$key = $value;
+            }
         }
         return $map;
     }

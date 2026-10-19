@@ -9,33 +9,33 @@
  */
 
 
-namespace sup\craftgeo\web;
+namespace suprim\geomaps\web;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
-
 class GeoAsset extends AssetBundle
 {
+    public function init()
+    {
+        $this->sourcePath = __DIR__ . '/assets';
 
-	public function init ()
-	{
-		$this->sourcePath = __DIR__;
-
-		$this->depends = [
-			CpAsset::class
-		];
+        $this->depends = [
+            CpAsset::class,
+        ];
 
 
         $this->css = [
-            'assets/css/supgeo.css'
+            'css/supgeo.css',
         ];
 
         $this->js = [
-            'assets/js/supgeo.js'
+            'js/supgeo.js',
         ];
 
-		parent::init();
-	}
+        // An ES module, so the GeoJSON editor can be loaded only when it's opened.
+        $this->jsOptions = ['type' => 'module'];
 
+        parent::init();
+    }
 }

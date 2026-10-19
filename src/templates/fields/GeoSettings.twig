@@ -19,8 +19,24 @@
 
 
 {{ forms.lightswitchField({
+	label: 'Enable Drawing & GeoJSON'|t('geomaps'),
+	instructions: 'Let authors draw markers, lines and areas on the map and edit them as GeoJSON. Turn off if you only need a single location.'|t('geomaps'),
+	id: 'enableGeoJson',
+	name: 'enableGeoJson',
+	on: field.enableGeoJson
+}) }}
+
+{{ forms.lightswitchField({
+	label: 'Show Location Pin'|t('geomaps'),
+	instructions: 'Turn off for fields that only hold shapes, such as delivery or bin-collection zones. The entry’s location is then the centre of its shapes, so distance search still works.'|t('geomaps'),
+	id: 'showMarker',
+	name: 'showMarker',
+	on: field.showMarker
+}) }}
+
+{{ forms.lightswitchField({
 	label: 'Hide Search',
-	instructions: 'Hide the location search field',
+	instructions: 'Hide the address search. Authors can still click the map or type coordinates.'|t('geomaps'),
 	id: 'hideSearch',
 	name: 'hideSearch',
 	on: field.hideSearch
@@ -28,7 +44,7 @@
 
 {{ forms.lightswitchField({
 	label: 'Hide Address',
-	instructions: 'Hide the address fields',
+	instructions: 'Hide the address and coordinate fields. Values are still saved from search and the map.'|t('geomaps'),
 	id: 'hideAddress',
 	name: 'hideAddress',
 	on: field.hideAddress
@@ -36,7 +52,7 @@
 
 {{ forms.lightswitchField({
 	label: 'Hide Map',
-	instructions: 'Hide the map',
+	instructions: 'Hide the map, leaving only search and the address fields. Also hides drawing.'|t('geomaps'),
 	id: 'hideMap',
 	name: 'hideMap',
 	on: field.hideMap
@@ -44,35 +60,56 @@
 
 
 {{ forms.textField({
-	label: 'Min Zoom',
-	instructions: 'The minimum level the user can zoom the map out to.',
+	label: 'Map Height'|t('geomaps'),
+	instructions: 'Height of the map in the control panel, in pixels.'|t('geomaps'),
+	id: 'mapHeigth',
+	name: 'mapHeigth',
+	type: 'number',
+	value: field.mapHeigth,
+	min: 240,
+	max: 1200,
+	step: 10,
+	size: 6,
+	errors: field.getErrors('mapHeigth'),
+}) }}
+
+{{ forms.textField({
+	label: 'Min Zoom'|t('geomaps'),
+	instructions: 'How far authors can zoom out (0 = whole world).'|t('geomaps'),
 	id: 'minZoom',
 	name: 'minZoom',
 	type: 'number',
 	value: field.minZoom,
+	errors: field.getErrors('minZoom'),
 	min: 0,
 	max: 18,
-	step: 0.01,
+	step: 1,
+	size: 6,
 }) }}
 
 {{ forms.textField({
-	label: 'Max Zoom',
-	instructions: 'The maximum level the user can zoom the map in to.',
+	label: 'Max Zoom'|t('geomaps'),
+	instructions: 'How far authors can zoom in (18 = street level).'|t('geomaps'),
 	id: 'maxZoom',
 	name: 'maxZoom',
 	type: 'number',
 	value: field.maxZoom,
+	errors: field.getErrors('maxZoom'),
 	min: 0,
 	max: 18,
-	step: 0.01,
+	step: 1,
+	size: 6,
 }) }}
 
-{{ forms.selectField({
-	label: 'Preferred Country',
-	instructions: 'When searching for a location, results in this country will take precedence. Be aware that some services will show results ONLY within this country.'|t('simplemap'),
-	id: 'country',
-	name: 'country',
+{{ forms.selectizeField({
+	label: 'Limit Search to Countries'|t('geomaps'),
+	instructions: 'Only show address search results in these countries (up to 5). Leave empty to search everywhere.'|t('geomaps'),
+	id: 'countries',
+	name: 'countries',
+	multi: true,
+	selectizeOptions: { maxItems: 5 },
 	options: countries,
-	value: field.country,
+	values: field.getSearchCountries(),
+	errors: field.getErrors('countries'),
 }) }}
 

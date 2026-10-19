@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo\migrations;
+namespace suprim\geomaps\migrations;
 
 use craft\db\Migration;
 
@@ -19,19 +19,25 @@ class Install extends Migration
     {
         if (!$this->db->tableExists('{{%supgeo}}')) {
             $this->createTable('{{%supgeo}}', [
-                'id'          => $this->primaryKey(),
-                'ownerId'     => $this->integer()->notNull(),
+                'id' => $this->primaryKey(),
+                'ownerId' => $this->integer()->notNull(),
                 'ownerSiteId' => $this->integer()->notNull(),
-                'fieldId'     => $this->integer()->notNull(),
-                'lat'         => $this->double(),
-                'lng'         => $this->double(),
+                'fieldId' => $this->integer()->notNull(),
+                'lat' => $this->double(),
+                'lng' => $this->double(),
+                'shape' => $this->mediumText(),
+                'minLat' => $this->double(),
+                'maxLat' => $this->double(),
+                'minLng' => $this->double(),
+                'maxLng' => $this->double(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
-                'uid'         => $this->uid(),
+                'uid' => $this->uid(),
             ]);
 
             $this->createIndex(null, '{{%supgeo}}', ['ownerId', 'ownerSiteId', 'fieldId'], true);
             $this->createIndex(null, '{{%supgeo}}', ['lat', 'lng']);
+            $this->createIndex(null, '{{%supgeo}}', ['fieldId', 'minLat', 'maxLat']);
 
             $this->addForeignKey(null, '{{%supgeo}}', 'ownerId',     '{{%elements}}', 'id', 'CASCADE');
             $this->addForeignKey(null, '{{%supgeo}}', 'ownerSiteId', '{{%sites}}',    'id', 'CASCADE');

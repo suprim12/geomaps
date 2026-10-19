@@ -1,0 +1,32 @@
+<?php
+/**
+ * Geo Maps plugin for Craft CMS
+ *
+ * @link      https://suprimgolay.com.np/craft-plugins
+ * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 Suprim Golay
+ */
+
+namespace suprim\geomaps\console\controllers;
+
+use craft\console\Controller;
+use craft\helpers\Console;
+use suprim\geomaps\Plugin;
+use yii\console\ExitCode;
+
+/**
+ * Manages the Geo Maps location search index.
+ */
+class LookupController extends Controller
+{
+    /**
+     * Rebuilds the location search index from saved field values.
+     */
+    public function actionRebuild(): int
+    {
+        $count = Plugin::getInstance()->maps->rebuildLookup();
+        $this->stdout("Indexed $count location(s).\n", Console::FG_GREEN);
+
+        return ExitCode::OK;
+    }
+}
