@@ -55,3 +55,7 @@ composer require suprim/craft-geomaps
     <p>{{ map.full_address }}</p>   
 {% endfor %}
 ```
+
+## License
+
+Geo Maps is licensed under the [Craft License](LICENSE.md). Bundled open-source libraries are listed in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
