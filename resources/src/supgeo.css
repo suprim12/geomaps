@@ -1,0 +1,705 @@
+/**
+ * Geo Maps — control panel field
+ * Uses Craft's CP tokens where available so the field matches the rest of the control panel.
+ */
+
+[x-cloak] {
+    display: none !important;
+}
+
+.supgeo {
+    --supgeo-map-h: 420px;
+    --supgeo-accent: var(--link-color, #2563eb);
+    --supgeo-border: var(--hairline-color, rgba(51, 64, 77, 0.12));
+    --supgeo-muted: var(--medium-text-color, #596673);
+    --supgeo-subtle: var(--gray-050, #f3f7fc);
+    --supgeo-radius: var(--large-border-radius, 8px);
+    --supgeo-shadow: 0 0 0 1px rgba(31, 41, 51, 0.05), 0 2px 8px rgba(31, 41, 51, 0.08);
+    container: supgeo / inline-size;
+    font-size: 14px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ====================== SEARCH ====================== */
+
+.supgeo__searchbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.supgeo__search-icon {
+    position: absolute;
+    left: 12px;
+    display: flex;
+    color: var(--supgeo-muted);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.supgeo .supgeo__search-input {
+    height: 40px;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    border-radius: var(--supgeo-radius);
+    font-size: 14px;
+}
+
+.supgeo__spinner {
+    position: absolute;
+    right: 14px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--supgeo-border);
+    border-top-color: var(--supgeo-accent);
+    border-radius: 50%;
+    animation: supgeo-spin 0.7s linear infinite;
+}
+
+@keyframes supgeo-spin {
+    to { transform: rotate(360deg); }
+}
+
+.supgeo__sr {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.supgeo-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 300px;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--white, #fff);
+    border-radius: var(--supgeo-radius);
+    box-shadow: 0 0 0 1px rgba(31, 41, 51, 0.08), 0 12px 32px rgba(31, 41, 51, 0.16);
+}
+
+.supgeo-suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.supgeo-suggestion-item.--active {
+    background: var(--supgeo-subtle);
+}
+
+.supgeo-suggestion-pin {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--supgeo-muted);
+}
+
+.supgeo-suggestion-item.--active .supgeo-suggestion-pin {
+    color: var(--supgeo-accent);
+}
+
+.supgeo-suggestion-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.supgeo-suggestion-main {
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text-color, #1f2933);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.supgeo-suggestion-secondary {
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--supgeo-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.supgeo-suggestions-enter        { transition: opacity 0.12s ease, transform 0.12s ease; }
+.supgeo-suggestions-enter-start  { opacity: 0; transform: translateY(-4px); }
+.supgeo-suggestions-enter-end    { opacity: 1; transform: translateY(0); }
+
+/* ====================== LAYOUT ====================== */
+
+.supgeo__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
+    background: var(--white, #fff);
+    border-radius: var(--supgeo-radius);
+    box-shadow: var(--supgeo-shadow);
+}
+
+/* Map and details side by side when the field itself is wide enough. */
+@container supgeo (min-width: 680px) {
+    .supgeo:not(.--noDetails):not(.--hideMap):not(.--showEditor) .supgeo__layout {
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 36%);
+    }
+
+    .supgeo:not(.--hideMap) .supgeo__details {
+        border-top: 0;
+        border-left: 1px solid var(--supgeo-border);
+        max-height: var(--supgeo-map-h);
+        overflow-y: auto;
+    }
+
+    .supgeo.--showEditor .supgeo__stage {
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 40%);
+    }
+}
+
+.supgeo__stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+}
+
+.supgeo__map {
+    width: 100%;
+    height: var(--supgeo-map-h);
+    z-index: 1;
+}
+
+.supgeo__map.leaflet-container {
+    font: inherit;
+    background: var(--supgeo-subtle);
+}
+
+.supgeo.--hideMap .supgeo__stage {
+    display: none;
+}
+
+/* Leaflet controls, restyled to match the CP. */
+.supgeo .leaflet-bar {
+    border: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--supgeo-shadow);
+}
+
+.supgeo .leaflet-bar a {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    color: var(--text-color, #1f2933);
+    border-bottom-color: var(--supgeo-border);
+}
+
+.supgeo .leaflet-bar a:hover {
+    background: var(--supgeo-subtle);
+}
+
+.supgeo .leaflet-touch .leaflet-bar a {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+}
+
+.supgeo .leaflet-pm-toolbar .leaflet-buttons-control-button {
+    padding: 4px;
+}
+
+.supgeo .leaflet-control-attribution {
+    padding: 2px 8px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border-top-left-radius: 6px;
+}
+
+.supgeo .leaflet-container:focus-visible {
+    outline: 2px solid var(--supgeo-accent);
+    outline-offset: -2px;
+}
+
+/* ====================== GEOJSON EDITOR ====================== */
+
+.supgeo__geojson {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: var(--supgeo-map-h);
+    background: var(--white, #fff);
+    border-top: 1px solid var(--supgeo-border);
+}
+
+@container supgeo (min-width: 680px) {
+    .supgeo__geojson {
+        border-top: 0;
+        border-left: 1px solid var(--supgeo-border);
+    }
+}
+
+.supgeo__panel-head {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 12px 12px 16px;
+    border-bottom: 1px solid var(--supgeo-border);
+}
+
+.supgeo__panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color, #1f2933);
+}
+
+.supgeo__panel-desc {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--supgeo-muted);
+}
+
+.supgeo__panel-close,
+.supgeo__notice-close {
+    display: flex;
+    flex-shrink: 0;
+    padding: 6px;
+    color: var(--supgeo-muted);
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.supgeo__panel-close:hover,
+.supgeo__notice-close:hover {
+    color: var(--text-color, #1f2933);
+    background: var(--supgeo-subtle);
+}
+
+.geojson-editor {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.geojson-editor .cm-editor {
+    height: 100%;
+    font-size: 13px;
+}
+
+.geojson-editor .cm-placeholder {
+    color: var(--supgeo-muted);
+    white-space: pre-wrap;
+}
+
+/* Google fallback notice, above the map. */
+.supgeo__notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px 8px 12px;
+    font-size: 13px;
+    color: #7a4d00;
+    background: #fff8e6;
+    border-radius: var(--supgeo-radius);
+    box-shadow: inset 0 0 0 1px rgba(166, 110, 0, 0.25);
+}
+
+/* Google draws its own error panel; hide it once we've fallen back to OpenStreetMap. */
+.supgeo.--googleFailed .leaflet-google-mutant,
+.supgeo.--googleFailed .gm-err-container {
+    display: none !important;
+}
+
+.supgeo__notice span {
+    flex: 1;
+}
+
+.supgeo__notice a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* ====================== DETAILS ====================== */
+
+.supgeo__details {
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--supgeo-border);
+    background: var(--white, #fff);
+}
+
+.supgeo.--hideMap .supgeo__details {
+    border-top: 0;
+}
+
+.supgeo__details-head {
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color, #1f2933);
+}
+
+.supgeo__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+.supgeo__input {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.supgeo__input.--wide {
+    grid-column: 1 / -1;
+}
+
+.supgeo__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--medium-dark-text-color, #3f4d5a);
+}
+
+@container supgeo (max-width: 360px) {
+    .supgeo__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ====================== FOOTER ====================== */
+
+.supgeo__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+}
+
+.supgeo__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.supgeo__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color, #1f2933);
+    background: var(--supgeo-subtle);
+    border-radius: 999px;
+}
+
+.supgeo__chip svg {
+    color: var(--supgeo-accent);
+}
+
+.supgeo__chip.--empty {
+    color: var(--supgeo-muted);
+}
+
+.supgeo__chip.--empty svg {
+    color: currentColor;
+}
+
+.supgeo__hint {
+    font-size: 13px;
+    color: var(--supgeo-muted);
+}
+
+.supgeo__tools .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.supgeo__tools .btn.active {
+    color: #fff;
+    background: var(--supgeo-accent);
+}
+
+.supgeo.--hideMap .supgeo__hint {
+    display: none;
+}
+
+/* ====================== FULLSCREEN ====================== */
+
+.supgeo .leaflet-container:fullscreen,
+.supgeo .leaflet-pseudo-fullscreen {
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 99999;
+}
+
+.supgeo-upload-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.supgeo-upload-hidden {
+    display: none !important;
+}
+
+.supgeo-btn--upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.supgeo-btn--upload:hover:not(:disabled) {
+    background: #f0f4ff;
+    border-color: #7c8cff;
+}
+
+.supgeo-btn--upload:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Upload Progress */
+.supgeo-upload-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.supgeo-progress-track {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.supgeo-progress-bar {
+    height: 100%;
+    border-radius: 99px;
+    background: #6b7aff;
+    transition: width 0.25s ease, background 0.3s ease;
+}
+
+.supgeo-progress-bar.--parsing {
+    background: #f59e0b;
+    animation: supgeo-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.supgeo-progress-bar.--done {
+    background: #22c55e;
+}
+
+@keyframes supgeo-pulse {
+    from { opacity: 1; }
+    to   { opacity: 0.55; }
+}
+
+.supgeo-upload-label {
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.supgeo-upload-label .--success { color: #16a34a; font-weight: 500; }
+.supgeo-upload-label .--error   { color: #dc2626; font-weight: 500; }
+
+/* ====================== GENERAL TRANSITIONS ====================== */
+
+.supgeo-fade-enter          { transition: opacity 0.2s, transform 0.2s; }
+.supgeo-fade-enter-start    { opacity: 0; transform: translateY(-4px); }
+.supgeo-fade-leave          { transition: opacity 0.3s; }
+.supgeo-fade-leave-end      { opacity: 0; }
+
+
+
+
+/* ====================== Feature Editor ====================== */
+.supgeo__feature-editor {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    width: min(380px, calc(100% - 64px));
+    max-height: calc(100% - 24px);
+    overflow: hidden;
+    font-size: 13px;
+    background: var(--white, #fff);
+    border-radius: var(--supgeo-radius);
+    box-shadow: 0 0 0 1px rgba(31, 41, 51, 0.08), 0 12px 32px rgba(31, 41, 51, 0.18);
+}
+
+.supgeo__fe-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 10px 14px;
+    color: var(--text-color, #1f2933);
+    background: var(--white, #fff);
+    border-bottom: 1px solid var(--supgeo-border);
+}
+
+.supgeo__fe-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.supgeo__fe-badge { background: var(--supgeo-subtle); color: var(--supgeo-muted); font-weight: 500; font-size: 12px; padding: 1px 6px; border-radius: 3px; }
+.supgeo__fe-close { background: none; border: none; color: var(--supgeo-muted); cursor: pointer; display: flex; align-items: center; padding: 3px; border-radius: 3px; }
+.supgeo__fe-close:hover { background: var(--supgeo-subtle); color: var(--text-color, #1f2933); }
+
+.supgeo__fe-tabs { display: flex; border-bottom: 1px solid #e5e7eb; background: #f9fafb; flex-shrink: 0; }
+.supgeo__fe-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 12px; font-size: 13px; cursor: pointer; color: #6b7280; transition: all 0.15s; }
+.supgeo__fe-tab:hover { color: var(--text-color); }
+.supgeo__fe-tab.--active { color: var(--supgeo-accent); border-bottom-color: var(--supgeo-accent); }
+
+.supgeo__fe-body { padding: 10px 14px; overflow-y: auto; flex: 1; }
+
+.supgeo__fe-table { width: 100%; border-collapse: collapse; }
+.supgeo__fe-table th { font-size: 12px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 6px 6px; text-align: left; font-weight: 500; }
+.supgeo__fe-table td { padding: 3px 6px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+
+.supgeo__fe-input { width: 100%; border: none; background: transparent; font-size: 13px;  color: var(--text-color); padding: 2px 3px; border-radius: 3px; outline: none; }
+.supgeo__fe-input:focus { background: #f3f4f6; }
+
+.supgeo__fe-del { background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; padding: 3px; border-radius: 3px; }
+.supgeo__fe-del:hover { color: #dc2626; background: #fef2f2; }
+.supgeo__fe-empty { text-align: center; color: #9ca3af; padding: 12px 0; font-size: 13px; }
+
+.supgeo__fe-addrow { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+.supgeo__fe-addrow .supgeo__fe-input { flex: 1; border: 1px solid #e5e7eb; border-radius: 4px; padding: 5px 8px; }
+.supgeo__fe-addrow .supgeo__fe-input:focus { border-color: var(--supgeo-accent); background: #fff; }
+
+.supgeo__fe-vertices { display: flex; flex-direction: column; gap: 6px; }
+.supgeo__fe-vertex { display: flex; align-items: center; gap: 6px; background: #f9fafb; border-radius: 4px; padding: 4px 8px; }
+.supgeo__fe-vtx-idx { font-size: 12px; color: var(--supgeo-accent); font-weight: 500; min-width: 22px; }
+.supgeo__fe-vertex label { font-size: 12px; color: #9ca3af; }
+.supgeo__fe-vertex .supgeo__fe-input { width: 90px; border: 1px solid #e5e7eb; border-radius: 3px; padding: 3px 5px; }
+
+.supgeo__fe-pre { background: #0f1117; color: #e8ecf0; border-radius: 4px; padding: 10px 12px; font-size: 13px; line-height: 1.6; overflow: auto; max-height: 160px; white-space: pre;  }
+.supgeo__fe-copy-bar { display: flex; justify-content: flex-end; margin-top: 8px; }
+.supgeo .btn.small.--copied { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+
+/* Make sure the map wrapper is position:relative for the panel to anchor to */
+
+/* Value editor modal */
+.supgeo__prop-modal-overlay {
+    position: absolute; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+}
+.supgeo__prop-modal {
+    background: #fff; border-radius: 8px;
+    width: 100%; max-width: 460px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    overflow: hidden;
+}
+.supgeo__prop-modal-tabs {
+    display: flex; border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb; padding: 0 4px;
+}
+.supgeo__prop-modal-tabs button {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    padding: 8px 12px; font-size: 13px; cursor: pointer; color: #6b7280;
+    transition: all 0.15s;
+}
+.supgeo__prop-modal-tabs button:hover { color: #111; }
+.supgeo__prop-modal-tabs button.--active { color: var(--supgeo-accent); border-bottom-color: var(--supgeo-accent); }
+.supgeo__prop-modal-body { padding: 12px; min-height: 120px; }
+.supgeo__prop-modal-textarea {
+    width: 100%; border: 1px solid #e5e7eb; border-radius: 5px;
+    padding: 8px 10px; font-size: 13px; resize: vertical; outline: none;
+    font-family: inherit; color: #111; line-height: 1.6;
+}
+.supgeo__prop-modal-textarea.--mono {  }
+.supgeo__prop-modal-textarea.--error { border-color: #dc2626; }
+.supgeo__prop-modal-textarea:focus { border-color: var(--supgeo-accent); }
+.supgeo__prop-modal-error { font-size: 13px; color: #dc2626; margin-top: 5px; }
+.supgeo__prop-modal-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-top: 1px solid #e5e7eb; background: #f9fafb;
+}
+.supgeo__fe-del-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: none; border: 1px solid #fca5a5; color: #dc2626;
+    border-radius: 5px; padding: 5px 10px; font-size: 13px; cursor: pointer;
+}
+.supgeo__fe-del-btn:hover { background: #fef2f2; }
+.supgeo .btn.submit { background: var(--supgeo-accent); color: #fff; border-color: var(--supgeo-accent); }
+.supgeo .btn.submit:hover { filter: brightness(0.92); }
+
+/* Boolean toggle */
+.supgeo__prop-bool { display: flex; gap: 10px; padding: 8px 0; }
+.supgeo__prop-bool-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;
+    background: none; font-size: 14px; cursor: pointer; color: #6b7280;
+    transition: all 0.15s; 
+}
+.supgeo__prop-bool-btn.--active[data-val="true"],
+.supgeo__prop-bool-btn:first-child.--active { 
+    background: #ecfdf5; border-color: #6ee7b7; color: #065f46; 
+}
+.supgeo__prop-bool-btn.--active { 
+    background: #fef2f2; border-color: #fca5a5; color: #dc2626; 
+}
+.supgeo__prop-bool-btn:first-child.--active { 
+    background: #ecfdf5; border-color: #6ee7b7; color: #065f46; 
+}
+
+/* Color picker */
+.supgeo__prop-color { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.supgeo__prop-color-swatch { width: 28px; height: 28px; border-radius: 4px; border: 1px solid #e5e7eb; flex-shrink: 0; }
+.supgeo__prop-color-picker { width: 36px; height: 28px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px; cursor: pointer; background: none; }
+
+/* Edit value button in table */
+.supgeo__fe-val-preview { font-size: 13px;  color: #374151; display: block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.supgeo__fe-edit-btn { background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; padding: 3px; border-radius: 3px; }
+.supgeo__fe-edit-btn:hover { color: var(--supgeo-accent); background: #eef2ff; }
+
+/* Styles tab */
+.supgeo__fe-styles-grid { display: flex; flex-direction: column; gap: 12px; }
+.supgeo__fe-style-row { display: flex; flex-direction: column; gap: 5px; }
+.supgeo__fe-style-row label { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+.supgeo__fe-style-val { font-size: 13px; color: #374151;  text-transform: none; font-weight: 400; }
+.supgeo__fe-color-row { display: flex; align-items: center; gap: 7px; }
+.supgeo__fe-color-row input[type=color] { width: 32px; height: 28px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 2px; cursor: pointer; background: none; flex-shrink: 0; }
+.supgeo__fe-color-row .supgeo__fe-input { flex: 1; border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px 7px; }
+.supgeo__fe-color-dot { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #e5e7eb; flex-shrink: 0; }
+.supgeo__fe-style-preview { margin-top: 12px; border: 1px solid #e5e7eb; border-radius: 5px; overflow: hidden; background: #f9fafb; }
+/* Keep the footer on one row in normal-width fields. */
+@container supgeo (max-width: 900px) {
+    .supgeo__hint {
+        display: none;
+    }
+}

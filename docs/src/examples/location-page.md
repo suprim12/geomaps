@@ -2,6 +2,8 @@
 
 A detail page for a single place, such as a store, venue or office: the address, a map, a directions link and other places nearby.
 
+![A store page showing its address, a directions link, nearby stores with distances, and a map with a pin](/examples/location-page.jpg)
+
 ## The template
 
 `templates/stores/_entry.twig`:

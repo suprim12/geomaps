@@ -2,6 +2,8 @@
 
 Let residents type their address and find out which zone they’re in and when their bins are collected. The same pattern works for delivery areas, sales territories, school catchments and service regions.
 
+![An address search showing the matching bin collection zone, its collection day and the zone on a map](/examples/zone-lookup.jpg)
+
 ## Setup
 
 1. Create a **Bin Zones** section (handle `binZones`).

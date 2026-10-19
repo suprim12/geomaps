@@ -16,3 +16,6 @@ tests/ export-ignore
 
 # Auto-detect text files and perform LF normalization
 * text=auto
+
+# Front-end source (built files ship in src/web/assets)
+resources/ export-ignore
