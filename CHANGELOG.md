@@ -7,6 +7,7 @@
 - Click the map to drop the pin.
 - **Map Height** field setting.
 - **Enable Drawing & GeoJSON** field setting, for fields that only need a single location.
+- **Limit Search to Countries** field setting: restrict address search to up to five countries (replaces the single country setting; existing values carry over).
 - If Google rejects the Maps API key, the field and front-end maps switch to OpenStreetMap and explain why, instead of showing Google’s error.
 - The GeoJSON panel has a title, explanation, close button and an example when empty.
 - Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
