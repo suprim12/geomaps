@@ -1,6 +1,6 @@
 <?php
 
-namespace sup\craftgeo\utilities;
+namespace suprim\geomaps\utilities;
 
 /**
  * Implementation of distance calculation with Vincenty Method

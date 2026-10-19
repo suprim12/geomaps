@@ -9,7 +9,7 @@
  */
 
 
-namespace sup\craftgeo\migrations;
+namespace suprim\geomaps\migrations;
 
 use craft\db\Migration;
 

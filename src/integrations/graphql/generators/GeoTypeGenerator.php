@@ -9,13 +9,13 @@
  */
 
 
-namespace sup\craftgeo\integrations\graphql\generators;
+namespace suprim\geomaps\integrations\graphql\generators;
 
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use sup\craftgeo\integrations\graphql\types\GeoType;
+use suprim\geomaps\integrations\graphql\types\GeoType;
 
 class GeoTypeGenerator implements GeneratorInterface, SingleGeneratorInterface
 {

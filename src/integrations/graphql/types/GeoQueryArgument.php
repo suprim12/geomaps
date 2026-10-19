@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\integrations\graphql\types;
+namespace suprim\geomaps\integrations\graphql\types;
 
 use craft\gql\GqlEntityRegistry;
 use GraphQL\Type\Definition\InputObjectType;

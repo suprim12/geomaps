@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\migrations;
+namespace suprim\geomaps\migrations;
 
 use craft\db\Migration;
 

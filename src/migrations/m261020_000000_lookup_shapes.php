@@ -7,10 +7,10 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\migrations;
+namespace suprim\geomaps\migrations;
 
 use craft\db\Migration;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 
 /**
  * Indexes polygons so entries can be found by the area that contains a point (`contains` search).
@@ -30,7 +30,7 @@ class m261020_000000_lookup_shapes extends Migration
             $this->createIndex(null, $table, ['fieldId', 'minLat', 'maxLat']);
         }
 
-        Geo::getInstance()->maps->rebuildLookup();
+        Plugin::getInstance()->maps->rebuildLookup();
 
         return true;
     }

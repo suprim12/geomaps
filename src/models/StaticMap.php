@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\models;
+namespace suprim\geomaps\models;
 
 use Craft;
 use craft\base\Model;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 
 class StaticMap extends Model
 {
@@ -64,17 +64,17 @@ class StaticMap extends Model
 
     private function buildUrl(int $scale = 1): ?string
     {
-        $settings = Geo::getInstance()->getSettings();
+        $settings = Plugin::getInstance()->getSettings();
         $apiKey = $settings->getMapToken();
 
         if (!$apiKey) {
-            Craft::warning('GeoMaps: mapToken is required for static maps', 'geo');
+            Craft::warning('GeoMaps: mapToken is required for static maps', 'geomaps');
             return null;
         }
         $center = $this->_resolvedCenter ?? $this->resolveCenter();
 
         if (!$center && count($this->markers) <= 0) {
-            Craft::warning('GeoMaps: could not resolve center for static map', 'geo');
+            Craft::warning('GeoMaps: could not resolve center for static map', 'geomaps');
             return null;
         }
 

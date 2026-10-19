@@ -14,7 +14,7 @@ hero:
       link: /examples/store-locator
     - theme: alt
       text: Plugin Store
-      link: https://plugins.craftcms.com/geo
+      link: https://plugins.craftcms.com/geomaps
 
 features:
   - title: Fast location entry

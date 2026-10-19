@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\services;
+namespace suprim\geomaps\services;
 
 use Craft;
 use craft\base\FieldInterface;
@@ -16,9 +16,9 @@ use craft\db\Table;
 use craft\fields\MissingField;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use sup\craftgeo\fields\GeoField;
-use sup\craftgeo\Geo;
-use sup\craftgeo\models\GeoValue;
+use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\models\GeoValue;
+use suprim\geomaps\Plugin;
 use Throwable;
 use yii\base\Component;
 use yii\base\Exception;
@@ -158,7 +158,7 @@ class ImportService extends Component
         }
 
         /** @var GeoField $new */
-        Geo::getInstance()->maps->rebuildLookup($new);
+        Plugin::getInstance()->maps->rebuildLookup($new);
         Craft::$app->getElements()->invalidateAllCaches();
 
         Craft::info(sprintf('Imported %s field “%s” (%d values).', self::sourceName($source), $old->handle, $converted), __METHOD__);

@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\console\controllers;
+namespace suprim\geomaps\console\controllers;
 
 use craft\console\Controller;
 use craft\helpers\Console;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 use yii\console\ExitCode;
 
 /**
@@ -24,7 +24,7 @@ class LookupController extends Controller
      */
     public function actionRebuild(): int
     {
-        $count = Geo::getInstance()->maps->rebuildLookup();
+        $count = Plugin::getInstance()->maps->rebuildLookup();
         $this->stdout("Indexed $count location(s).\n", Console::FG_GREEN);
 
         return ExitCode::OK;

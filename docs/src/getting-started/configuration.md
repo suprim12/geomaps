@@ -1,6 +1,6 @@
 # Configuration
 
-Configure **Geo Maps** in the control panel under **Settings → Geo Maps**, or with a `config/geo.php` file.
+Configure **Geo Maps** in the control panel under **Settings → Geo Maps**, or with a `config/geomaps.php` file.
 
 ## Map Providers
 
@@ -25,7 +25,7 @@ The default `tile.openstreetmap.org` tiles are free for light use, such as the c
 
 ## Config File
 
-Create `config/geo.php` to set values per environment. Values can reference environment variables.
+Create `config/geomaps.php` to set values per environment. Values can reference environment variables.
 
 ```php
 <?php

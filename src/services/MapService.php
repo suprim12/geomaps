@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\services;
+namespace suprim\geomaps\services;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -19,10 +19,10 @@ use craft\events\PopulateElementEvent;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use sup\craftgeo\fields\GeoField;
-use sup\craftgeo\Geo;
-use sup\craftgeo\models\GeoValue;
-use sup\craftgeo\records\GeoRecord;
+use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\models\GeoValue;
+use suprim\geomaps\Plugin;
+use suprim\geomaps\records\GeoRecord;
 use WeakMap;
 use yii\base\Component;
 use yii\db\Expression;
@@ -78,9 +78,9 @@ class MapService extends Component
         $polygons = [];
         $data = $value->getGeoJsonData();
         if ($data) {
-            $polygons = Geo::getInstance()->zones->polygons($data);
+            $polygons = Plugin::getInstance()->zones->polygons($data);
         }
-        $bounds = $polygons ? Geo::getInstance()->zones->bounds($polygons) : null;
+        $bounds = $polygons ? Plugin::getInstance()->zones->bounds($polygons) : null;
 
         if (!$value->hasCoordinates() && !$bounds) {
             return null;
@@ -297,7 +297,7 @@ class MapService extends Component
 
         $lat = (float)$point['lat'];
         $lng = (float)$point['lng'];
-        $zones = Geo::getInstance()->zones;
+        $zones = Plugin::getInstance()->zones;
         $matches = [];
 
         $candidates = (new Query())

@@ -15,12 +15,12 @@
 - The GeoJSON panel has a title, explanation, close button and an example when empty.
 - Works without API keys: OpenStreetMap tiles, address search (Photon) and geocoding (Nominatim) are used when no Google key is set.
 - **Map Tiles URL** and **Map Credit** settings for using any raster tile provider.
-- Import from Maps (ether/simplemap) and Craft Geoman (handplant/craft-geoman) under **Utilities → Geo Maps Import** — one field at a time or all at once — or with `php craft geo/import [--field=handle]`.
+- Import from Maps (ether/simplemap) and Craft Geoman (handplant/craft-geoman) under **Utilities → Geo Maps Import** — one field at a time or all at once — or with `php craft geomaps/import [--field=handle]`.
 - Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).
 - Location search accepts a `coordinate`, a `{ lat, lng }` object, an address string, or another Geo Maps value.
 - `:empty:` / `:notempty:` query params (a pin or a drawn area counts as a value).
-- `php craft geo/lookup/rebuild` to rebuild the location search index.
+- `php craft geomaps/lookup/rebuild` to rebuild the location search index.
 - Geocoding results are cached to save API quota.
 
 ### Changed

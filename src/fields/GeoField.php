@@ -10,7 +10,7 @@
  */
 
 
-namespace sup\craftgeo\fields;
+namespace suprim\geomaps\fields;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -20,12 +20,12 @@ use craft\elements\db\ElementQuery;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use GraphQL\Type\Definition\Type;
-use sup\craftgeo\Geo;
-use sup\craftgeo\integrations\graphql\types\GeoQueryArgument;
-use sup\craftgeo\integrations\graphql\types\GeoType;
-use sup\craftgeo\models\GeoValue;
-use sup\craftgeo\services\GeoService;
-use sup\craftgeo\web\GeoAsset;
+use suprim\geomaps\integrations\graphql\types\GeoQueryArgument;
+use suprim\geomaps\integrations\graphql\types\GeoType;
+use suprim\geomaps\models\GeoValue;
+use suprim\geomaps\Plugin;
+use suprim\geomaps\services\GeoService;
+use suprim\geomaps\web\GeoAsset;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
@@ -117,7 +117,7 @@ class GeoField extends Field implements PreviewableFieldInterface
         // Only live content is searchable; drafts and revisions keep their values in the content column.
         if (!$element->getIsDraft() && !$element->getIsRevision()) {
             $value = $element->getFieldValue($this->handle);
-            Geo::getInstance()->maps->saveLookup($this, $element, $value instanceof GeoValue ? $value : null);
+            Plugin::getInstance()->maps->saveLookup($this, $element, $value instanceof GeoValue ? $value : null);
         }
 
         parent::afterElementSave($element, $isNew);
@@ -129,7 +129,7 @@ class GeoField extends Field implements PreviewableFieldInterface
             return null;
         }
 
-        return Geo::getInstance()->maps->queryCondition(ElementQuery::$activeQuery, $instances, $value);
+        return Plugin::getInstance()->maps->queryCondition(ElementQuery::$activeQuery, $instances, $value);
     }
 
     public function getElementValidationRules(): array
@@ -149,7 +149,7 @@ class GeoField extends Field implements PreviewableFieldInterface
         }
 
         foreach ($value->getInputErrors() as $error) {
-            $element->addError("field:$this->handle", Craft::t('geo', $error));
+            $element->addError("field:$this->handle", Craft::t('geomaps', $error));
         }
 
         if ($value->geoJson === null) {
@@ -159,14 +159,14 @@ class GeoField extends Field implements PreviewableFieldInterface
         $decoded = json_decode($value->geoJson, true);
 
         if (!is_array($decoded)) {
-            $element->addError("field:$this->handle", Craft::t('geo', 'GeoJSON is not valid JSON.'));
+            $element->addError("field:$this->handle", Craft::t('geomaps', 'GeoJSON is not valid JSON.'));
             return;
         }
 
         $error = $this->validateGeoJson($decoded);
 
         if ($error !== null) {
-            $element->addError("field:$this->handle", Craft::t('geo', $error));
+            $element->addError("field:$this->handle", Craft::t('geomaps', $error));
         }
     }
 
@@ -320,7 +320,7 @@ class GeoField extends Field implements PreviewableFieldInterface
 
     public static function displayName(): string
     {
-        return Craft::t('geo', 'Geo Maps');
+        return Craft::t('geomaps', 'Geo Maps');
     }
 
     public static function icon(): string
@@ -380,11 +380,11 @@ class GeoField extends Field implements PreviewableFieldInterface
             ['countries', function(string $attribute) {
                 $codes = $this->getSearchCountries();
                 if (count($codes) > self::MAX_SEARCH_COUNTRIES) {
-                    $this->addError($attribute, Craft::t('geo', 'Choose up to {max} countries (Google’s limit), or none to search everywhere.', ['max' => self::MAX_SEARCH_COUNTRIES]));
+                    $this->addError($attribute, Craft::t('geomaps', 'Choose up to {max} countries (Google’s limit), or none to search everywhere.', ['max' => self::MAX_SEARCH_COUNTRIES]));
                 }
             }],
             ['maxZoom', 'compare', 'compareAttribute' => 'minZoom', 'operator' => '>=', 'type' => 'number',
-                'message' => Craft::t('geo', 'Max Zoom must be greater than or equal to Min Zoom.'), ],
+                'message' => Craft::t('geomaps', 'Max Zoom must be greater than or equal to Min Zoom.'), ],
             [
                 'mapHeigth',
                 'integer',
@@ -408,7 +408,7 @@ class GeoField extends Field implements PreviewableFieldInterface
 
         $this->registerAssets();
 
-        return $view->renderTemplate('geo/components/map', [
+        return $view->renderTemplate('geomaps/components/map', [
             'name' => $handle,
             'namespacedId' => $namespacedId,
             'mapdata' => [
@@ -416,9 +416,9 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'lng' => $this->lng,
                 'zoom' => $this->zoom,
                 'isInput' => $isInput,
-                'provider' => Geo::getInstance()->getSettings()->getMapProvider(),
-                'tileUrl' => Geo::getInstance()->getSettings()->getTileUrl(),
-                'tileAttribution' => Geo::getInstance()->getSettings()->tileAttribution,
+                'provider' => Plugin::getInstance()->getSettings()->getMapProvider(),
+                'tileUrl' => Plugin::getInstance()->getSettings()->getTileUrl(),
+                'tileAttribution' => Plugin::getInstance()->getSettings()->tileAttribution,
             ],
         ]);
     }
@@ -428,7 +428,7 @@ class GeoField extends Field implements PreviewableFieldInterface
         $view = Craft::$app->getView();
         $view->registerAssetBundle(GeoAsset::class);
 
-        $mapToken = Geo::getInstance()->getSettings()->getMapToken();
+        $mapToken = Plugin::getInstance()->getSettings()->getMapToken();
 
         if ($mapToken) {
             $view->registerJsFile(
@@ -464,7 +464,7 @@ class GeoField extends Field implements PreviewableFieldInterface
         $id = Craft::$app->getView()->formatInputId($handle);
         $namespacedId = Craft::$app->getView()->namespaceInputId($id);
 
-        return Craft::$app->getView()->renderTemplate('geo/fields/GeoSettings', [
+        return Craft::$app->getView()->renderTemplate('geomaps/fields/GeoSettings', [
             'field' => $this,
             'map' => $mapField,
             'id' => $id,
@@ -507,11 +507,11 @@ class GeoField extends Field implements PreviewableFieldInterface
     {
         $view = Craft::$app->getView();
         $id = $view->formatInputId($this->handle);
-        $settings = Geo::getInstance()->getSettings();
+        $settings = Plugin::getInstance()->getSettings();
 
         $this->registerAssets();
 
-        return $view->renderTemplate('geo/_input', [
+        return $view->renderTemplate('geomaps/_input', [
             'name' => $this->handle,
             'namespacedId' => $view->namespaceInputId($id),
             'value' => $value instanceof GeoValue ? $value->toArray() : null,
@@ -529,7 +529,7 @@ class GeoField extends Field implements PreviewableFieldInterface
             ],
             'global_settings' => $settings,
             'settings' => $this->getSettings(),
-            'settingsUrl' => UrlHelper::cpUrl('settings/plugins/geo'),
+            'settingsUrl' => UrlHelper::cpUrl('settings/plugins/geomaps'),
         ]);
     }
 

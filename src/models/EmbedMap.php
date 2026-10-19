@@ -7,16 +7,16 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\models;
+namespace suprim\geomaps\models;
 
 use Craft;
 use craft\base\Model;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use sup\craftgeo\Geo;
-use sup\craftgeo\services\GeoService;
-use sup\craftgeo\web\EmbedAsset;
+use suprim\geomaps\Plugin;
+use suprim\geomaps\services\GeoService;
+use suprim\geomaps\web\EmbedAsset;
 
 class EmbedMap extends Model
 {
@@ -46,7 +46,7 @@ class EmbedMap extends Model
         $this->setOptions($options);
 
         $id = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
-        $settings = Geo::getInstance()->getSettings();
+        $settings = Plugin::getInstance()->getSettings();
         $mapToken = $settings->getMapToken();
         $center = $this->resolveCenter();
         $markers = $this->resolveMarkers($center);

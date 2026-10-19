@@ -8,10 +8,10 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\variables;
+namespace suprim\geomaps\variables;
 
-use sup\craftgeo\models\EmbedMap;
-use sup\craftgeo\models\StaticMap;
+use suprim\geomaps\models\EmbedMap;
+use suprim\geomaps\models\StaticMap;
 
 class GeoVariable
 {

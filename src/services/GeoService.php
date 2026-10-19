@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\services;
+namespace suprim\geomaps\services;
 
 use Craft;
 use craft\helpers\Json;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 use Throwable;
 use yii\base\Component;
 
@@ -201,7 +201,7 @@ class GeoService extends Component
 
     private static function geocoder(): string
     {
-        return Geo::getInstance()->getSettings()->getGeocoder();
+        return Plugin::getInstance()->getSettings()->getGeocoder();
     }
 
     /**
@@ -252,7 +252,7 @@ class GeoService extends Component
      */
     private static function request(array $params): array|false|null
     {
-        $apiKey = Geo::getInstance()->getSettings()->getGeoToken();
+        $apiKey = Plugin::getInstance()->getSettings()->getGeoToken();
         $cache = Craft::$app->getCache();
 
         // After a refusal (bad key, quota), skip Google for a while instead of failing every search.

@@ -7,11 +7,11 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\console\controllers;
+namespace suprim\geomaps\console\controllers;
 
 use craft\console\Controller;
 use craft\helpers\Console;
-use sup\craftgeo\Geo;
+use suprim\geomaps\Plugin;
 use yii\console\ExitCode;
 
 /**
@@ -34,7 +34,7 @@ class ImportController extends Controller
      */
     public function actionIndex(): int
     {
-        $service = Geo::getInstance()->import;
+        $service = Plugin::getInstance()->import;
         $items = $service->getImportableFields();
 
         if ($this->field !== null) {
@@ -60,7 +60,7 @@ class ImportController extends Controller
     }
 
     /**
-     * Same as geo/import (kept for compatibility).
+     * Same as geomaps/import (kept for compatibility).
      */
     public function actionSimpleMap(): int
     {

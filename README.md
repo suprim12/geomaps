@@ -27,8 +27,8 @@ Craft CMS 5.10.0 or later, and PHP 8.2 or later.
 Install from the Plugin Store (search for “Geo Maps”), or with Composer:
 
 ```bash
-composer require suprim/craft-geomaps
-php craft plugin/install geo
+composer require suprim/geomaps
+php craft plugin/install geomaps
 ```
 
 Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/getting-started/configuration.md) to add Google keys or a different tile provider.
@@ -123,8 +123,8 @@ Complete examples in the docs:
 Go to **Utilities → Geo Maps Import** and click **Import** on a field, or **Import all**. From the command line:
 
 ```bash
-php craft geo/import                    # every field
-php craft geo/import --field=storeMap   # one field
+php craft geomaps/import                    # every field
+php craft geomaps/import --field=storeMap   # one field
 ```
 
 Templates written for Maps (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()`) keep working.

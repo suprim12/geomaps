@@ -7,12 +7,12 @@
  * @copyright Copyright (c) 2026 Suprim Golay
  */
 
-namespace sup\craftgeo\jobs;
+namespace suprim\geomaps\jobs;
 
 use Craft;
 use craft\queue\BaseJob;
-use sup\craftgeo\fields\GeoField;
-use sup\craftgeo\Geo;
+use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\Plugin;
 
 /**
  * Rebuilds the location search index, for one field or all of them.
@@ -29,11 +29,11 @@ class RebuildLookup extends BaseJob
             return;
         }
 
-        Geo::getInstance()->maps->rebuildLookup($field);
+        Plugin::getInstance()->maps->rebuildLookup($field);
     }
 
     protected function defaultDescription(): ?string
     {
-        return Craft::t('geo', 'Indexing locations');
+        return Craft::t('geomaps', 'Indexing locations');
     }
 }

@@ -6,16 +6,16 @@
 	* @copyright Copyright (c) 2026 Suprim Golay
 #}
 
-<h2>{{ 'Import map fields'|t('geo') }}</h2>
+<h2>{{ 'Import map fields'|t('geomaps') }}</h2>
 
 {% if fields is empty %}
-	<p>{{ 'No Maps (Ether) or Craft Geoman fields were found. There’s nothing to import.'|t('geo') }}</p>
+	<p>{{ 'No Maps (Ether) or Craft Geoman fields were found. There’s nothing to import.'|t('geomaps') }}</p>
 {% else %}
-	<p>{{ 'Converts fields from Maps (Ether) and Craft Geoman into Geo Maps fields in place. Handles, field layouts and saved locations are kept, so most templates keep working. Import fields one at a time, or all at once.'|t('geo') }}</p>
+	<p>{{ 'Converts fields from Maps (Ether) and Craft Geoman into Geo Maps fields in place. Handles, field layouts and saved locations are kept, so most templates keep working. Import fields one at a time, or all at once.'|t('geomaps') }}</p>
 
 	<p class="warning has-icon">
 		<span class="icon" aria-hidden="true"></span>
-		<span>{{ 'Back up your database first. Importing changes field types, which updates project config — commit the change and deploy it as usual. Other environments read the old values automatically and index them in the background.'|t('geo') }}</span>
+		<span>{{ 'Back up your database first. Importing changes field types, which updates project config — commit the change and deploy it as usual. Other environments read the old values automatically and index them in the background.'|t('geomaps') }}</span>
 	</p>
 
 	<table class="data fullwidth">
@@ -23,8 +23,8 @@
 			<tr>
 				<th>{{ 'Field'|t('app') }}</th>
 				<th>{{ 'Handle'|t('app') }}</th>
-				<th>{{ 'From'|t('geo') }}</th>
-				<th>{{ 'Saved values'|t('geo') }}</th>
+				<th>{{ 'From'|t('geomaps') }}</th>
+				<th>{{ 'Saved values'|t('geomaps') }}</th>
 				<th class="thin"></th>
 			</tr>
 		</thead>
@@ -37,11 +37,11 @@
 					<td>{{ item.values|number }}</td>
 					<td class="thin">
 						<form method="post" accept-charset="UTF-8">
-							{{ actionInput('geo/import') }}
+							{{ actionInput('geomaps/import') }}
 							{{ csrfInput() }}
-							{{ redirectInput('utilities/geo-import') }}
+							{{ redirectInput('utilities/geomaps-import') }}
 							{{ hiddenInput('fieldId', item.field.id) }}
-							<button type="submit" class="btn small">{{ 'Import'|t('geo') }}</button>
+							<button type="submit" class="btn small">{{ 'Import'|t('geomaps') }}</button>
 						</form>
 					</td>
 				</tr>
@@ -51,20 +51,20 @@
 
 	{% if fields|length > 1 %}
 		<form method="post" accept-charset="UTF-8" style="margin-top: 20px">
-			{{ actionInput('geo/import') }}
+			{{ actionInput('geomaps/import') }}
 			{{ csrfInput() }}
-			{{ redirectInput('utilities/geo-import') }}
-			<button type="submit" class="btn submit">{{ 'Import all {count} fields'|t('geo', { count: fields|length }) }}</button>
+			{{ redirectInput('utilities/geomaps-import') }}
+			<button type="submit" class="btn submit">{{ 'Import all {count} fields'|t('geomaps', { count: fields|length }) }}</button>
 		</form>
 	{% endif %}
 
-	<h3 style="margin-top: 32px">{{ 'Templates'|t('geo') }}</h3>
+	<h3 style="margin-top: 32px">{{ 'Templates'|t('geomaps') }}</h3>
 	<ul class="bullets">
-		<li>{{ 'Maps (Ether): `.lat`, `.lng`, `.address`, `.parts`, `.img()` and location search keep working. Replace `craft.maps` with `craft.geomaps`.'|t('geo')|md(inlineOnly=true) }}</li>
-		<li>{{ 'Craft Geoman: `{{ entry.field }}` still outputs the GeoJSON, and entries become searchable by distance using the centre of their shapes.'|t('geo')|md(inlineOnly=true) }}</li>
+		<li>{{ 'Maps (Ether): `.lat`, `.lng`, `.address`, `.parts`, `.img()` and location search keep working. Replace `craft.maps` with `craft.geomaps`.'|t('geomaps')|md(inlineOnly=true) }}</li>
+		<li>{{ 'Craft Geoman: `{{ entry.field }}` still outputs the GeoJSON, and entries become searchable by distance using the centre of their shapes.'|t('geomaps')|md(inlineOnly=true) }}</li>
 	</ul>
 {% endif %}
 
 {% if simpleMapInstalled and fields is empty %}
-	<p>{{ 'You can now uninstall the old map plugins from the <a href="{url}">Plugins</a> page.'|t('geo', { url: pluginsUrl })|raw }}</p>
+	<p>{{ 'You can now uninstall the old map plugins from the <a href="{url}">Plugins</a> page.'|t('geomaps', { url: pluginsUrl })|raw }}</p>
 {% endif %}
