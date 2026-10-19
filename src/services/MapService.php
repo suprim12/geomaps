@@ -194,7 +194,8 @@ class MapService extends Component
                 ->where('[[g.ownerId]] = [[elements.id]]')
                 ->andWhere('[[g.ownerSiteId]] = [[elements_sites.siteId]]')
                 ->andWhere(['g.fieldId' => $fieldIds])
-                ->andWhere(['not', ['g.lat' => null]]),
+                // A pin or an area both count as a value.
+                ->andWhere(['or', ['not', ['g.lat' => null]], ['not', ['g.minLat' => null]]]),
             ];
 
             return $value === ':empty:' ? ['not', $exists] : $exists;

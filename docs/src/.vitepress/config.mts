@@ -34,6 +34,15 @@ export default defineConfig({
           { text: 'Console Commands', link: '/guides/console' },
         ],
       },
+      {
+        text: 'Examples',
+        items: [
+          { text: 'Store Locator', link: '/examples/store-locator' },
+          { text: 'Location Page', link: '/examples/location-page' },
+          { text: 'Bin Collection Zones', link: '/examples/zone-lookup' },
+          { text: 'Map of Areas', link: '/examples/area-map' },
+        ],
+      },
     ],
 
     socialLinks: [
