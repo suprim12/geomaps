@@ -10,6 +10,7 @@
 	hideSearch: settings.hideSearch ?? false,
 	hideAddress: settings.hideAddress ?? false,
 	hideMap: settings.hideMap ?? false,
+	enableGeoJson: settings.enableGeoJson ?? true,
 	minZoom: settings.minZoom ?? null,
 	maxZoom: settings.maxZoom ?? null,
 }) %}
@@ -20,6 +21,7 @@
 {% set hideSearch = settings.hideSearch ?? false %}
 {% set hideAddress = settings.hideAddress ?? false %}
 {% set hideMap = settings.hideMap ?? false %}
+{% set enableGeoJson = (settings.enableGeoJson ?? true) and not hideMap %}
 {% set mapHeight = max(240, (settings.mapHeigth ?? 420)|integer) %}
 
 {% macro textInput(id, name, key, label, attrs) %}
@@ -31,7 +33,7 @@
 
 <div x-data="appgeo" x-init="initMap({{ mapData|json_encode }}, true, {{ settings|json_encode }})"
 	class="supgeo{{ hideMap ? ' --hideMap' }}{{ hideAddress ? ' --noDetails' }}"
-	:class="{ '--showEditor': showEditor }"
+	:class="{ '--showEditor': showEditor, '--googleFailed': googleFailed || provider === 'osm' }"
 	style="--supgeo-map-h: {{ mapHeight }}px">
 
 	{% if not hideSearch %}
@@ -60,10 +62,31 @@
 		</div>
 	{% endif %}
 
+	<div class="supgeo__notice" x-cloak x-show="googleFailed">
+		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+		<span>{{ 'Google Maps rejected the API key, so OpenStreetMap is being used.'|t('geo') }} {% if currentUser.admin ?? false %}<a href="{{ settingsUrl }}">{{ 'Check the key'|t('geo') }}</a>{% endif %}</span>
+		<button type="button" class="supgeo__notice-close" @click="googleFailed = false" aria-label="{{ 'Dismiss'|t('geo') }}">
+			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+		</button>
+	</div>
+
 	<div class="supgeo__layout" x-ref="geowrapper">
 		<div class="supgeo__stage">
 			<div x-ref="appgeo-map" class="supgeo__map"></div>
-			<div x-ref="geojson-editor" class="geojson-editor" :class="{ active: showEditor }"></div>
+			{% if enableGeoJson %}
+			<div class="supgeo__geojson" x-cloak x-show="showEditor">
+				<div class="supgeo__panel-head">
+					<div>
+						<div class="supgeo__panel-title">{{ 'GeoJSON'|t('geo') }}</div>
+						<div class="supgeo__panel-desc">{{ 'The shapes drawn on the map. Edit here to update them.'|t('geo') }}</div>
+					</div>
+					<button type="button" class="supgeo__panel-close" @click="toggleEditor()" title="{{ 'Close GeoJSON'|t('geo') }}" aria-label="{{ 'Close GeoJSON'|t('geo') }}">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+					</button>
+				</div>
+				<div x-ref="geojson-editor" class="geojson-editor"></div>
+			</div>
+			{% endif %}
 
 				{# Property Value Editor Panel #}
 				<div class="supgeo__prop-modal-overlay" x-cloak x-show="featurePropEditorOpen" @click.self="closePropEditor()">
@@ -220,10 +243,11 @@
 			{% endif %}
 		</div>
 
+		{% if enableGeoJson %}
 		<div class="btngroup supgeo__tools">
-			<button type="button" class="btn" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor">
+			<button type="button" class="btn supgeo__toggle" :class="{ active: showEditor }" @click="toggleEditor()" :aria-pressed="showEditor.toString()" :title="showEditor ? '{{ 'Hide the GeoJSON editor'|t('geo')|e('js') }}' : '{{ 'View and edit shapes as GeoJSON'|t('geo')|e('js') }}'">
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m8 16-4-4 4-4M16 8l4 4-4 4"/></svg>
-				<span>{{ 'GeoJSON'|t('geo') }}</span>
+				<span x-text="showEditor ? '{{ 'Hide GeoJSON'|t('geo')|e('js') }}' : '{{ 'Edit GeoJSON'|t('geo')|e('js') }}'">{{ 'Edit GeoJSON'|t('geo') }}</span>
 			</button>
 			<button type="button" class="btn" @click.prevent="download({{ elementId ?? 'null' }})" title="{{ 'Download GeoJSON'|t('geo') }}">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
@@ -234,6 +258,7 @@
 				<span>{{ 'Upload'|t('geo') }}</span>
 			</button>
 		</div>
+		{% endif %}
 	</div>
 
 	<div class="supgeo-upload-wrap">

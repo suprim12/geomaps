@@ -19,8 +19,16 @@
 
 
 {{ forms.lightswitchField({
+	label: 'Enable Drawing & GeoJSON'|t('geo'),
+	instructions: 'Let authors draw markers, lines and areas on the map and edit them as GeoJSON. Turn off if you only need a single location.'|t('geo'),
+	id: 'enableGeoJson',
+	name: 'enableGeoJson',
+	on: field.enableGeoJson
+}) }}
+
+{{ forms.lightswitchField({
 	label: 'Hide Search',
-	instructions: 'Hide the location search field',
+	instructions: 'Hide the address search. Authors can still click the map or type coordinates.'|t('geo'),
 	id: 'hideSearch',
 	name: 'hideSearch',
 	on: field.hideSearch
@@ -28,7 +36,7 @@
 
 {{ forms.lightswitchField({
 	label: 'Hide Address',
-	instructions: 'Hide the address fields',
+	instructions: 'Hide the address and coordinate fields. Values are still saved from search and the map.'|t('geo'),
 	id: 'hideAddress',
 	name: 'hideAddress',
 	on: field.hideAddress
@@ -36,7 +44,7 @@
 
 {{ forms.lightswitchField({
 	label: 'Hide Map',
-	instructions: 'Hide the map',
+	instructions: 'Hide the map, leaving only search and the address fields. Also hides drawing.'|t('geo'),
 	id: 'hideMap',
 	name: 'hideMap',
 	on: field.hideMap

@@ -49,6 +49,8 @@ class GeoField extends Field implements PreviewableFieldInterface
     public bool $hideAddress = false;
     public bool $hideMap = false;
     public bool $showLatLng = false;
+    /** Whether authors can draw shapes and edit GeoJSON. */
+    public bool $enableGeoJson = true;
 
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
