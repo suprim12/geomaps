@@ -5,6 +5,9 @@
 ### Added
 - Custom pin images and info windows for `embed()` maps: new `icon`, `html` and `open` marker options, plus a top-level `icon` for every marker. Works with OpenStreetMap and Google maps.
 
+### Changed
+- The plugin icon is 98% smaller (33 KB instead of 2.2 MB), so the control panel loads it faster.
+
 ### Security
 - Map settings written into the page are now escaped so content such as entry titles can’t break out of the inline script.
 

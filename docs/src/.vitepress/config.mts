@@ -20,6 +20,7 @@ export default defineConfig({
           { text: 'Installation', link: '/getting-started/installation' },
           { text: 'Configuration', link: '/getting-started/configuration' },
           { text: 'Importing Existing Fields', link: '/getting-started/importing' },
+          { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
         ],
       },
       {
@@ -55,7 +56,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/edit/main/docs/:path',
+      pattern: 'https://github.com/suprim12/craft-geomaps/edit/main/docs/src/:path',
       text: 'Edit this page on GitHub',
     },
 

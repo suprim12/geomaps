@@ -1,5 +1,226 @@
+/* Brand. #717EF0 is the logo colour; links and buttons use deeper steps of it so text stays readable. */
 :root {
-  --vp-c-brand-1: #717EF0;
-  --vp-c-brand-2: #717EF0;
-  --vp-button-brand-bg:#717EF0;
+  --geo-brand: #717ef0;
+  --vp-c-brand-1: #4f5bd5;
+  --vp-c-brand-2: #3f4ac0;
+  --vp-c-brand-3: #4f5bd5;
+  --vp-c-brand-soft: rgba(113, 126, 240, 0.14);
+  --vp-button-brand-bg: #4f5bd5;
+  --vp-button-brand-hover-bg: #3f4ac0;
+  --vp-button-brand-active-bg: #3540a8;
+  --vp-home-hero-name-color: var(--geo-brand);
+  --geo-mat: #eef0f6;
 }
+
+.dark {
+  --vp-c-brand-1: #a3abf7;
+  --vp-c-brand-2: #8c96f5;
+  --vp-c-brand-3: #4f5bd5;
+  --geo-mat: #1f2129;
+}
+
+/* Screenshots in the docs sit on a soft mat so they read as pictures of the control panel. */
+.vp-doc img {
+  display: block;
+  margin: 24px 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--geo-mat);
+}
+
+/* ---------- Home ---------- */
+
+.VPHome .VPHero {
+  padding-bottom: 40px;
+}
+
+.VPHero .text {
+  max-width: none;
+  font-size: clamp(40px, 6vw, 80px);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.VPHero .tagline {
+  max-width: 34em;
+  color: var(--vp-c-text-1);
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.5;
+}
+
+.home {
+  /* VitePress's .vp-doc.container already gives the 1152px column and gutters. */
+  padding-bottom: 96px;
+  color: var(--vp-c-text-1);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.home img {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--geo-mat);
+}
+
+.home h2 {
+  margin: 0 0 16px;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  border: 0;
+  padding: 0;
+}
+
+.home p { margin: 0 0 16px; }
+
+.home a:not(.home-button) {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home a:not(.home-button):hover { text-decoration: underline; }
+
+.home-hero-shot {
+  margin: 0 0 160px;
+}
+
+.home-hero-shot figcaption {
+  max-width: 40em;
+  margin-top: 16px;
+  color: var(--vp-c-text-2);
+  font-size: 16px;
+}
+
+.home-row,
+.home-band {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 160px;
+}
+
+@media (min-width: 960px) {
+  .home-row,
+  .home-band {
+    grid-template-columns: 5fr 7fr;
+    gap: 64px;
+  }
+
+  .home-row--flip > .home-copy { order: 2; }
+
+  .home-band { grid-template-columns: 1fr 1fr; }
+}
+
+/* One full-width field of colour, once on the page. */
+.home-band {
+  padding: 48px 24px;
+  border-radius: 16px;
+  background: var(--geo-mat);
+}
+
+.home-end { align-items: start; margin-bottom: 0; }
+.home-end .home-copy { min-width: 0; }
+
+@media (min-width: 960px) {
+  .home-band { padding: 72px 64px; }
+}
+
+.home-row--text {
+  display: block;
+}
+
+.home-split {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .home-split { grid-template-columns: 1fr 1fr; gap: 64px; }
+}
+
+.home div[class*='language-'] {
+  margin: 0 0 16px;
+  border-radius: 10px;
+}
+
+.home-close {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  max-width: 640px;
+}
+
+.home-close div[class*='language-'] { width: 100%; }
+
+.home-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--vp-button-brand-bg);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.home .home-button { color: #fff; }
+
+.home-button:hover { background: var(--vp-button-brand-hover-bg); }
+.home-button:active { transform: scale(0.97); }
+
+/* Calmer chrome: no hairlines on the home page. */
+.VPHome ~ .VPFooter,
+.Layout:has(.VPHome) .VPFooter {
+  border-top: 0;
+  background: var(--geo-mat);
+}
+
+.Layout:has(.VPHome) .VPNavBar .divider-line { display: none; }
+
+/* Entrances: sections rise in once as they reach the screen. Only when the script runs (html.geo-motion),
+   so content is never hidden without it. */
+@media (prefers-reduced-motion: no-preference) {
+  .geo-motion .home-hero-shot,
+  .geo-motion .home section > * {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .geo-motion .home section > :nth-child(2) { transition-delay: 0.08s; }
+  .geo-motion .home section > :nth-child(3) { transition-delay: 0.16s; }
+
+  .geo-motion .home .is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  .VPHero .text,
+  .VPHero .tagline,
+  .VPHero .actions {
+    animation: geo-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .VPHero .tagline { animation-delay: 0.08s; }
+  .VPHero .actions { animation-delay: 0.16s; }
+
+  .home img { transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .home a:hover img, .home-row img:hover { transform: scale(1.01); }
+}
+
+@keyframes geo-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+.home .home-button { text-decoration: none; }
+
+/* Short commands wrap on a phone instead of running off the edge. */
+.home pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
