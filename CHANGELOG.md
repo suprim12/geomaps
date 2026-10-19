@@ -19,7 +19,7 @@
 - Maps-compatible `address`, `parts`, `img()` and `imgSrcSet()` on field values, so migrated templates keep working.
 - Proximity search results now include `distance` on the field value (Twig and GraphQL).
 - Location search accepts a `coordinate`, a `{ lat, lng }` object, an address string, or another Geo Maps value.
-- `:empty:` / `:notempty:` query params.
+- `:empty:` / `:notempty:` query params (a pin or a drawn area counts as a value).
 - `php craft geo/lookup/rebuild` to rebuild the location search index.
 - Geocoding results are cached to save API quota.
 

@@ -10,6 +10,9 @@ hero:
       text: Get started
       link: /getting-started/installation
     - theme: alt
+      text: Examples
+      link: /examples/store-locator
+    - theme: alt
       text: Plugin Store
       link: https://plugins.craftcms.com/geo
 
@@ -20,10 +23,12 @@ features:
     details: Add markers, lines and areas, give them properties, and edit everything as GeoJSON. Upload or download .geojson files.
   - title: Search by distance
     details: Find entries within a radius of an address or coordinates, nearest first, with the distance on every result.
+  - title: Which zone is this address in?
+    details: Find the delivery area, sales territory or bin-collection zone that contains an address or point. Holes and shared borders are handled.
   - title: Maps for your front end
     details: Interactive maps with markers (Leaflet or Google) and static map images, straight from Twig.
   - title: No key required
     details: Works with OpenStreetMap by default. Add a Google key for Google tiles, Places search and static images.
-  - title: Switch from Maps in one click
-    details: Convert Maps (Ether) fields in place — handles, layouts, content and most templates carry over.
+  - title: Switch in one click
+    details: Convert Maps (Ether) and Craft Geoman fields in place — handles, layouts, content and most templates carry over.
 ---

@@ -86,6 +86,12 @@ Turn off **Show Location Pin** on fields that only hold areas — see [The Field
 {% set missing = craft.entries().section('stores').storeLocation(':empty:').all() %}
 ```
 
+An entry counts as having a value if it has a pin or at least one drawn area.
+
+::: tip More examples
+See [Store Locator](/examples/store-locator) and [Bin Collection Zones](/examples/zone-lookup) for complete templates.
+:::
+
 ## How addresses are looked up
 
 Address and place names are geocoded with Google when a **Google Geocoding API Key** is set, otherwise with OpenStreetMap (Nominatim). Results are cached for 30 days. If an address can’t be found, the search returns no results.
