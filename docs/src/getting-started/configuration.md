@@ -15,7 +15,8 @@ Geo Maps works without any API keys. Add a Google key when you want Google’s m
 | Static map images (`.img()`) | Not available | Google Static Maps |
 
 ::: tip Google Maps
-Enable the **Maps JavaScript API** and **Places API** for the **Google Maps API Key**, and the **Geocoding API** and **Maps Static API** for the **Google Geocoding API Key**. Restrict browser keys by HTTP referrer, including your local development domain (e.g. `*.ddev.site/*`).
+- **Google Maps API Key (browser)** — enable the **Maps JavaScript API**, **Places API** and **Maps Static API**. Restrict it by HTTP referrer, including your local development domain (e.g. `*.ddev.site/*`).
+- **Google Geocoding API Key (server)** — enable the **Geocoding API**. Restrict it by your server’s IP address.
 :::
 
 ::: warning OpenStreetMap tiles on busy sites
