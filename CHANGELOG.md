@@ -1,6 +1,6 @@
 # Release Notes for Geo Maps
 
-## Unreleased
+## 1.1.0 - 2026-10-20
 
 ### Added
 - Custom pin images and info windows for `embed()` maps: new `icon`, `html` and `open` marker options, plus a top-level `icon` for every marker. Works with OpenStreetMap and Google maps.
