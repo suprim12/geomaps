@@ -44,7 +44,7 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 {% if place %}
   <address>{{ place.address1 }}, {{ place.suburb }} {{ place.postcode }}</address>
-  {{ place.embed({ width: 800, height: 360, zoom: 15 }) }}
+  {{ place.embed({ width: '100%', height: 360, zoom: 15 }) }}
 {% endif %}
 ```
 

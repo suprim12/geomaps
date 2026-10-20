@@ -16,7 +16,7 @@ A Geo Maps field returns a location value (or `null` when nothing is set).
 | Property | Description |
 |---|---|
 | `lat`, `lng` | Coordinates (floats) |
-| `zoom` | Zoom level chosen in the control panel |
+| `zoom` | Zoom level the map was at when the author saved the entry |
 | `full_address` | The complete formatted address |
 | `address1` | Street address, e.g. `1 King William St` |
 | `suburb` | Suburb, town or city |
@@ -25,8 +25,12 @@ A Geo Maps field returns a location value (or `null` when nothing is set).
 | `countryCode` | Two-letter country code, e.g. `AU` |
 | `geoJson` | Drawn shapes as a GeoJSON string |
 | `distance` | Distance from the searched location — only set on [location search](/guides/search) results |
+| `address` | Alias of `full_address` |
+| `parts` | The address as `{ address, city, postcode, country, countryCode }` |
 
-Outputting the value directly prints the full address (or the coordinates if there’s no address):
+`address` and `parts` match the names used by other map plugins, so [imported](/getting-started/importing) templates keep working.
+
+Outputting the value directly prints the full address. Without an address it prints the shapes’ GeoJSON for shape-only values, or the coordinates:
 
 ```twig
 {{ entry.storeLocation }}
@@ -38,7 +42,7 @@ Outputting the value directly prints the full address (or the coordinates if the
 |---|---|
 | `hasCoordinates()` | Whether both `lat` and `lng` are set |
 | `getGeoJsonData()` | The GeoJSON decoded to an array, or `null` |
-| `contains(place)` | Whether the value’s areas (polygons) contain an address, `{ lat, lng }` or another value |
+| `contains(place, country)` | Whether the value’s areas (polygons) contain an address, `{ lat, lng }` or another value. `country` (optional, e.g. `'AU'`) narrows address lookups |
 | `embed(options)` | An interactive map centred on this location — see [Maps](/guides/maps) |
 | `img(options)` / `imgSrcSet(options)` | A static map image URL — see [Maps](/guides/maps) |
 

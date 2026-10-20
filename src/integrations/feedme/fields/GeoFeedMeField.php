@@ -5,8 +5,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 
@@ -22,7 +22,7 @@ use suprim\geomaps\services\GeoService;
 
 class GeoFeedMeField extends Field implements FieldInterface
 {
-    public static $name = 'Maps';
+    public static $name = 'Geo Maps';
     public static $class = GeoField::class;
 
 
@@ -63,6 +63,12 @@ class GeoFeedMeField extends Field implements FieldInterface
                 continue;
             }
 
+            // Leave bad coordinates as they are so validation reports them, rather than saving 0.
+            if (in_array($key, ['lat', 'lng', 'zoom'], true) && !is_numeric($value)) {
+                $preppedData[$key] = (string)$value;
+                continue;
+            }
+
             $preppedData[$key] = match ($key) {
                 'lat', 'lng' => (float) $value,
                 'zoom' => (int)   $value,
@@ -70,11 +76,12 @@ class GeoFeedMeField extends Field implements FieldInterface
             };
         }
 
-        // A two-letter country is a code; anything longer is a name.
+        // A two-letter country is a code; anything longer is a name. Fill in the other one.
         $country = $preppedData['country'] ?? null;
         if (is_string($country) && strlen($country) === 2) {
-            $preppedData['countryCode'] = strtoupper($country);
-            unset($preppedData['country']);
+            $code = strtoupper($country);
+            $preppedData['countryCode'] = $code;
+            $preppedData['country'] = GeoService::countryOptions()[$code] ?? null;
         } elseif (is_string($country)) {
             $preppedData['countryCode'] = GeoService::countryCodeFromName($country);
         }

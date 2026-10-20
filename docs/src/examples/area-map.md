@@ -18,8 +18,13 @@ Show every zone, region or delivery area on a single map, each in its own colour
 {% set features = [] %}
 {% for zone in zones %}
   {% set colour = colours[loop.index0 % colours|length] %}
-  {% set data = zone.zoneArea.getGeoJsonData() %}
-  {% for feature in data ? (data.features ?? [data]) : [] %}
+  {% set data = zone.zoneArea.getGeoJsonData() ?? {} %}
+  {# Shapes can be a FeatureCollection, a single Feature or a bare geometry #}
+  {% set zoneFeatures = data.type is not defined ? []
+    : (data.type == 'FeatureCollection' ? data.features
+    : (data.type == 'Feature' ? [data]
+    : [{ type: 'Feature', geometry: data, properties: {} }])) %}
+  {% for feature in zoneFeatures %}
     {% set features = features|merge([feature|merge({
       properties: (feature.properties ?? {})|merge({ name: zone.title, color: colour }),
     })]) %}
@@ -57,7 +62,7 @@ Embedded maps style each shape from its properties, so authors can also set them
 | `fill` | Fill colour (overrides `color`) |
 | `name` or `title` | Shown in a popup when the shape is clicked |
 
-On Google Maps, shapes use a single default style.
+These work on both OpenStreetMap (Leaflet) and Google maps.
 
 ## Using your own map library
 

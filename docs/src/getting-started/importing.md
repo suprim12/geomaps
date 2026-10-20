@@ -20,7 +20,7 @@ Saved values are copied across, including on drafts and revisions, and indexed f
 - **Location fields:** addresses, address parts, coordinates and zoom levels.
 - **Shape (GeoJSON) fields:** shapes become the field’s GeoJSON, and each entry’s location is set to the centre of its shapes so it can be found with [location search](/guides/search).
 
-If a field you expected isn’t listed, Geo Maps can’t convert it automatically. [Get in touch](mailto:suprimtech@gmail.com) and tell us which plugin it comes from.
+If a field you expected isn’t listed, Geo Maps can’t convert it automatically. [Get in touch](mailto:support@suprim.com.au) and tell us which plugin it comes from.
 
 ## 2. Deploy
 

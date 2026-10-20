@@ -70,9 +70,10 @@ If your site sends a `Content-Security-Policy` header, allow the services Geo Ma
 | `img-src` | `https://tile.openstreetmap.org` (or your tile provider) | OpenStreetMap tiles |
 | `connect-src` | `https://photon.komoot.io` `https://nominatim.openstreetmap.org` | Address search and reverse lookup in the control panel |
 | `script-src`, `img-src`, `connect-src` | `https://maps.googleapis.com` `https://maps.gstatic.com` | Google maps, Places search and static images (only with a Google key) |
+| `script-src` | A nonce or `'unsafe-inline'` | `embed()` adds a small inline script with each map’s settings |
 
 Server-side geocoding for location search runs from your server, so it needs no browser rule, but your server must be able to reach `nominatim.openstreetmap.org` (or `maps.googleapis.com` with a Google key).
 
 ## Still stuck?
 
-Email [suprimtech@gmail.com](mailto:suprimtech@gmail.com) with your Craft and Geo Maps versions, what you expected, and what happened. Lines from `storage/logs/web.log` mentioning `geomaps` help a lot.
+Email [support@suprim.com.au](mailto:support@suprim.com.au) with your Craft and Geo Maps versions, what you expected, and what happened. Lines from `storage/logs/web.log` mentioning `geomaps` help a lot.

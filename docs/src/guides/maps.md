@@ -27,13 +27,21 @@ Or build one from scratch with any number of markers:
 }) }}
 ```
 
+For a map that fills its container, use a CSS width:
+
+```twig
+{{ entry.storeLocation.embed({ width: '100%', height: 360 }) }}
+```
+
+Shapes are coloured from their `color`, `stroke` and `fill` properties, and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
+
 Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with your [tile provider](/getting-started/configuration) otherwise. If Google rejects the key, the map falls back to Leaflet automatically.
 
 | Option | Description | Default |
 |---|---|---|
-| `center` | `{ lat, lng }`, `[lat, lng]` or an address | the field value |
-| `zoom` | Zoom level | `14` |
-| `width`, `height` | Size in pixels | `640` × `400` |
+| `center` | `{ lat, lng }`, `[lat, lng]` or an address | the field value (its address, if it has no coordinates) |
+| `zoom` | Zoom level | the field value’s zoom, or `14` |
+| `width`, `height` | Size in pixels (`800`), or a CSS length such as `'100%'` or `'60vh'` | `640` × `400` |
 | `markers` | List of `{ location, label, color, icon, html, open }`. `location` is `{ lat, lng }` or an address. See [Custom Pins & Info Windows](/examples/custom-pins) | one marker at the centre |
 | `icon` | Pin image for every marker: a URL or `{ url, width, height }` | round coloured pin |
 | `html` | Info window HTML for the centre pin (when there are no `markers`) | — |
@@ -68,7 +76,7 @@ Without a field value, use `craft.geomaps.img()` / `craft.geomaps.imgSrcSet()` w
 | `format` | `png`, `jpg`, … | `png` |
 | `markers` | List of `{ location, label, color }`. Labels show their first character | one marker at the centre |
 
-`imgSrcSet()` returns `1x` and `2x` URLs for high-density screens.
+`imgSrcSet()` returns `1x` and `2x` URLs for high-density screens. Options apply to that one image, so you can call `img()` several times with different sizes.
 
 ## Drawing shapes on your own maps
 

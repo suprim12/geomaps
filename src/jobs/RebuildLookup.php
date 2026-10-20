@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\jobs;

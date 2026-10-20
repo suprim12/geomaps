@@ -26,6 +26,7 @@ Pass an object to the field’s query parameter to find entries near a place. Re
 | `radius` | How far to search | `50` |
 | `unit` | `km` or `mi` | `km` |
 | `country` | Two-letter code to narrow address lookups, e.g. `AU` | — |
+| `contains` | An address, `{ lat, lng }` or Geo Maps value: find entries whose areas contain it (see [below](#find-the-area-containing-a-place)). Use instead of `location` | — |
 
 ## Searching from coordinates
 
@@ -33,7 +34,7 @@ Pass an object to the field’s query parameter to find entries near a place. Re
 .storeLocation({ location: { lat: -34.9285, lng: 138.6007 }, radius: 5 })
 ```
 
-Coordinates don’t need geocoding, so they’re the fastest option — useful with the browser’s geolocation API.
+Coordinates don’t need geocoding, so they’re the fastest option — useful with the browser’s geolocation API. Searches work anywhere on the globe, including across the 180° meridian (e.g. Fiji) and near the poles.
 
 ## Searching from another entry
 
@@ -65,11 +66,13 @@ Use `contains` to find entries whose drawn **areas** (polygons) contain an addre
     .one() %}
 
 {% if zone %}
-    Your collection day is {{ zone.zoneArea.getGeoJsonData().properties.collectionDay }}.
+    Your collection day is {{ zone.collectionDay }}.
 {% else %}
     That address isn’t in a collection zone.
 {% endif %}
 ```
+
+Here `collectionDay` is an ordinary field on the zone entry. To read a value stored on the shape itself, see [Bin Collection Zones](/examples/zone-lookup#storing-data-on-the-shape-instead).
 
 `contains` accepts an address, a `{ lat, lng }` object or another Geo Maps value. Holes in polygons are respected (a park cut out of a zone isn’t part of it), and a point exactly on the border between two zones belongs to only one of them. If areas overlap, every matching entry is returned.
 

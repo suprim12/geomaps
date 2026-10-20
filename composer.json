@@ -4,7 +4,7 @@
   "type": "craft-plugin",
   "license": "proprietary",
   "support": {
-    "email": "suprimtech@gmail.com",
+    "email": "support@suprim.com.au",
     "issues": "https://github.com/suprim12/craft-geomaps/issues?state=open",
     "source": "https://github.com/suprim12/craft-geomaps",
     "docs": "https://github.com/suprim12/craft-geomaps",
@@ -28,11 +28,11 @@
   "extra": {
     "handle": "geomaps",
     "name": "Geo Maps",
-    "developer": "suprim golay",
+    "developer": "suprim",
     "documentationUrl": "https://github.com/suprim12/craft-geomaps",
     "class": "suprim\\geomaps\\Plugin",
     "developerUrl": "https://suprimgolay.com.np",
-    "developerEmail": "suprimtech@gmail.com",
+    "developerEmail": "support@suprim.com.au",
     "changelogUrl": "https://raw.githubusercontent.com/suprim12/craft-geomaps/main/CHANGELOG.md"
   },
   "scripts": {

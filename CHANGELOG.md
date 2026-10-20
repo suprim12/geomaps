@@ -1,5 +1,31 @@
 # Release Notes for Geo Maps
 
+## 1.1.1 - 2026-10-20
+
+### Added
+- `embed()` `width` and `height` accept CSS lengths such as `'100%'` or `'60vh'`, as well as pixels.
+- Shapes on Google `embed()` maps use their `color`, `stroke` and `fill` properties and show their `name` when clicked, as on OpenStreetMap maps.
+
+### Changed
+- The field saves the map’s zoom level with each location, and **Initial Location** in field settings saves its zoom.
+- Feed Me fills in the country name from a two-letter code, and the field type is listed as “Geo Maps”.
+- The support email is now support@suprim.com.au.
+
+### Fixed
+- Pressing Enter in the field’s address search saved the entry.
+- Saved GeoJSON that wasn’t valid stopped the field from loading, so it couldn’t be fixed.
+- After deleting every shape, edits in the GeoJSON editor no longer updated the map.
+- Shape-only fields kept their old location after the last shape was deleted.
+- The field ignored its default zoom once an entry had a value.
+- The shape property editor opened with the wrong value type.
+- Distance search missed entries across the 180° meridian and near the poles.
+- `img()` and `imgSrcSet()` options carried over to later calls on the same value.
+- `embed()` on a value with only an address centred the map at 0, 0.
+- Invalid Feed Me coordinates were saved as 0 instead of being reported.
+- Imported **Min Zoom** / **Max Zoom** settings were saved as decimals.
+- Rebuilding the location search index was slow on sites with many field layouts.
+- **Download** saved the text “null” when there were no shapes; files are now named `.geojson`.
+
 ## 1.1.0 - 2026-10-20
 
 ### Added

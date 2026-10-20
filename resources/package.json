@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "vite build && GEO_ENTRY=embed vite build"
 	},
-	"author": "webworker",
+	"author": "suprim",
 	"license": "ISC",
 	"dependencies": {
 		"@alpinejs/intersect": "^3.10.2",

@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\services;
@@ -112,34 +112,31 @@ class MapService extends Component
 
             Db::delete(GeoRecord::TABLE_NAME, ['fieldId' => $field->id]);
 
+            // Content is keyed by field layout element UID, so look the key up by each element's layout.
+            $keyByLayout = self::layoutElementUidsByLayout($field->uid);
+            if (!$keyByLayout) {
+                continue;
+            }
+
             $rows = (new Query())
-                ->select(['es.elementId', 'es.siteId', 'es.content'])
+                ->select(['es.elementId', 'es.siteId', 'es.content', 'e.fieldLayoutId'])
                 ->from(['es' => Table::ELEMENTS_SITES])
                 ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[es.elementId]]')
-                ->where(['e.draftId' => null, 'e.revisionId' => null])
+                ->where(['e.draftId' => null, 'e.revisionId' => null, 'e.fieldLayoutId' => array_keys($keyByLayout)])
                 ->andWhere(['not', ['es.content' => null]]);
 
-            foreach ($rows->each() as $row) {
+            foreach ($rows->each(500) as $row) {
                 $content = Json::decodeIfJson($row['content']);
+                $value = is_array($content) ? GeoValue::fromArray($content[$keyByLayout[$row['fieldLayoutId']]] ?? null) : null;
+                $columns = $value ? $this->lookupColumns($value) : null;
 
-                if (!is_array($content)) {
-                    continue;
-                }
-
-                // Content is keyed by field layout element UID, so check every instance of this field.
-                foreach (self::layoutElementUids($field->uid) as $uid) {
-                    $value = GeoValue::fromArray($content[$uid] ?? null);
-                    $columns = $value ? $this->lookupColumns($value) : null;
-
-                    if ($columns) {
-                        Db::upsert(GeoRecord::TABLE_NAME, [
-                            'ownerId' => $row['elementId'],
-                            'ownerSiteId' => $row['siteId'],
-                            'fieldId' => $field->id,
-                        ] + $columns, $columns);
-                        $count++;
-                        break;
-                    }
+                if ($columns) {
+                    Db::upsert(GeoRecord::TABLE_NAME, [
+                        'ownerId' => $row['elementId'],
+                        'ownerSiteId' => $row['siteId'],
+                        'fieldId' => $field->id,
+                    ] + $columns, $columns);
+                    $count++;
                 }
             }
         }
@@ -148,18 +145,18 @@ class MapService extends Component
     }
 
     /**
-     * Returns the layout element UIDs (content JSON keys) used by a field.
+     * Returns the layout element UID (content JSON key) used by a field, keyed by field layout ID.
      *
-     * @return string[]
+     * @return array<int, string>
      */
-    public static function layoutElementUids(string $fieldUid): array
+    public static function layoutElementUidsByLayout(string $fieldUid): array
     {
         $uids = [];
 
         foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
             foreach ($layout->getCustomFieldElements() as $layoutElement) {
-                if ($layoutElement->fieldUid === $fieldUid) {
-                    $uids[] = $layoutElement->uid;
+                if ($layoutElement->fieldUid === $fieldUid && $layout->id) {
+                    $uids[$layout->id] = $layoutElement->uid;
                 }
             }
         }
@@ -267,13 +264,23 @@ class MapService extends Component
         // Bounding box first so the lat/lng index can narrow rows before the trig runs.
         $latDelta = $radius / $perDegree;
         $lngDelta = $radius / max(0.000001, $perDegree * abs(cos(deg2rad($lat))));
+        $condition = ['and', ['between', "$alias.lat", $lat - $latDelta, $lat + $latDelta]];
 
-        return [
-            'and',
-            ['between', "$alias.lat", $lat - $latDelta, $lat + $latDelta],
-            ['between', "$alias.lng", $lng - $lngDelta, $lng + $lngDelta],
-            new Expression(sprintf('%s <= %F', $distanceSql, $radius)),
-        ];
+        // Near the poles the box covers every longitude; across the ±180° line it wraps to the other side.
+        if ($lat + $latDelta < 90 && $lat - $latDelta > -90 && $lngDelta < 180) {
+            $west = $lng - $lngDelta;
+            $east = $lng + $lngDelta;
+
+            $condition[] = match (true) {
+                $west < -180 => ['or', ['>=', "$alias.lng", $west + 360], ['<=', "$alias.lng", $east]],
+                $east > 180 => ['or', ['>=', "$alias.lng", $west], ['<=', "$alias.lng", $east - 360]],
+                default => ['between', "$alias.lng", $west, $east],
+            };
+        }
+
+        $condition[] = new Expression(sprintf('%s <= %F', $distanceSql, $radius));
+
+        return $condition;
     }
 
     /**

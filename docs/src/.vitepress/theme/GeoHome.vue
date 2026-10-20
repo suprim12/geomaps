@@ -349,7 +349,7 @@ php craft plugin/install geomaps</code></pre>
     <!-- Footer tiles ----------------------------------------------------------- -->
     <footer class="gh-foot">
       <div class="gh-tile gh-tile--about">
-        <p class="gh-tile__big">A Craft CMS plugin by Suprim Golay.</p>
+        <p class="gh-tile__big">A Craft CMS plugin by suprim.</p>
         <p class="gh-tile__small">Map data © OpenStreetMap contributors. Photographs: “King William Street, Adelaide” by Frank Hurley and “Hurtle Square” by the State Government Photographer, both CC0 via Wikimedia Commons. Plan of Adelaide by W. Light and J. Arrowsmith, 1840, public domain via Wikimedia Commons.</p>
       </div>
       <nav class="gh-tile gh-tile--nav" aria-label="Docs">
@@ -365,7 +365,7 @@ php craft plugin/install geomaps</code></pre>
       </div>
       <div class="gh-tile gh-tile--mail">
         <p class="gh-tile__small">Questions and support</p>
-        <a href="mailto:suprimtech@gmail.com">suprimtech@gmail.com</a>
+        <a href="mailto:support@suprim.com.au">support@suprim.com.au</a>
       </div>
       <div class="gh-tile gh-tile--mark"><span>Geo Maps</span></div>
       <a class="gh-tile gh-tile--go" href="/getting-started/installation">

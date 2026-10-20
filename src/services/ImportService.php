@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\services;
@@ -223,7 +223,7 @@ class ImportService extends Component
 
         $settings = [];
 
-        foreach (['lat' => 'float', 'lng' => 'float', 'zoom' => 'int', 'minZoom' => 'float', 'maxZoom' => 'float'] as $key => $type) {
+        foreach (['lat' => 'float', 'lng' => 'float', 'zoom' => 'int', 'minZoom' => 'int', 'maxZoom' => 'int'] as $key => $type) {
             if (isset($s[$key]) && is_numeric($s[$key])) {
                 $settings[$key] = $type === 'int' ? (int)$s[$key] : (float)$s[$key];
             }
@@ -243,10 +243,6 @@ class ImportService extends Component
         return $settings;
     }
 
-    /**
-     * Rewrites every stored value of the field (including drafts and revisions) in the Geo Maps format.
-     * Values missing from the content column are recovered from the Maps lookup table.
-     */
     /**
      * Yields `[row, contentKey, decodedContent]` for every element (including drafts and revisions)
      * whose field layout contains the field.
@@ -280,31 +276,16 @@ class ImportService extends Component
      */
     private function contentKeysByLayout(FieldInterface $field): array
     {
-        $keyByLayout = [];
-        foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
-            foreach ($layout->getCustomFieldElements() as $layoutElement) {
-                if ($layoutElement->fieldUid === $field->uid && $layout->id) {
-                    $keyByLayout[$layout->id] = $layoutElement->uid;
-                }
-            }
-        }
-
-        return $keyByLayout;
+        return MapService::layoutElementUidsByLayout($field->uid);
     }
 
+    /**
+     * Rewrites every stored value of the field (including drafts and revisions) in the Geo Maps format.
+     * Values missing from the content column are recovered from the Maps lookup table.
+     */
     private function convertContent(FieldInterface $field, string $source): int
     {
-        // Layout element UID (content key) for each field layout using this field.
-        $keyByLayout = [];
-        foreach (Craft::$app->getFields()->getAllLayouts() as $layout) {
-            foreach ($layout->getCustomFieldElements() as $layoutElement) {
-                if ($layoutElement->fieldUid === $field->uid && $layout->id) {
-                    $keyByLayout[$layout->id] = $layoutElement->uid;
-                }
-            }
-        }
-
-        if (empty($keyByLayout)) {
+        if (empty($this->contentKeysByLayout($field))) {
             return 0;
         }
 
@@ -322,19 +303,9 @@ class ImportService extends Component
             }
         }
 
-        $query = (new Query())
-            ->select(['es.id', 'es.elementId', 'es.siteId', 'es.content', 'e.fieldLayoutId'])
-            ->from(['es' => Table::ELEMENTS_SITES])
-            ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[es.elementId]]')
-            ->where(['e.fieldLayoutId' => array_keys($keyByLayout)]);
-
         $converted = 0;
 
-        foreach ($query->each(500) as $row) {
-            $key = $keyByLayout[$row['fieldLayoutId']];
-            $content = Json::decodeIfJson((string)$row['content']);
-            $content = is_array($content) ? $content : [];
-
+        foreach ($this->contentRows($field) as [$row, $key, $content]) {
             $raw = $content[$key] ?? null;
             if (is_string($raw)) {
                 $raw = Json::decodeIfJson($raw);

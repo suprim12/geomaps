@@ -12,7 +12,9 @@ Authors can set a location three ways:
 
 ![Typing an address shows matching places to pick from](/images/field-search.jpg)
 
-The address details (full address, street, suburb, postcode, country) and the coordinates fill in automatically and can be edited by hand. **Clear** removes the location.
+The address details (full address, street, suburb, postcode, country) and the coordinates fill in automatically and can be edited by hand. The map’s zoom level is saved too, and `embed()` uses it. **Clear** removes the location.
+
+In fields with **Show Location Pin** turned off, the location is the centre of the shapes; deleting the last shape clears it.
 
 ## Drawing shapes
 
@@ -32,7 +34,7 @@ GeoJSON has no circle type, so circle tools aren’t offered — draw a polygon 
 
 | Setting | What it does |
 |---|---|
-| Initial Location | Where the map starts for entries without a location. Click the map or drag the pin. |
+| Initial Location | Where the map starts, and its zoom, for entries without a location. Click the map or drag the pin, then zoom to the level you want. |
 | Show Location Pin | Turn off for fields that only hold shapes, such as delivery or bin-collection zones. There’s no pin, and the entry’s location is the centre of its shapes, so [location search](/guides/search) still works. |
 | Enable Drawing & GeoJSON | Shows the drawing tools and GeoJSON buttons. Turn off when you only need a single location; existing shapes are kept. |
 | Hide Search | Hides the address search. Authors can still click the map or type coordinates. |

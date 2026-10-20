@@ -2,8 +2,8 @@
 	* Geo Maps plugin for Craft CMS
 	*
 	* @link      https://suprimgolay.com.np/craft-plugins
-	* @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
-	* @copyright Copyright (c) 2026 Suprim Golay
+	* @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+	* @copyright Copyright (c) 2026 suprim
 	* 
  #}
 
@@ -11,6 +11,7 @@
 <div x-data="appgeo" x-intersect.once="initMap({{ mapdata|json_encode }})" class="supgeo" :class="{ '--googleFailed': googleFailed || provider === 'osm' }" style="--supgeo-map-h: 320px">
 	<input type="hidden" name="lat" x-model="lat">
 	<input type="hidden" name="lng" x-model="lng">
+	<input type="hidden" name="zoom" x-model="zoom">
 	<div class="supgeo__layout" x-ref="geowrapper">
 		<div class="supgeo__stage">
 			<div x-ref="appgeo-map" class="supgeo__map"></div>

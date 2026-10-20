@@ -1,7 +1,7 @@
 /**
  *  https://suprimgolay.com.np/craft-plugins
- * author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * copyright Copyright (c) 2026 Suprim Golay
+ * author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * copyright Copyright (c) 2026 suprim
  * 
  */
 import "leaflet/dist/leaflet.css";
@@ -90,6 +90,7 @@ document.addEventListener("alpine:init", () => {
     uploadError: null,
     lat: null,
     lng: null,
+    zoom: null,
     full_address: null,
     address1: null,
     postcode: null,
@@ -168,6 +169,10 @@ document.addEventListener("alpine:init", () => {
 
       this.map = map;
 
+      // Saved with the value (and as the field's initial zoom in field settings).
+      this.zoom = map.getZoom();
+      map.on("zoomend", () => (this.zoom = map.getZoom()));
+
       // Re-measure when the container changes size (field settings, tabs, slideouts, collapsed Matrix blocks).
       if (typeof ResizeObserver !== "undefined") {
         new ResizeObserver(() => this.map?.invalidateSize()).observe(this.$refs["appgeo-map"]);
@@ -240,7 +245,12 @@ document.addEventListener("alpine:init", () => {
       // Initialize Geo JSON data
       if (data.geoJson) {
         // Shape-only fields (and entries without a location) open zoomed to their shapes.
-        this.drawGeoJSONOnMap(JSON.parse(data.geoJson), !this.showMarker || !hasLat);
+        // Invalid GeoJSON (e.g. after a failed save) stays in the editor so it can be fixed.
+        try {
+          this.drawGeoJSONOnMap(JSON.parse(data.geoJson), !this.showMarker || !hasLat);
+        } catch (e) {
+          console.warn("Geo Maps: couldn't draw the saved GeoJSON", e);
+        }
       }
       // Drawing tools are only for the field itself, not the field-settings location picker.
       if (this.isInput && data.enableGeoJson !== false) {
@@ -357,6 +367,8 @@ document.addEventListener("alpine:init", () => {
       this._sessionToken = new google.maps.places.AutocompleteSessionToken();
     },
     onSearchKeydown(e) {
+      // Enter picks a suggestion; it must never submit (save) the entry form.
+      if (e.key === "Enter") e.preventDefault();
       if (!this.suggestionsOpen) return;
 
       if (e.key === "ArrowDown") {
@@ -369,7 +381,6 @@ document.addEventListener("alpine:init", () => {
         e.preventDefault();
         this.activeSuggestion = Math.max(this.activeSuggestion - 1, 0);
       } else if (e.key === "Enter") {
-        e.preventDefault();
         if (
           this.activeSuggestion >= 0 &&
           this.suggestions[this.activeSuggestion]
@@ -624,11 +635,17 @@ document.addEventListener("alpine:init", () => {
       }
     },
     updateEditorFromMap() {
-      this._mapIsSource = true;
       if (!this.map) return;
+      this._mapIsSource = true;
+      // Let edits typed in the editor redraw the map again once this update has gone through.
+      this.$nextTick(() => {
+        this._mapIsSource = false;
+      });
       const geoLayers = this.map.pm.getGeomanLayers();
       if (!geoLayers || geoLayers.length === 0) {
         this.geojsonText = null;
+        // A shape-only field's location is the centre of its shapes, so it goes when the last shape does.
+        if (!this.showMarker) this.lat = this.lng = null;
         if (this.editor) {
           const currentDoc = this.editor.state.doc.toString();
           if (currentDoc !== "") {
@@ -647,12 +664,6 @@ document.addEventListener("alpine:init", () => {
         type: "FeatureCollection",
         features: [],
       };
-      const features = [];
-
-      if (geoLayers?.length <= 0) {
-        this.geojsonText = null;
-        return;
-      }
       for (let i = 0; i < geoLayers.length; i++) {
         const json = geoLayers[i].toGeoJSON();
         if (geoLayers[i] instanceof L.Circle) {
@@ -677,10 +688,6 @@ document.addEventListener("alpine:init", () => {
           });
         }
       }
-
-      this.$nextTick(() => {
-        this._mapIsSource = false;
-      });
     },
     resetMap() {
       const layers = this.map.pm.getGeomanDrawLayers(true);
@@ -1202,10 +1209,12 @@ document.addEventListener("alpine:init", () => {
    // ########################################## Upload and Download
     download(elementId) {
       const a = document.createElement("a");
-      const file = new Blob([this.geojsonText], { type: "text/plain" });
+      const text = this.geojsonText || JSON.stringify({ type: "FeatureCollection", features: [] }, null, 2);
+      const file = new Blob([text], { type: "application/geo+json" });
       a.href = URL.createObjectURL(file);
-      a.download = "supgeo-" + elementId + ".json";
+      a.download = (elementId ? "shapes-" + elementId : "shapes") + ".geojson";
       a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 0);
     },
     uploadGeoJSON(file) {
       if (!file) return;
@@ -1342,6 +1351,7 @@ document.addEventListener("alpine:init", () => {
       if (!prop) return;
 
       this.featureEditingPropIndex = index;
+      this.featureEditingPropType = prop.type || this._detectType(prop.val);
       this.featureEditingPropRaw = prop.val;
       this.featureEditingPropError = null;
       this.featurePropEditorOpen = true;

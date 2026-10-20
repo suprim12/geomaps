@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\models;
@@ -22,8 +22,9 @@ class EmbedMap extends Model
 {
     public mixed   $center = null;
     public mixed   $centerFallback = null;
-    public int     $width = 640;
-    public int     $height = 400;
+    /** Pixels, or a CSS length such as `'100%'` or `'60vh'`. */
+    public int|string $width = 640;
+    public int|string $height = 400;
     public int     $zoom = 14;
     public int     $scale = 1;
     public array   $markers = [];
@@ -59,8 +60,6 @@ class EmbedMap extends Model
             'id' => $id,
             'center' => $center,
             'zoom' => $this->zoom,
-            'width' => $this->width,
-            'height' => $this->height,
             'markers' => $markers,
             'geoJson' => $this->resolveGeoJson(),
             'fitShapes' => $this->fitShapes,
@@ -94,7 +93,9 @@ class EmbedMap extends Model
             );
         }
 
-        $style = "width:{$this->width}px;height:{$this->height}px;";
+        $width = self::cssLength($this->width, '640px');
+        $height = self::cssLength($this->height, '400px');
+        $style = "width:$width;height:$height;";
 
         $js = <<<JS
         (function() {
@@ -181,7 +182,18 @@ class EmbedMap extends Model
                     var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
                         ? config.geoJson : { type: 'Feature', properties: {}, geometry: config.geoJson };
                     map.data.addGeoJson(gj);
-                    map.data.setStyle({ strokeColor: '#2563eb', strokeWeight: 2, fillColor: '#2563eb', fillOpacity: 0.2 });
+                    // Same property-based styling and name popups as the Leaflet map.
+                    map.data.setStyle(function(f) {
+                        var c = f.getProperty('color');
+                        return { strokeColor: f.getProperty('stroke') || c || '#2563eb', strokeWeight: 2, fillColor: f.getProperty('fill') || c || '#2563eb', fillOpacity: 0.2 };
+                    });
+                    map.data.addListener('click', function(e) {
+                        var name = e.feature.getProperty('name') || e.feature.getProperty('title');
+                        if (!name) return;
+                        infoWindow.setContent(escapeHtml(name));
+                        infoWindow.setPosition(e.latLng);
+                        infoWindow.open({ map: map });
+                    });
                     if (config.fitShapes) {
                         var bounds = new google.maps.LatLngBounds();
                         map.data.forEach(function(f) { f.getGeometry().forEachLatLng(function(ll) { bounds.extend(ll); }); });
@@ -223,20 +235,23 @@ class EmbedMap extends Model
         $view->registerJs($js, \craft\web\View::POS_END);
 
         $noscript = '';
+        // Static images need a pixel size; relative sizes fall back to the defaults.
+        $imgWidth = is_numeric($this->width) ? (int)$this->width : 640;
+        $imgHeight = is_numeric($this->height) ? (int)$this->height : 400;
         $staticUrl = (new StaticMap())->img([
             'center' => $center,
             'zoom' => $this->zoom,
-            'width' => $this->width,
-            'height' => $this->height,
+            'width' => $imgWidth,
+            'height' => $imgHeight,
         ]);
         if ($staticUrl) {
             $noscript = Html::tag('noscript',
                 Html::tag('img', '', [
                     'src' => $staticUrl,
-                    'width' => $this->width,
-                    'height' => $this->height,
+                    'width' => $imgWidth,
+                    'height' => $imgHeight,
                     'alt' => 'Map',
-                    'style' => $style,
+                    'style' => $style . 'object-fit:cover;',
                 ])
             );
         }
@@ -249,6 +264,20 @@ class EmbedMap extends Model
         ]);
 
         return  new \Twig\Markup($html, 'UTF-8');
+    }
+
+    /**
+     * A size in pixels (`640`) or a CSS length (`'100%'`, `'60vh'`), or the fallback if it's neither.
+     */
+    private static function cssLength(int|string $value, string $fallback): string
+    {
+        if (is_numeric($value)) {
+            return max(0, (float)$value) . 'px';
+        }
+
+        $value = trim($value);
+
+        return preg_match('/^\d+(\.\d+)?(px|%|r?em|vh|vw|svh|dvh|ch)$/', $value) ? $value : $fallback;
     }
 
     private function setOptions(array $options): void

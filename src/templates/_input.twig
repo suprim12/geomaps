@@ -2,8 +2,8 @@
 	* Geo Maps plugin for Craft CMS
 	*
 	* @link      https://suprimgolay.com.np/craft-plugins
-	* @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
-	* @copyright Copyright (c) 2026 Suprim Golay
+	* @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+	* @copyright Copyright (c) 2026 suprim
 #}
 
 {% set mapData = mapdata|merge({
@@ -16,7 +16,8 @@
 	maxZoom: settings.maxZoom ?? null,
 }) %}
 {% if value is not empty %}
-	{% set mapData = mapData|merge(value) %}
+	{# Empty parts of the value (e.g. no saved zoom) mustn't override the field's defaults. #}
+	{% set mapData = mapData|merge(value|filter(v => v is not null)) %}
 {% endif %}
 
 {% set hideSearch = settings.hideSearch ?? false %}
@@ -239,6 +240,7 @@
 		{% endfor %}
 	{% endif %}
 	<input type="hidden" name="{{ name }}[countryCode]" :value="countryCode">
+	<input type="hidden" name="{{ name }}[zoom]" :value="hasLocation ? zoom : ''">
 	<textarea hidden name="{{ name }}[geoJson]" x-model="geojsonText"></textarea>
 
 	<div class="supgeo__footer">

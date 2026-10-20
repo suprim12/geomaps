@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\models;
@@ -404,7 +404,8 @@ class GeoValue extends Model
 
         // Field value provides the defaults (location, zoom, shapes, pin); caller options take precedence.
         $merged = array_merge([
-            'center' => ['lat' => $this->lat, 'lng' => $this->lng],
+            // Values with only an address (e.g. from a feed) are centred on the geocoded address.
+            'center' => $this->hasCoordinates() ? ['lat' => $this->lat, 'lng' => $this->lng] : $this->full_address,
             'zoom' => $this->zoom ?? 14,
             'geoJson' => $this->getGeoJsonData(),
             'marker' => $this->_showMarker,

@@ -3,8 +3,8 @@
  * Geo Maps plugin for Craft CMS
  *
  * @link      https://suprimgolay.com.np/craft-plugins
- * @author suprim golay <suprimtech@gmail.com> <https://suprimgolay.com.np>
- * @copyright Copyright (c) 2026 Suprim Golay
+ * @author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ * @copyright Copyright (c) 2026 suprim
  */
 
 namespace suprim\geomaps\models;
@@ -30,21 +30,23 @@ class StaticMap extends Model
 
     public function img(array $options = []): ?string
     {
-        $this->setOptions($options);
-        $this->_resolvedCenter = null;
-        return $this->buildUrl(1);
+        // Options apply to this image only, so `img({ zoom: 10 })` doesn't change the next `img()`.
+        $map = clone $this;
+        $map->setOptions($options);
+        $map->_resolvedCenter = null;
+        return $map->buildUrl(1);
     }
 
     public function imgSrcSet(array $options = []): ?string
     {
-        $this->setOptions($options);
-        $this->_resolvedCenter = null;
-        $this->_resolvedCenter = $this->resolveCenter();
-        if ($this->_resolvedCenter === null) {
+        $map = clone $this;
+        $map->setOptions($options);
+        $map->_resolvedCenter = $map->resolveCenter();
+        if ($map->_resolvedCenter === null && empty($map->markers)) {
             return null;
         }
-        $url1x = $this->buildUrl(1);
-        $url2x = $this->buildUrl(2);
+        $url1x = $map->buildUrl(1);
+        $url2x = $map->buildUrl(2);
 
         if (!$url1x || !$url2x) {
             return null;
