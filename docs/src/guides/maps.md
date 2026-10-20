@@ -51,6 +51,17 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `fitShapes` | Zoom to fit the shapes | `true` |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 
+### Styling the map
+
+Embedded maps are ordinary Leaflet (or Google) maps, so you can style them with CSS. To make OpenStreetMap tiles calmer, so your pins and shapes stand out:
+
+```css
+[data-geo-embed] { border-radius: 14px; overflow: hidden; }
+[data-geo-embed] .leaflet-tile-pane { filter: saturate(0.35) contrast(0.92) brightness(1.06); }
+```
+
+For a different map style altogether, set **Map Tiles URL** to another [tile provider](/getting-started/configuration#map-providers).
+
 ## Static map images
 
 Static images come from the Google Maps Static API, so they need a **Google Maps API Key** with that API enabled. Without one, the methods return `null`.

@@ -57,6 +57,40 @@ Let residents type their address and find out which zone they’re in and when t
 - **Borders:** an address exactly on the line between two zones belongs to one of them, never both.
 - **Overlaps:** if zones overlap on purpose, use `.all()` and list every match.
 
+## Show the next collection dates
+
+With the collection day stored as a day name, work out the next three dates in Twig:
+
+```twig
+{% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+{% set day = zone.collectionDay.label %}
+
+{% if day in days %}
+  {# Days until the next collection (0 = today) #}
+  {% set offset = (days|keys|filter(k => days[k] == day)|first) + 1 - ('now'|date('N')) %}
+  {% set offset = offset < 0 ? offset + 7 : offset %}
+  <ul>
+    {% for week in 0..2 %}
+      <li>{{ 'now'|date_modify("+#{offset + week * 7} days")|date('l j F') }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+```
+
+## Show the address on the map
+
+Add a marker at the address the visitor typed. `location` accepts an address, which is geocoded (and cached) like the search:
+
+```twig
+{{ zone.zoneArea.embed({
+  width: '100%',
+  height: 420,
+  markers: [{ location: address, label: address, icon: { url: '/images/you-are-here.svg', width: 28, height: 28 } }],
+}) }}
+```
+
+Download the dot used in the screenshot: [you-are-here.svg](/examples/you-are-here.svg).
+
 ## Storing data on the shape instead
 
 If your zones come from a GeoJSON file, the collection day may already be a property of each shape. Read it with `getGeoJsonData()`:

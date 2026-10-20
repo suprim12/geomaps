@@ -116,6 +116,30 @@ A complete “find a store near you” page: search by address or the visitor’
 - **`{% paginate %}`** works as normal: the total, page count and page URLs all respect the radius.
 - The map centres on the nearest store. Every store on the current page gets a marker with its name in a popup.
 
+## Numbered pins
+
+Number the pins to match the list, as in the screenshot. A pin `icon` can be any image URL, including an SVG built in Twig. Save this as `templates/_pin.twig`:
+
+```twig
+{%- set svg -%}
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46"><path d="M18 45s16-15.6 16-27.5A16 16 0 0 0 2 17.5C2 29.4 18 45 18 45z" fill="{{ colour ?? '#5b67e0' }}" stroke="#fff" stroke-width="2.5"/><text x="18" y="23" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#fff">{{ n }}</text></svg>
+{%- endset -%}
+data:image/svg+xml,{{ svg|trim|url_encode }}
+```
+
+Then use it for each marker, numbering from the first result on the page:
+
+```twig
+markers: stores|map((store, i) => {
+  location: { lat: store.storeLocation.lat, lng: store.storeLocation.lng },
+  label: store.title,
+  icon: { url: include('_pin', { n: pageInfo.first + i }), width: 36, height: 46 },
+  open: i == 0,
+}),
+```
+
+To fill the space beside the list, give the map a CSS size: `width: '100%', height: '100%'` inside a container with a height.
+
 ## Variations
 
 **Sort alphabetically instead** (distance is still set on each store):

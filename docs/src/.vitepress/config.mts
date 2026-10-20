@@ -55,6 +55,14 @@ export default defineConfig({
           { text: 'Map of Areas', link: '/examples/area-map' },
         ],
       },
+      {
+        text: 'Advanced Examples',
+        items: [
+          { text: 'Delivery Fee Checker', link: '/examples/delivery-fee' },
+          { text: 'Live Map Search', link: '/examples/live-finder' },
+          { text: 'Using Geo Maps from PHP', link: '/examples/php' },
+        ],
+      },
     ],
 
     socialLinks: [

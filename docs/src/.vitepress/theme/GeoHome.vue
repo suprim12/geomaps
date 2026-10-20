@@ -1,4 +1,12 @@
 <script setup>
+const examples = [
+  { href: '/examples/delivery-fee', img: '/examples/delivery-fee.jpg', name: 'Delivery fee checker', line: 'Price by zone, or by distance from the nearest store.', alt: 'A $5 delivery fee for an address inside the CBD delivery zone' },
+  { href: '/examples/zone-lookup', img: '/examples/zone-lookup.jpg', name: 'Bin collection day', line: 'Which zone is an address in, and the next three dates.', alt: 'Monday bin day for an address in Norwood, with its zone on a map' },
+  { href: '/examples/live-finder', img: '/examples/live-finder.jpg', name: 'Live map search', line: 'Results that follow the map, from a JSON endpoint.', alt: 'Five numbered stores beside a map with matching pins' },
+  { href: '/examples/area-map', img: '/examples/area-map.jpg', name: 'Map of zones', line: 'Every area on one map, coloured, with a legend.', alt: 'Three collection zones in blue, green and orange with a legend' },
+  { href: '/examples/location-page', img: '/examples/location-page.jpg', name: 'Location page', line: 'Address, directions and the nearest other stores.', alt: 'A store page with its address, directions button and nearby stores' },
+  { href: '/examples/custom-pins', img: '/examples/custom-pins.jpg', name: 'Custom pins and cards', line: 'Your own pin image and an info card on click.', alt: 'Store pins on a map of Adelaide with an info card open' },
+]
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import 'leaflet/dist/leaflet.css'
 
@@ -275,6 +283,29 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
     </section>
 
     <!-- Adelaide -------------------------------------------------------------- -->
+    <section class="gh-ex" aria-labelledby="gh-ex-title">
+      <div class="gh-wrap">
+        <h2 id="gh-ex-title" data-reveal>Built with Geo Maps</h2>
+        <p class="gh-ex__intro" data-reveal>Complete templates you can copy, each running on real Adelaide streets.</p>
+        <a class="gh-ex__lead" href="/examples/store-locator" data-reveal>
+          <img src="/examples/store-locator.jpg" width="1800" height="1054" alt="A store locator with numbered stores beside a map of Adelaide" loading="lazy">
+          <span class="gh-ex__text">
+            <span class="gh-ex__name">Store locator</span>
+            <span class="gh-ex__line">Search by address or “use my location”, numbered pins, distances and pagination.</span>
+          </span>
+        </a>
+        <ul class="gh-ex__grid">
+          <li v-for="ex in examples" :key="ex.href" data-reveal>
+            <a :href="ex.href">
+              <img :src="ex.img" width="1800" height="1054" :alt="ex.alt" loading="lazy">
+              <span class="gh-ex__name">{{ ex.name }}</span>
+              <span class="gh-ex__line">{{ ex.line }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
     <section class="gh-city" aria-labelledby="gh-city-title">
       <div class="gh-wrap gh-city__grid">
         <figure class="gh-city__plan" data-reveal>
@@ -337,8 +368,8 @@ php craft plugin/install geomaps</code></pre>
     <!-- Close ----------------------------------------------------------------- -->
     <section class="gh-close">
       <div class="gh-wrap">
-        <h2 data-reveal>Put your places on the map.</h2>
-        <div class="gh-close__row" data-reveal>
+        <h2>Put your places on the map.</h2>
+        <div class="gh-close__row">
           <pre class="gh-close__cmd"><code>composer require suprim/geomaps</code></pre>
           <button type="button" class="gh-btn" @click="copy('composer require suprim/geomaps', 'close')">{{ copied === 'close' ? 'Copied' : 'Copy command' }}</button>
           <a class="gh-link gh-link--light" href="/getting-started/installation">Installation guide →</a>
@@ -509,6 +540,43 @@ php craft plugin/install geomaps</code></pre>
 .gh-results b { font-variant-numeric: tabular-nums; }
 .gh-results__more { color: #5d6170; padding-top: 8px; }
 
+/* Split heading reads as one line on phones, where the halves stack */
+@media (max-width: 959px) {
+  .gh-split__title--a::after { content: ' get places back.'; }
+  .gh-split__title--b { display: none; }
+}
+
+/* Examples gallery */
+.gh-ex { background: var(--soot); color: var(--light); padding: 160px 0; }
+.gh-ex h2 { font-size: var(--s-sect); }
+.gh-ex .gh-ex__intro { margin: 16px 0 56px; font-size: var(--s-lead); line-height: 1.35; color: var(--light); max-width: 36ch; }
+.gh-ex a { display: block; color: var(--light); text-decoration: none; }
+.gh-ex img { display: block; width: 100%; height: auto; border-radius: 10px; background: var(--soot-2); transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.gh-ex a:hover img { transform: translateY(-4px); }
+.gh-ex a:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 12px; }
+.gh-ex__name { display: block; margin-top: 16px; font: 500 var(--s-lead)/1.2 'Clash Grotesk', var(--vp-font-family-base); }
+.gh-ex__line { display: block; margin-top: 6px; font-size: var(--s-body); line-height: 1.45; color: var(--light-soft); }
+.gh-ex__lead { margin-bottom: 64px; }
+.gh-ex__grid { display: grid; gap: 48px 24px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 760px) { .gh-ex__grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1100px) {
+  .gh-ex a.gh-ex__lead { display: grid; grid-template-columns: 8fr 4fr; gap: 40px; align-items: end; }
+  .gh-ex__lead .gh-ex__name { margin-top: 0; font-size: var(--s-head); }
+  .gh-ex__grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 959px) { .gh-ex { padding: 96px 0; } .gh-ex .gh-ex__intro { margin-bottom: 40px; } .gh-ex__lead { margin-bottom: 48px; } }
+
+/* Features: a swipeable row on phones instead of a long stack of boxes */
+@media (max-width: 759px) {
+  .gh-features .gh-cells {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+    margin: 0 calc(var(--m) * -1); padding: 0 var(--m) 8px; scroll-padding: 0 var(--m);
+    scrollbar-width: none;
+  }
+  .gh-features .gh-cells::-webkit-scrollbar { display: none; }
+  .gh-features .gh-cells > .gh-cell { flex: 0 0 84%; scroll-snap-align: start; }
+}
+
 /* Features */
 .gh-features { padding-top: 160px; padding-bottom: 160px; }
 .gh-features h2 { font-size: var(--s-sect); margin-bottom: 56px; }
@@ -523,14 +591,24 @@ php craft plugin/install geomaps</code></pre>
 .gh-cell h3 { font-size: var(--s-lead); margin-bottom: 10px; }
 .gh-cell p { font-size: var(--s-body); line-height: 1.45; color: var(--ink); }
 .gh-cell img, .gh-cell__code {
-  display: block; align-self: end; width: calc(100% - 28px); height: 280px; margin-left: 28px;
-  object-fit: cover; object-position: top left; border-radius: 8px 0 0 0;
+  display: block; align-self: end; width: calc(100% - 56px); margin: 0 28px 28px;
+  border-radius: 8px;
 }
+/* Whole screenshot, inset from the card edges */
+.gh-cell img { height: auto; box-sizing: border-box; padding: 12px; background: #fff; }
+.gh-cell__code { height: 280px; }
 .gh-cell--flip { grid-template-rows: 1fr auto; }
 .gh-cell--flip > :first-child { order: 2; padding: 0 28px 28px; }
-.gh-cell--flip img, .gh-cell--flip .gh-cell__code { align-self: start; margin-left: 0; border-radius: 0 0 8px 0; }
+.gh-cell--flip img, .gh-cell--flip .gh-cell__code { align-self: start; margin: 28px 28px 0; }
+@media (max-width: 759px) {
+  .gh-cell { min-height: 0; }
+  .gh-cell__text { padding: 20px 20px 0; }
+  .gh-cell--flip > :first-child { padding: 0 20px 20px; }
+  .gh-cell img, .gh-cell__code { width: calc(100% - 40px); margin: 0 20px 20px; }
+  .gh-cell--flip img, .gh-cell--flip .gh-cell__code { margin: 20px 20px 0; }
+}
 .gh-cell__code {
-  margin-top: 0; margin-bottom: 0; padding: 22px 24px; background: var(--soot); color: #e8e9ee;
+  padding: 22px 24px; background: var(--soot); color: #e8e9ee;
   font: var(--s-ui)/1.6 var(--vp-font-family-mono); white-space: pre-wrap; overflow: hidden;
 }
 
