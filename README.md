@@ -31,7 +31,7 @@ composer require suprim/geomaps
 php craft plugin/install geomaps
 ```
 
-Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/getting-started/configuration.md) to add Google keys or a different tile provider.
+Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://github.com/suprim12/geomaps/blob/main/docs/src/getting-started/configuration.md) to add Google keys or a different tile provider.
 
 ## Examples
 
@@ -50,7 +50,7 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 ### Find the nearest stores
 
-![Store locator](https://raw.githubusercontent.com/suprim12/craft-geomaps/main/docs/src/public/examples/store-locator.jpg)
+![Store locator](https://raw.githubusercontent.com/suprim12/geomaps/main/docs/src/public/examples/store-locator.jpg)
 
 ```twig
 {% set stores = craft.entries()
@@ -67,7 +67,7 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 ### Find the zone that contains an address
 
-![Bin collection zone lookup](https://raw.githubusercontent.com/suprim12/craft-geomaps/main/docs/src/public/examples/zone-lookup.jpg)
+![Bin collection zone lookup](https://raw.githubusercontent.com/suprim12/geomaps/main/docs/src/public/examples/zone-lookup.jpg)
 
 ```twig
 {% set zone = craft.entries()
@@ -117,10 +117,10 @@ Requires a Google key with the Maps Static API enabled.
 
 Complete examples in the docs:
 
-- [Store locator](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/store-locator.md), with “use my location” and pagination
-- [Location page](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/location-page.md), with directions, nearby places and structured data
-- [Bin collection zones](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/zone-lookup.md), including a GraphQL version that doesn't reload the page
-- [Map of areas](https://github.com/suprim12/craft-geomaps/blob/main/docs/src/examples/area-map.md), with one colour per zone
+- [Store locator](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/store-locator.md), with “use my location” and pagination
+- [Location page](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/location-page.md), with directions, nearby places and structured data
+- [Bin collection zones](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/zone-lookup.md), including a GraphQL version that doesn't reload the page
+- [Map of areas](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/area-map.md), with one colour per zone
 
 ## Switching from another map plugin
 

@@ -409,7 +409,7 @@ php craft plugin/install geomaps</code></pre>
         <a href="/guides/search">Location search</a>
         <a href="/getting-started/troubleshooting">Troubleshooting</a>
         <a href="/privacy">Privacy policy</a>
-        <a href="https://github.com/suprim12/craft-geomaps">GitHub</a>
+        <a href="https://github.com/suprim12/geomaps">GitHub</a>
       </nav>
       <div class="gh-tile gh-tile--time">
         <p class="gh-tile__small">Adelaide, where the examples live</p>

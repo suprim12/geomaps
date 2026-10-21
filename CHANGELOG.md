@@ -1,5 +1,10 @@
 # Release Notes for Geo Maps
 
+## 1.2.1 - 2026-10-22
+
+### Changed
+- Links to the source code, issues, documentation and changelog point to the repository’s new address, github.com/suprim12/geomaps.
+
 ## 1.2.0 - 2026-10-22
 
 ### Added

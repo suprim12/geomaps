@@ -68,7 +68,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/suprim12/craft-geomaps' },
+      { icon: 'github', link: 'https://github.com/suprim12/geomaps' },
     ],
 
     footer: {
@@ -76,7 +76,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/suprim12/craft-geomaps/edit/main/docs/src/:path',
+      pattern: 'https://github.com/suprim12/geomaps/edit/main/docs/src/:path',
       text: 'Edit this page on GitHub',
     },
 

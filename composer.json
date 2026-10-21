@@ -5,10 +5,10 @@
   "license": "proprietary",
   "support": {
     "email": "support@suprim.com.au",
-    "issues": "https://github.com/suprim12/craft-geomaps/issues?state=open",
-    "source": "https://github.com/suprim12/craft-geomaps",
-    "docs": "https://github.com/suprim12/craft-geomaps",
-    "rss": "https://github.com/suprim12/craft-geomaps/releases.atom"
+    "issues": "https://github.com/suprim12/geomaps/issues?state=open",
+    "source": "https://github.com/suprim12/geomaps",
+    "docs": "https://github.com/suprim12/geomaps",
+    "rss": "https://github.com/suprim12/geomaps/releases.atom"
   },
   "require": {
     "php": ">=8.2",
@@ -29,11 +29,11 @@
     "handle": "geomaps",
     "name": "Geo Maps",
     "developer": "suprim",
-    "documentationUrl": "https://github.com/suprim12/craft-geomaps",
+    "documentationUrl": "https://github.com/suprim12/geomaps",
     "class": "suprim\\geomaps\\Plugin",
     "developerUrl": "https://suprimgolay.com.np",
     "developerEmail": "support@suprim.com.au",
-    "changelogUrl": "https://raw.githubusercontent.com/suprim12/craft-geomaps/main/CHANGELOG.md"
+    "changelogUrl": "https://raw.githubusercontent.com/suprim12/geomaps/main/CHANGELOG.md"
   },
   "scripts": {
     "check-cs": "ecs check --ansi",
