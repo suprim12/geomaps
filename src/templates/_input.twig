@@ -142,73 +142,81 @@
 						</div>
 					</div>
 				</div>
-				{# Feature Editor Panel #}
+				{# Shape panel: opens when a shape is clicked #}
 				<div class="supgeo__feature-editor" x-cloak x-show="featureEditorOpen" x-transition:enter="supgeo-fade-enter" x-transition:enter-start="supgeo-fade-enter-start" x-transition:enter-end="supgeo-fade-enter-end" x-transition:leave="supgeo-fade-leave" x-transition:leave-end="supgeo-fade-leave-end">
 					<div class="supgeo__fe-header">
-						<span class="supgeo__fe-title">
-							Feature
-							<span class="supgeo__fe-badge" x-text="featureGeomType"></span>
+						<span class="supgeo__fe-swatch" :style="'--shape:' + (featureColor || '#2563eb')" aria-hidden="true">
+							<svg x-show="featureGeomType.includes('Polygon')" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 7l7-4 9 6-3 11H6z"/></svg>
+							<svg x-show="featureGeomType.includes('LineString')" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 18c4-1 4-9 9-9s5 6 9 4"/></svg>
+							<svg x-show="featureGeomType === 'Point'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/></svg>
 						</span>
-						<button type="button" class="supgeo__fe-close" @click="closeFeatureEditor()" aria-label="Close feature editor">
+						<div class="supgeo__fe-heading">
+							<input type="text" class="supgeo__fe-name" :value="featureName" @change="setFeatureName($event.target.value)" @keydown.enter.prevent="$event.target.blur()" placeholder="{{ 'Untitled shape'|t('geomaps') }}" aria-label="{{ 'Shape name'|t('geomaps') }}">
+							<span class="supgeo__fe-meta">
+								<span x-text="featureKindLabel"></span>
+								<template x-if="featureMeasure"><span>· <span x-text="featureMeasure"></span></span></template>
+							</span>
+						</div>
+						<button type="button" class="supgeo__fe-close" @click="closeFeatureEditor()" aria-label="{{ 'Close'|t('geomaps') }}">
 							<svg width="14" height="14" viewbox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
 						</button>
 					</div>
 
-					<div class="supgeo__fe-tabs">
-						<button type="button" class="supgeo__fe-tab" :class="{ '--active': featureEditorTab === 'properties' }" @click="featureEditorTab = 'properties'">Properties</button>
-						<button type="button" class="supgeo__fe-tab" :class="{ '--active': featureEditorTab === 'geojson' }" @click="featureEditorTab = 'geojson'">GeoJSON</button>
+					<div class="supgeo__fe-tabs" role="tablist">
+						<button type="button" role="tab" class="supgeo__fe-tab" :class="{ '--active': featureEditorTab === 'properties' }" :aria-selected="(featureEditorTab === 'properties').toString()" @click="featureEditorTab = 'properties'">{{ 'Details'|t('geomaps') }}</button>
+						<button type="button" role="tab" class="supgeo__fe-tab" :class="{ '--active': featureEditorTab === 'geojson' }" :aria-selected="(featureEditorTab === 'geojson').toString()" @click="featureEditorTab = 'geojson'">GeoJSON</button>
 					</div>
-					{# Properties Tab #}
+
+					{# Details tab #}
 					<div class="supgeo__fe-body" x-show="featureEditorTab === 'properties'">
-						<table class="supgeo__fe-table" x-show="featureProps.length > 0">
-							<thead>
-								<tr>
-									<th>Key</th>
-									<th>Value</th>
-									<th></th>
-								</tr>
-							</thead>
-							<tbody>
-								<template x-for="(prop, i) in featureProps" :key="i">
-									<tr>
-										<td><input type="text" x-model="prop.key" @change="featurePropChanged()" class="supgeo__fe-input"/></td>
-										<td><input type="text" x-model="prop.val" @change="featurePropChanged()" class="supgeo__fe-input"/></td>
-										<td>
-											<button type="button" class="supgeo__fe-edit-btn" @click="openPropEditor(i)" aria-label="Edit value">
-												<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-													<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-													<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-												</svg>
-											</button>
-										</td>
-										<td>
-											<button type="button" class="supgeo__fe-del" @click="featureRemoveProp(i)" aria-label="Delete property">
-												<svg width="13" height="13" viewbox="0 0 13 13" fill="none"><path d="M1 1l11 11M12 1L1 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-											</button>
-										</td>
-									</tr>
+						<div class="supgeo__fe-section" x-show="featureGeomType !== 'Point'">
+							<div class="supgeo__fe-label">{{ 'Colour'|t('geomaps') }}</div>
+							<div class="supgeo__fe-colors">
+								<template x-for="c in shapeColors" :key="c">
+									<button type="button" class="supgeo__fe-color" :style="'--c:' + c" :class="{ '--active': featureColor.toLowerCase() === c }" @click="setFeatureColor(c)" :aria-label="c" :title="c"></button>
 								</template>
-							</tbody>
-						</table>
-						<div class="supgeo__fe-empty" x-show="featureProps.length <= 0">
-							No properties yet
+								<label class="supgeo__fe-color --custom" title="{{ 'Custom colour'|t('geomaps') }}">
+									<input type="color" :value="featureColor || '#2563eb'" @change="setFeatureColor($event.target.value)" aria-label="{{ 'Custom colour'|t('geomaps') }}">
+								</label>
+							</div>
 						</div>
-						<div class="supgeo__fe-addrow">
-							<input type="text" x-model="featurePropNewKey" placeholder="Key" class="supgeo__fe-input" @keydown.enter="featureAddProp()"/>
-							<input type="text" x-model="featurePropNewVal" placeholder="Value" class="supgeo__fe-input" @keydown.enter="featureAddProp()"/>
-							<button type="button" class="btn small" @click="featureAddProp()">+ Add</button>
+
+						<div class="supgeo__fe-section">
+							<div class="supgeo__fe-label">{{ 'Properties'|t('geomaps') }}</div>
+							<ul class="supgeo__fe-props">
+								<template x-for="(prop, i) in featureProps" :key="i">
+									<li class="supgeo__fe-prop" x-show="prop.key !== 'name' && prop.key !== 'color'">
+										<input type="text" x-model="prop.key" @change="featurePropChanged()" class="supgeo__fe-input supgeo__fe-key" aria-label="{{ 'Property name'|t('geomaps') }}"/>
+										<input type="text" x-model="prop.val" @change="featurePropChanged()" class="supgeo__fe-input" aria-label="{{ 'Value'|t('geomaps') }}"/>
+										<button type="button" class="supgeo__fe-type" @click="openPropEditor(i)" :title="'{{ 'Edit value type'|t('geomaps')|e('js') }}'" x-text="({ text: 'Aa', json: '{ }', number: '123', boolean: 'T/F', color: '●' })[prop.type] || 'Aa'"></button>
+										<button type="button" class="supgeo__fe-del" @click="featureRemoveProp(i)" aria-label="{{ 'Delete property'|t('geomaps') }}">
+											<svg width="12" height="12" viewbox="0 0 13 13" fill="none"><path d="M1 1l11 11M12 1L1 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+										</button>
+									</li>
+								</template>
+							</ul>
+							<p class="supgeo__fe-empty" x-show="!featureProps.some(p => p.key !== 'name' && p.key !== 'color')">{{ 'Add details such as a collection day, difficulty or price. They’re saved with the shape and can be used in templates.'|t('geomaps') }}</p>
+							<div class="supgeo__fe-addrow">
+								<input type="text" x-model="featurePropNewKey" placeholder="{{ 'Name, e.g. difficulty'|t('geomaps') }}" class="supgeo__fe-input" @keydown.enter.prevent="featureAddProp()"/>
+								<input type="text" x-model="featurePropNewVal" placeholder="{{ 'Value'|t('geomaps') }}" class="supgeo__fe-input" @keydown.enter.prevent="featureAddProp()"/>
+								<button type="button" class="btn small" @click="featureAddProp()" :disabled="!featurePropNewKey.trim()">{{ 'Add'|t('geomaps') }}</button>
+							</div>
 						</div>
 					</div>
-					{# GeoJSON Tab #}
+
+					{# GeoJSON tab #}
 					<div class="supgeo__fe-body" x-show="featureEditorTab === 'geojson'">
 						<pre class="supgeo__fe-pre" x-text="getFeatureGeoJSONString()"></pre>
-						<div class="supgeo__fe-copy-bar">
-							<button type="button" class="btn small" @click="featureCopyGeoJSON()" :class="{ '--copied': featureCopied }">
-								<span x-text="featureCopied ? '✓ Copied' : 'Copy GeoJSON'"></span>
-							</button>
-						</div>
 					</div>
-			</div>
+
+					<div class="supgeo__fe-actions">
+						<button type="button" class="btn small" @click="zoomToFeature()">{{ 'Zoom to'|t('geomaps') }}</button>
+						<button type="button" class="btn small" @click="featureCopyGeoJSON()">
+							<span x-text="featureCopied ? '{{ 'Copied'|t('geomaps')|e('js') }}' : '{{ 'Copy GeoJSON'|t('geomaps')|e('js') }}'">{{ 'Copy GeoJSON'|t('geomaps') }}</span>
+						</button>
+						<button type="button" class="btn small supgeo__fe-delete" @click="deleteFeature()">{{ 'Delete shape'|t('geomaps') }}</button>
+					</div>
+				</div>
 		</div>
 
 		{% if not hideAddress %}
@@ -245,9 +253,9 @@
 
 	<div class="supgeo__footer">
 		<div class="supgeo__status">
-			<span class="supgeo__chip" :class="{ '--empty': !hasLocation }">
+			<span class="supgeo__chip" :class="{ '--empty': !locationLabel }" :title="!hasLocation && locationLabel ? '{{ 'Centre of the shapes, saved as the location'|t('geomaps')|e('js') }}' : ''">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-				<span x-text="hasLocation ? lat + ', ' + lng : '{{ 'No location set'|t('geomaps')|e('js') }}'">{{ 'No location set'|t('geomaps') }}</span>
+				<span x-text="locationLabel || '{{ 'No location set'|t('geomaps')|e('js') }}'">{{ 'No location set'|t('geomaps') }}</span>
 			</span>
 			<button type="button" class="btn supgeo__clear" x-cloak x-show="hasLocation || full_address" @click="clearAddress()">{{ 'Clear'|t('geomaps') }}</button>
 			{% if not hideMap %}

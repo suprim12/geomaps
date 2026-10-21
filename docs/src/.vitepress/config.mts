@@ -31,6 +31,7 @@ export default defineConfig({
           { text: 'Configuration', link: '/getting-started/configuration' },
           { text: 'Importing Existing Fields', link: '/getting-started/importing' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+          { text: 'Privacy and Data', link: '/getting-started/privacy-and-data' },
         ],
       },
       {
@@ -53,6 +54,7 @@ export default defineConfig({
           { text: 'Custom Pins & Info Windows', link: '/examples/custom-pins' },
           { text: 'Bin Collection Zones', link: '/examples/zone-lookup' },
           { text: 'Map of Areas', link: '/examples/area-map' },
+          { text: 'Trail Maps', link: '/examples/trail-maps' },
         ],
       },
       {
@@ -70,7 +72,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'A Craft CMS plugin by <a href="https://suprimgolay.com.np/" target="_blank">Suprim</a>',
+      message: 'A Craft CMS plugin by <a href="https://suprimgolay.com.np/" target="_blank">Suprim</a> · <a href="/privacy">Privacy policy</a>',
     },
 
     editLink: {

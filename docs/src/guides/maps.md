@@ -33,7 +33,7 @@ For a map that fills its container, use a CSS width:
 {{ entry.storeLocation.embed({ width: '100%', height: 360 }) }}
 ```
 
-Shapes are coloured from their `color`, `stroke` and `fill` properties, and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
+Shapes are coloured from their `color`, `stroke` and `fill` properties, lines are drawn 4px wide (set a `weight` property to change any shape’s line width), and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
 
 Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with your [tile provider](/getting-started/configuration) otherwise. If Google rejects the key, the map falls back to Leaflet automatically.
 

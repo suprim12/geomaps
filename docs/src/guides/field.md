@@ -18,7 +18,25 @@ In fields with **Show Location Pin** turned off, the location is the centre of t
 
 ## Drawing shapes
 
-Use the toolbar on the left of the map to add markers, lines, rectangles and polygons, then edit, move, cut or delete them. Click a shape to open its panel, where you can add properties (text, numbers, true/false, colours or JSON) and copy its GeoJSON.
+Use the toolbar on the left of the map to add markers, lines, rectangles and polygons, then edit, move, cut or delete them.
+
+### The shape panel
+
+Click any shape to open its panel:
+
+![The shape panel for a bin collection zone: its name, “Area · 2.48 km²”, colour swatches, a collectionDay property, and Zoom to, Copy GeoJSON and Delete shape buttons](/images/shape-panel-zone.jpg)
+
+- **Name:** click the title to rename the shape. Front-end maps show it when the shape is clicked.
+- **Size:** areas show their size (holes left out) and lines their length, updated as you draw. The same numbers are available in templates as [`area()` and `length()`](/guides/templating#methods).
+- **Colour:** pick a swatch or a custom colour. It’s saved as the shape’s `color` and used on [front-end maps](/guides/maps).
+- **Properties:** add any details the shape needs, such as a collection day, a delivery fee or a trail’s difficulty. Click a value’s type button to store it as text, a number, true/false, a colour or JSON. Properties are saved in the shape’s GeoJSON and can be read in templates with `getGeoJsonData()`.
+- **Zoom to**, **Copy GeoJSON** and **Delete shape** act on just this shape.
+
+![A trail drawn as a line, with its panel showing “Line · 5.53 km” and difficulty and surface properties](/images/shape-panel-trail.jpg)
+
+See [Bin Collection Zones](/examples/zone-lookup) and [Trail Maps](/examples/trail-maps) for templates that use shape properties.
+
+### Editing GeoJSON
 
 ![A zone drawn on the map, with its GeoJSON open beside it](/images/field-geojson.jpg)
 

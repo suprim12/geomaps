@@ -137,7 +137,8 @@ class EmbedMap extends Model
                     var shapes = L.geoJSON(config.geoJson, {
                         style: function(feature) {
                             var p = (feature && feature.properties) || {};
-                            return { color: p.stroke || p.color || '#2563eb', weight: 2, fillColor: p.fill || p.color || '#2563eb', fillOpacity: 0.2 };
+                            var line = feature && feature.geometry && /LineString/.test(feature.geometry.type);
+                            return { color: p.stroke || p.color || '#2563eb', weight: Number(p.weight) || (line ? 4 : 2), fillColor: p.fill || p.color || '#2563eb', fillOpacity: 0.2 };
                         },
                         onEachFeature: function(feature, layer) {
                             var name = feature && feature.properties && (feature.properties.name || feature.properties.title);
@@ -185,7 +186,8 @@ class EmbedMap extends Model
                     // Same property-based styling and name popups as the Leaflet map.
                     map.data.setStyle(function(f) {
                         var c = f.getProperty('color');
-                        return { strokeColor: f.getProperty('stroke') || c || '#2563eb', strokeWeight: 2, fillColor: f.getProperty('fill') || c || '#2563eb', fillOpacity: 0.2 };
+                        var line = /LineString/.test(f.getGeometry().getType());
+                        return { strokeColor: f.getProperty('stroke') || c || '#2563eb', strokeWeight: Number(f.getProperty('weight')) || (line ? 4 : 2), fillColor: f.getProperty('fill') || c || '#2563eb', fillOpacity: 0.2 };
                     });
                     map.data.addListener('click', function(e) {
                         var name = e.feature.getProperty('name') || e.feature.getProperty('title');

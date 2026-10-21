@@ -1,5 +1,30 @@
 # Release Notes for Geo Maps
 
+## Unreleased
+
+### Added
+- A redesigned shape panel in the field: click a shape to rename it, see its area or length as you draw, pick its colour from swatches, and edit its properties, or zoom to, copy or delete just that shape.
+- `length()` and `area()` on field values, for trails, routes, zones and parks (`entry.route.length('km')`, `entry.zone.area('ha')`).
+- Shapes in the field are drawn in their own `color`, `stroke` and `fill`, matching front-end maps.
+- Lines on `embed()` maps are 4px wide by default, and any shape’s line width can be set with a `weight` property.
+- The config file template includes the **Map Tiles URL** and **Map Credit** settings.
+- Documentation: Trail Maps example, the shape panel, and a Privacy and Data page describing what the plugin stores and sends to map services.
+
+### Changed
+- OpenStreetMap geocoding (Nominatim) requests are spaced at least a second apart, as its usage policy requires, and pause for 10 minutes if Nominatim asks the site to slow down.
+- Google geocoding results are cached as coordinates only, as Google’s terms require.
+
+### Fixed
+- Shape-only fields showed “No location set” while shapes were drawn; the footer now shows the centre of the shapes, which is saved as the location.
+- Deselected shapes in the field turned purple instead of keeping their colour.
+- Static map images wider or taller than 640 pixels failed; they’re now scaled down to Google’s limit.
+- Static map marker labels with accents or punctuation, and named marker colours such as `red`, produced invalid images.
+- Feed Me treated any two-letter country, such as `UK`, as a country code and lost the country name.
+- A “Map styles must be an array” warning in the browser console with Google maps.
+
+### Removed
+- Unused internal classes (two distance calculators, a GraphQL resolver and type generator, and a leftover zone helper).
+
 ## 1.1.1 - 2026-10-20
 
 ### Added

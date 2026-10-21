@@ -25,13 +25,12 @@ class GeoFeedMeField extends Field implements FieldInterface
     public static $name = 'Geo Maps';
     public static $class = GeoField::class;
 
-
     public function getMappingTemplate(): string
     {
         return 'geomaps/feedme-field';
     }
 
-//     // Define the sub-fields Feed Me will map to
+    // The sub-fields Feed Me can map to
     public function getMappingFields(): array
     {
         return [
@@ -76,12 +75,12 @@ class GeoFeedMeField extends Field implements FieldInterface
             };
         }
 
-        // A two-letter country is a code; anything longer is a name. Fill in the other one.
+        // A country can be a two-letter code or a name. Fill in the other one; anything unrecognised is kept as is.
         $country = $preppedData['country'] ?? null;
-        if (is_string($country) && strlen($country) === 2) {
+        if (is_string($country) && strlen($country) === 2 && GeoService::isCountryCode($country)) {
             $code = strtoupper($country);
             $preppedData['countryCode'] = $code;
-            $preppedData['country'] = GeoService::countryOptions()[$code] ?? null;
+            $preppedData['country'] = GeoService::countryOptions()[$code];
         } elseif (is_string($country)) {
             $preppedData['countryCode'] = GeoService::countryCodeFromName($country);
         }

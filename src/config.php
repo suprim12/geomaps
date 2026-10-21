@@ -15,6 +15,11 @@ return [
 
         // Google Geocoding API key (used for address lookup / reverse geocoding)
         'geoToken' => '',
+
+        // Map tiles used when there's no Google key (or Google rejects it), and their credit.
+        // Busy public sites should use a tile provider instead of tile.openstreetmap.org.
+        // 'tileUrl' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        // 'tileAttribution' => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     ],
 
     // Environment-specific overrides

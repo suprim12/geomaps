@@ -11,26 +11,13 @@
 
 namespace suprim\geomaps\services;
 
-use craft\helpers\Json;
 use yii\base\Component;
 
+/**
+ * Point-in-polygon tests for drawn areas (the `contains` search).
+ */
 class ZoneService extends Component
 {
-    public function determineZonesFromLatLng(float $lat, float $lng, array $electoratesData): array
-    {
-        $result = [];
-
-        foreach ($electoratesData['features'] as $feature) {
-            $name = strtolower($feature['properties']['electorate']);
-
-            if ($this->isLatLngInGeometry($lat, $lng, $feature['geometry'])) {
-                $result[] = ['name' => $name, 'contained' => true];
-            }
-        }
-
-        return $result;
-    }
-
     /**
      * Whether any polygon in a GeoJSON object (Polygon, MultiPolygon, Feature, FeatureCollection or
      * GeometryCollection) contains the point. Holes are respected.
@@ -42,8 +29,9 @@ class ZoneService extends Component
 
     /**
      * Every polygon in a GeoJSON object, as lists of rings of [lng, lat] positions.
+     * The polygons come from saved content, so callers check their shape before use.
      *
-     * @return array<int, array<int, array<int, array{0: float, 1: float}>>>
+     * @return array<int, mixed>
      */
     public function polygons(array $geoJson): array
     {
@@ -102,31 +90,6 @@ class ZoneService extends Component
         }
 
         return $minLat === INF ? null : compact('minLat', 'maxLat', 'minLng', 'maxLng');
-    }
-
-    private function isLatLngInGeometry(float $lat, float $lng, mixed $geometry): bool
-    {
-        if (is_string($geometry)) {
-            $geometry = Json::decode($geometry);
-        }
-
-        $type = $geometry['type'] ?? null;
-
-        if (!in_array($type, ['Polygon', 'MultiPolygon'], true) || !isset($geometry['coordinates'])) {
-            return false;
-        }
-
-        if ($type === 'Polygon') {
-            return $this->isPointInPolygonCoordinates($lat, $lng, $geometry['coordinates']);
-        }
-
-        foreach ($geometry['coordinates'] as $polygonCoordinates) {
-            if ($this->isPointInPolygonCoordinates($lat, $lng, $polygonCoordinates)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function isPointInPolygonCoordinates(float $lat, float $lng, array $coordinates): bool

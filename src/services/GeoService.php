@@ -11,18 +11,21 @@ namespace suprim\geomaps\services;
 
 use Craft;
 use craft\helpers\Json;
+use GuzzleHttp\Exception\RequestException;
 use suprim\geomaps\Plugin;
 use Throwable;
 use yii\base\Component;
 
 /**
- * Geocoding helpers (Google Geocoding API).
+ * Geocoding: Google Geocoding API when a key is set, OpenStreetMap Nominatim otherwise.
  */
 class GeoService extends Component
 {
     public const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
     public const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org';
     private const GOOGLE_UNAVAILABLE_KEY = 'geo:google-geocoding-unavailable';
+    private const NOMINATIM_BLOCKED_KEY = 'geo:nominatim-blocked';
+    private const NOMINATIM_LAST_REQUEST_KEY = 'geo:nominatim-last-request';
 
     /** Results are cached so repeated searches don't burn API quota. */
     public const CACHE_DURATION = 60 * 60 * 24 * 30;
@@ -213,33 +216,57 @@ class GeoService extends Component
         $params['accept-language'] = Craft::$app->language;
         $cacheKey = "geo:nominatim:$endpoint:" . md5(Json::encode($params));
 
-        $cached = Craft::$app->getCache()->get($cacheKey);
+        $cache = Craft::$app->getCache();
+        $cached = $cache->get($cacheKey);
         if ($cached !== false) {
             return $cached ?: null;
         }
 
+        // Nominatim asked us to slow down or blocked us: don't retry on every search.
+        if ($cache->get(self::NOMINATIM_BLOCKED_KEY)) {
+            return null;
+        }
+
+        // The usage policy allows at most one request per second.
+        $last = (float)$cache->get(self::NOMINATIM_LAST_REQUEST_KEY);
+        $wait = $last + 1.0 - microtime(true);
+        if ($wait > 0) {
+            usleep((int)ceil(min($wait, 1.0) * 1_000_000));
+        }
+        $cache->set(self::NOMINATIM_LAST_REQUEST_KEY, microtime(true), 10);
+
         $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl() ?? '';
+        $version = Plugin::getInstance()->getVersion();
 
         try {
             $response = Craft::createGuzzleClient(['timeout' => 5])->get(self::NOMINATIM_ENDPOINT . "/$endpoint", [
                 'query' => $params,
                 'headers' => [
-                    'User-Agent' => trim('CraftGeoMaps/1.0 ' . $siteUrl),
+                    'User-Agent' => trim("CraftGeoMaps/$version $siteUrl"),
                     'Referer' => $siteUrl,
                 ],
             ]);
             $data = Json::decode((string)$response->getBody());
+        } catch (RequestException $e) {
+            $status = $e->getResponse()?->getStatusCode();
+            if (in_array($status, [403, 429], true)) {
+                $cache->set(self::NOMINATIM_BLOCKED_KEY, $status, 600);
+                Craft::warning("Geo Maps: Nominatim returned $status, so OpenStreetMap geocoding is paused for 10 minutes. Busy sites should add a Google Geocoding API key.", __METHOD__);
+            } else {
+                Craft::error('Geo Maps: Nominatim request failed: ' . $e->getMessage(), __METHOD__);
+            }
+            return null;
         } catch (Throwable $e) {
             Craft::error('Geo Maps: Nominatim request failed: ' . $e->getMessage(), __METHOD__);
             return null;
         }
 
         if (!is_array($data) || isset($data['error'])) {
-            Craft::$app->getCache()->set($cacheKey, [], self::CACHE_DURATION);
+            $cache->set($cacheKey, [], self::CACHE_DURATION);
             return null;
         }
 
-        Craft::$app->getCache()->set($cacheKey, $data, self::CACHE_DURATION);
+        $cache->set($cacheKey, $data, self::CACHE_DURATION);
 
         return $data ?: null;
     }
@@ -263,7 +290,7 @@ class GeoService extends Component
         $params['language'] = Craft::$app->language;
         $cacheKey = 'geo:geocode:' . md5(Json::encode($params));
 
-        $cached = $cache->get($cacheKey);
+        $cached = isset($params['address']) ? $cache->get($cacheKey) : false;
         if ($cached !== false) {
             return $cached ?: null;
         }
@@ -281,7 +308,9 @@ class GeoService extends Component
         $status = $data['status'] ?? 'UNKNOWN';
 
         if ($status === 'ZERO_RESULTS') {
-            $cache->set($cacheKey, [], self::CACHE_DURATION);
+            if (isset($params['address'])) {
+                $cache->set($cacheKey, [], self::CACHE_DURATION);
+            }
             return null;
         }
 
@@ -296,7 +325,15 @@ class GeoService extends Component
         }
 
         $result = $data['results'][0];
-        $cache->set($cacheKey, $result, self::CACHE_DURATION);
+
+        // Google's terms allow caching coordinates (up to 30 days), not the rest of its content,
+        // so only forward lookups are cached, and only their coordinates.
+        if (isset($params['address'], $result['geometry']['location']['lat'], $result['geometry']['location']['lng'])) {
+            $cache->set($cacheKey, ['geometry' => ['location' => [
+                'lat' => $result['geometry']['location']['lat'],
+                'lng' => $result['geometry']['location']['lng'],
+            ]]], self::CACHE_DURATION);
+        }
 
         return $result;
     }

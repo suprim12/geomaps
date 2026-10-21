@@ -170,6 +170,9 @@ class GeoValue extends Model
         ];
     }
 
+    /** Metres per degree of arc on the mean Earth radius (6,371,008.8 m). */
+    private const METRES_PER_DEGREE = 111_194.93;
+
     public const GEOJSON_TYPES = [
         'Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon',
         'GeometryCollection', 'Feature', 'FeatureCollection',
@@ -299,6 +302,123 @@ class GeoValue extends Model
         $point = GeoService::resolveLocation($location, $country);
 
         return $point !== null && \suprim\geomaps\Plugin::getInstance()->zones->contains($data, (float)$point['lat'], (float)$point['lng']);
+    }
+
+    /**
+     * Total length of the value's lines (LineString and MultiLineString), e.g. a trail or route.
+     * `unit` is `km` (default), `mi` or `m`. Returns 0 when there are no lines.
+     *
+     *   {{ entry.route.length('km')|number_format(1) }} km
+     */
+    public function length(string $unit = 'km'): float
+    {
+        $metres = 0.0;
+
+        foreach (self::geometries($this->getGeoJsonData()) as $geometry) {
+            $lines = match ($geometry['type'] ?? null) {
+                'LineString' => [$geometry['coordinates'] ?? []],
+                'MultiLineString' => $geometry['coordinates'] ?? [],
+                default => [],
+            };
+
+            foreach ($lines as $line) {
+                $metres += self::lineMetres(is_array($line) ? $line : []);
+            }
+        }
+
+        return match (strtolower($unit)) {
+            'm', 'metres', 'meters' => $metres,
+            'mi', 'mile', 'miles' => $metres / 1609.344,
+            default => $metres / 1000,
+        };
+    }
+
+    /**
+     * Total area of the value's polygons, with holes removed.
+     * `unit` is `km2` (default), `ha`, `m2`, `mi2` or `acres`. Returns 0 when there are no polygons.
+     *
+     *   {{ entry.zone.area('ha')|number_format(1) }} ha
+     */
+    public function area(string $unit = 'km2'): float
+    {
+        $data = $this->getGeoJsonData();
+        $squareMetres = 0.0;
+
+        foreach ($data ? \suprim\geomaps\Plugin::getInstance()->zones->polygons($data) : [] as $polygon) {
+            foreach (is_array($polygon) ? array_values($polygon) : [] as $i => $ring) {
+                $ringArea = self::ringSquareMetres(is_array($ring) ? $ring : []);
+                $squareMetres += $i === 0 ? $ringArea : -$ringArea;
+            }
+        }
+
+        $squareMetres = max(0.0, $squareMetres);
+
+        return match (strtolower($unit)) {
+            'm2', 'sqm' => $squareMetres,
+            'ha', 'hectares' => $squareMetres / 10_000,
+            'mi2', 'sqmi' => $squareMetres / 2_589_988.11,
+            'acres', 'acre', 'ac' => $squareMetres / 4_046.856_42,
+            default => $squareMetres / 1_000_000,
+        };
+    }
+
+    /**
+     * Every geometry in a GeoJSON object (features and geometry collections unwrapped).
+     *
+     * @return array<int, array>
+     */
+    private static function geometries(?array $geoJson): array
+    {
+        return match ($geoJson['type'] ?? null) {
+            null => [],
+            'FeatureCollection' => array_merge([], ...array_map(
+                fn($feature) => is_array($feature) ? self::geometries($feature) : [],
+                is_array($geoJson['features'] ?? null) ? $geoJson['features'] : []
+            )),
+            'Feature' => is_array($geoJson['geometry'] ?? null) ? self::geometries($geoJson['geometry']) : [],
+            'GeometryCollection' => array_merge([], ...array_map(
+                fn($geometry) => is_array($geometry) ? self::geometries($geometry) : [],
+                is_array($geoJson['geometries'] ?? null) ? $geoJson['geometries'] : []
+            )),
+            default => [$geoJson],
+        };
+    }
+
+    /** Great-circle length of a line of [lng, lat] positions, in metres. */
+    private static function lineMetres(array $positions): float
+    {
+        $metres = 0.0;
+        $previous = null;
+
+        foreach ($positions as $position) {
+            if (!isset($position[0], $position[1]) || !is_numeric($position[0]) || !is_numeric($position[1])) {
+                continue;
+            }
+            if ($previous) {
+                // Angle between the points in degrees, times metres per degree on the mean Earth radius.
+                $degrees = \suprim\geomaps\services\MapService::distance($previous[1], $previous[0], (float)$position[1], (float)$position[0], 1.0);
+                $metres += $degrees * self::METRES_PER_DEGREE;
+            }
+            $previous = [(float)$position[0], (float)$position[1]];
+        }
+
+        return $metres;
+    }
+
+    /** Area of a ring of [lng, lat] positions on the sphere, in square metres. */
+    private static function ringSquareMetres(array $ring): float
+    {
+        $radius = 6_378_137.0;
+        $total = 0.0;
+        $positions = array_values(array_filter($ring, fn($p) => isset($p[0], $p[1]) && is_numeric($p[0]) && is_numeric($p[1])));
+
+        for ($i = 0, $n = count($positions); $i < $n - 1; $i++) {
+            [$lng1, $lat1] = [(float)$positions[$i][0], (float)$positions[$i][1]];
+            [$lng2, $lat2] = [(float)$positions[$i + 1][0], (float)$positions[$i + 1][1]];
+            $total += deg2rad($lng2 - $lng1) * (2 + sin(deg2rad($lat1)) + sin(deg2rad($lat2)));
+        }
+
+        return abs($total * $radius * $radius / 2);
     }
 
     // Maps (ether/simplemap) compatibility, so migrated templates keep working

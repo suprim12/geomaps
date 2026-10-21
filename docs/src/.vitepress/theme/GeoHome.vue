@@ -5,6 +5,7 @@ const examples = [
   { href: '/examples/live-finder', img: '/examples/live-finder.jpg', name: 'Live map search', line: 'Results that follow the map, from a JSON endpoint.', alt: 'Five numbered stores beside a map with matching pins' },
   { href: '/examples/area-map', img: '/examples/area-map.jpg', name: 'Map of zones', line: 'Every area on one map, coloured, with a legend.', alt: 'Three collection zones in blue, green and orange with a legend' },
   { href: '/examples/location-page', img: '/examples/location-page.jpg', name: 'Location page', line: 'Address, directions and the nearest other stores.', alt: 'A store page with its address, directions button and nearby stores' },
+  { href: '/examples/trail-maps', img: '/examples/trail-maps.jpg', name: 'Trail maps', line: 'Routes drawn as lines, coloured by difficulty, with their length.', alt: 'Three Adelaide trails beside a map, coloured by difficulty' },
   { href: '/examples/custom-pins', img: '/examples/custom-pins.jpg', name: 'Custom pins and cards', line: 'Your own pin image and an info card on click.', alt: 'Store pins on a map of Adelaide with an info card open' },
 ]
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
@@ -282,6 +283,25 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
       </div>
     </section>
 
+    <!-- Shape details ----------------------------------------------------------- -->
+    <section class="gh-shape" aria-labelledby="gh-shape-title">
+      <div class="gh-wrap gh-shape__grid">
+        <figure class="gh-shape__shot" data-reveal>
+          <img src="/images/shape-panel-zone.jpg" width="1400" height="996" alt="Clicking a zone opens its panel: the name Bin Zone C, “Area · 2.48 km²”, colour swatches and a collectionDay property" loading="lazy">
+        </figure>
+        <div class="gh-shape__text">
+          <h2 id="gh-shape-title" data-reveal>Every shape carries its own details</h2>
+          <p data-reveal>Click a zone, route or pin to name it, colour it and give it the facts your site needs: a collection day, a delivery fee, a trail’s difficulty. They’re saved with the shape and ready in Twig.</p>
+          <ul class="gh-shape__list" data-reveal>
+            <li><strong>Measured as you draw.</strong> Areas show their size with holes left out, lines their length. <code>area()</code> and <code>length()</code> return the same numbers in templates.</li>
+            <li><strong>Typed values.</strong> Text, numbers, true/false, colours or JSON.</li>
+            <li><strong>Styled on the front end.</strong> The colour you pick is the colour visitors see.</li>
+          </ul>
+          <p data-reveal><a class="gh-link" href="/guides/field#the-shape-panel">More about drawing shapes →</a></p>
+        </div>
+      </div>
+    </section>
+
     <!-- Adelaide -------------------------------------------------------------- -->
     <section class="gh-ex" aria-labelledby="gh-ex-title">
       <div class="gh-wrap">
@@ -388,6 +408,7 @@ php craft plugin/install geomaps</code></pre>
         <a href="/examples/store-locator">Examples</a>
         <a href="/guides/search">Location search</a>
         <a href="/getting-started/troubleshooting">Troubleshooting</a>
+        <a href="/privacy">Privacy policy</a>
         <a href="https://github.com/suprim12/craft-geomaps">GitHub</a>
       </nav>
       <div class="gh-tile gh-tile--time">
@@ -545,6 +566,20 @@ php craft plugin/install geomaps</code></pre>
   .gh-split__title--a::after { content: ' get places back.'; }
   .gh-split__title--b { display: none; }
 }
+
+/* Shape details */
+.gh-shape { background: var(--paper-2); padding: 160px 0; }
+.gh-shape__grid { display: grid; gap: 48px; align-items: center; }
+@media (min-width: 960px) { .gh-shape__grid { grid-template-columns: 7fr 5fr; gap: 64px; } }
+.gh-shape__shot { margin: 0; }
+.gh-shape__shot img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.gh-shape__text { display: grid; gap: 24px; }
+.gh-shape__text h2 { font-size: var(--s-sect); }
+.gh-shape__text > p { font-size: var(--s-lead); line-height: 1.5; }
+.gh-shape__list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: var(--s-body); line-height: 1.5; }
+.gh-shape__list strong { font-weight: 600; }
+.gh-shape__list code { font: var(--s-ui) var(--vp-font-family-mono); padding: 1px 6px; border-radius: 4px; background: var(--paper); }
+@media (max-width: 959px) { .gh-shape { padding: 112px 0; } }
 
 /* Examples gallery */
 .gh-ex { background: var(--soot); color: var(--light); padding: 160px 0; }

@@ -42,6 +42,8 @@ Outputting the value directly prints the full address. Without an address it pri
 |---|---|
 | `hasCoordinates()` | Whether both `lat` and `lng` are set |
 | `getGeoJsonData()` | The GeoJSON decoded to an array, or `null` |
+| `length(unit)` | Total length of the value’s lines, in `km` (default), `mi` or `m`. See [Trail Maps](/examples/trail-maps) |
+| `area(unit)` | Total area of the value’s polygons with holes left out, in `km2` (default), `ha`, `m2`, `mi2` or `acres` |
 | `contains(place, country)` | Whether the value’s areas (polygons) contain an address, `{ lat, lng }` or another value. `country` (optional, e.g. `'AU'`) narrows address lookups |
 | `embed(options)` | An interactive map centred on this location — see [Maps](/guides/maps) |
 | `img(options)` / `imgSrcSet(options)` | A static map image URL — see [Maps](/guides/maps) |

@@ -80,9 +80,11 @@ class StaticMap extends Model
             return null;
         }
 
+        [$width, $height] = $this->apiSize();
+
         $params = array_filter([
             'center' => $center,
-            'size' => $this->width . 'x' . $this->height,
+            'size' => $width . 'x' . $height,
             'zoom' => $this->zoom,
             'scale' => $scale,
             'format' => $this->format,
@@ -99,6 +101,41 @@ class StaticMap extends Model
         }
 
         return 'https://maps.googleapis.com/maps/api/staticmap?' . $query;
+    }
+
+    /**
+     * The size sent to Google. The Static Maps API allows at most 640 × 640 (doubled by `scale`),
+     * so larger sizes are scaled down, keeping their shape.
+     *
+     * @return array{0: int, 1: int}
+     */
+    private function apiSize(): array
+    {
+        $width = max(1, $this->width);
+        $height = max(1, $this->height);
+        $ratio = min(1, 640 / max($width, $height));
+
+        return [max(1, (int)floor($width * $ratio)), max(1, (int)floor($height * $ratio))];
+    }
+
+    /**
+     * A marker colour in Static Maps form: `0xRRGGBB` for hex colours, or one of Google's colour names.
+     */
+    private static function markerColor(mixed $color): ?string
+    {
+        $color = strtolower(trim((string)($color ?? '#ff0000')));
+
+        if (preg_match('/^#?([0-9a-f]{6}|[0-9a-f]{8})$/', $color, $m)) {
+            return '0x' . $m[1];
+        }
+
+        if (preg_match('/^#([0-9a-f])([0-9a-f])([0-9a-f])$/', $color, $m)) {
+            return '0x' . $m[1] . $m[1] . $m[2] . $m[2] . $m[3] . $m[3];
+        }
+
+        $names = ['black', 'brown', 'green', 'purple', 'yellow', 'blue', 'gray', 'orange', 'red', 'white'];
+
+        return in_array($color, $names, true) ? $color : null;
     }
 
     private function resolveCenter(): ?string
@@ -163,13 +200,14 @@ class StaticMap extends Model
         foreach ($markers as $marker) {
             $parts = [];
 
-            $color = $marker['color'] ?? '#ff0000';
-            $color = ltrim($color, '#');
-            $parts[] = "color:0x{$color}";
+            $color = self::markerColor($marker['color'] ?? null);
+            if ($color) {
+                $parts[] = "color:$color";
+            }
 
-            if (!empty($marker['label'])) {
-                $label = strtoupper(substr($marker['label'], 0, 1));
-                $parts[] = "label:{$label}";
+            // Google shows one character, A–Z or 0–9: use the label's first letter or digit.
+            if (!empty($marker['label']) && preg_match('/[a-z0-9]/i', \craft\helpers\StringHelper::toAscii((string)$marker['label']), $m)) {
+                $parts[] = 'label:' . strtoupper($m[0]);
             }
 
             $location = $marker['location'] ?? null;

@@ -60,6 +60,7 @@ Embedded maps style each shape from its properties, so authors can also set them
 | `color` | Outline and fill colour |
 | `stroke` | Outline colour (overrides `color`) |
 | `fill` | Fill colour (overrides `color`) |
+| `weight` | Line width in pixels (default 2 for areas, 4 for lines) |
 | `name` or `title` | Shown in a popup when the shape is clicked |
 
 These work on both OpenStreetMap (Leaflet) and Google maps.

@@ -527,7 +527,6 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'restrictCountries' => $this->getSearchCountries(),
                 'language' => Craft::$app->language,
             ],
-            'global_settings' => $settings,
             'settings' => $this->getSettings(),
             'settingsUrl' => UrlHelper::cpUrl('settings/plugins/geomaps'),
         ]);

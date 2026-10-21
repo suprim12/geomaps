@@ -116,6 +116,8 @@ document.addEventListener("alpine:init", () => {
     featureGeomType: "",
     featureVertices: [],
     featureCopied: false,
+    featureMeasure: "",
+    shapeColors: ["#2563eb", "#16a34a", "#d97706", "#dc2626", "#9333ea", "#0891b2", "#475569"],
     _mapIsSource: false,
     featureEditingPropIndex: null,
     featureEditingPropType: "text", // 'text' | 'json' | 'number' | 'boolean' | 'color'
@@ -205,7 +207,7 @@ document.addEventListener("alpine:init", () => {
           this.map.whenReady(async () => {
             if (!(await loadGoogleLibrary("maps"))) return this.useOsmFallback();
             if (this.provider !== "google") return;
-            this._googleLayer = L.gridLayer.googleMutant({ type: "roadmap" }).addTo(map);
+            this._googleLayer = L.gridLayer.googleMutant({ type: "roadmap", styles: [] }).addTo(map);
           });
         }
       } else {
@@ -706,6 +708,7 @@ document.addEventListener("alpine:init", () => {
       this.resetMap();
       this.geoJsonLayer = L.geoJSON(geojson, {
         pmIgnore: false,
+        style: (feature) => this._shapeStyle(feature?.properties),
         pointToLayer: (feature, latlng) => {
           if (feature.properties?.radius) {
             return new L.Circle(latlng, feature.properties?.radius);
@@ -923,18 +926,10 @@ document.addEventListener("alpine:init", () => {
         L.DomEvent.stopPropagation(e);
         if (this.selectedLayer && this.selectedLayer !== layer) {
           this.selectedLayer.pm.disable();
-          this.selectedLayer.setStyle?.({
-            color: "purple",
-            fillColor: "purple",
-            fillOpacity: 0.4,
-          });
+          this.selectedLayer.setStyle?.(this._shapeStyle(this.selectedLayer.feature?.properties));
         }
         layer.pm.enable({ allowSelfIntersection: false });
-        layer.setStyle?.({
-          color: "#4f46e5",
-          fillColor: "#4f46e5",
-          fillOpacity: 0.35,
-        });
+        layer.setStyle?.(this._shapeStyle(layer.feature?.properties, true));
 
         this.openFeatureEditor(layer);
       });
@@ -961,11 +956,7 @@ document.addEventListener("alpine:init", () => {
     closeFeatureEditor() {
       if (this.selectedLayer) {
         this.selectedLayer.pm.disable();
-        this.selectedLayer.setStyle?.({
-          color: "purple",
-          fillColor: "purple",
-          fillOpacity: 0.4,
-        });
+        this.selectedLayer.setStyle?.(this._shapeStyle(this.selectedLayer.feature?.properties));
       }
       this.featureEditorOpen = false;
       this.selectedLayer = null;
@@ -976,6 +967,7 @@ document.addEventListener("alpine:init", () => {
     _syncVerticesFromLayer(layer) {
       if (!layer) return;
       const geom = layer.toGeoJSON().geometry;
+      this.featureMeasure = this._measure(geom);
       if (geom.type === "Polygon") {
         this.featureVertices = (geom.coordinates[0] || []).map((c) => ({
           lng: c[0],
@@ -1023,7 +1015,136 @@ document.addEventListener("alpine:init", () => {
         if (p.key) newProps[p.key] = this._castPropValue(p.val, p.type);;
       });
       this.selectedLayer.feature.properties = newProps;
+      this.selectedLayer.setStyle?.(this._shapeStyle(newProps, true));
       this.updateEditorFromMap();
+    },
+
+    // ########################################## Shape panel helpers
+    /** Leaflet path style from a shape's `color`, `stroke` and `fill` properties (as on front-end maps). */
+    _shapeStyle(props = {}, selected = false) {
+      const p = props || {};
+      const color = p.stroke || p.color || "#2563eb";
+      const fill = p.fill || p.color || "#2563eb";
+      return { color, fillColor: fill, weight: selected ? 4 : 2, fillOpacity: selected ? 0.3 : 0.18, dashArray: selected ? "6 4" : null };
+    },
+
+    /** Human-readable size of a geometry: area for polygons, length for lines. */
+    _measure(geom) {
+      if (!geom) return "";
+      const R = 6378137;
+      const rad = (d) => (d * Math.PI) / 180;
+      const ringArea = (ring) => {
+        // Spherical polygon area (sum of trapezoids on the sphere).
+        let total = 0;
+        for (let i = 0; i < ring.length - 1; i++) {
+          const [lng1, lat1] = ring[i];
+          const [lng2, lat2] = ring[i + 1];
+          total += rad(lng2 - lng1) * (2 + Math.sin(rad(lat1)) + Math.sin(rad(lat2)));
+        }
+        return Math.abs((total * R * R) / 2);
+      };
+      const polygonArea = (rings) => (rings.length ? ringArea(rings[0]) - rings.slice(1).reduce((a, r) => a + ringArea(r), 0) : 0);
+      const lineLength = (coords) => {
+        let total = 0;
+        for (let i = 1; i < coords.length; i++) {
+          total += L.latLng(coords[i - 1][1], coords[i - 1][0]).distanceTo(L.latLng(coords[i][1], coords[i][0]));
+        }
+        return total;
+      };
+      const fmtArea = (m2) => (m2 >= 1e6 ? `${(m2 / 1e6).toFixed(2)} km²` : m2 >= 1e4 ? `${(m2 / 1e4).toFixed(1)} ha` : `${Math.round(m2)} m²`);
+      const fmtLength = (m) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`);
+
+      switch (geom.type) {
+        case "Polygon": return fmtArea(polygonArea(geom.coordinates));
+        case "MultiPolygon": return fmtArea(geom.coordinates.reduce((a, p) => a + polygonArea(p), 0));
+        case "LineString": return fmtLength(lineLength(geom.coordinates));
+        case "MultiLineString": return fmtLength(geom.coordinates.reduce((a, l) => a + lineLength(l), 0));
+        case "Point": return `${geom.coordinates[1].toFixed(5)}, ${geom.coordinates[0].toFixed(5)}`;
+        default: return "";
+      }
+    },
+
+    get featureKindLabel() {
+      return { Polygon: "Area", MultiPolygon: "Areas", LineString: "Line", MultiLineString: "Lines", Point: "Point" }[this.featureGeomType] || this.featureGeomType;
+    },
+
+    _featureProp(key) {
+      return this.featureProps.find((p) => p.key === key);
+    },
+
+    get featureName() {
+      return this._featureProp("name")?.val ?? "";
+    },
+
+    setFeatureName(value) {
+      this._setFeatureProp("name", value);
+    },
+
+    get featureColor() {
+      return this._featureProp("color")?.val || "";
+    },
+
+    setFeatureColor(value) {
+      this._setFeatureProp("color", value);
+    },
+
+    _setFeatureProp(key, value) {
+      const existing = this._featureProp(key);
+      const empty = value === null || value === undefined || String(value).trim() === "";
+      if (existing && empty) {
+        this.featureProps.splice(this.featureProps.indexOf(existing), 1);
+      } else if (existing) {
+        existing.val = value;
+      } else if (!empty) {
+        this.featureProps.unshift({ key, val: value, type: key === "color" ? "color" : "text" });
+      }
+      this._writePropsToLayer();
+    },
+
+    zoomToFeature() {
+      const layer = this.selectedLayer;
+      if (!layer || !this.map) return;
+      if (layer.getBounds) {
+        this.map.fitBounds(layer.getBounds(), { padding: [40, 40], maxZoom: 17 });
+      } else if (layer.getLatLng) {
+        this.map.setView(layer.getLatLng(), Math.max(this.map.getZoom(), 15));
+      }
+    },
+
+    deleteFeature() {
+      const layer = this.selectedLayer;
+      if (!layer) return;
+      this.closeFeatureEditor();
+      layer.remove();
+      this.updateEditorFromMap();
+    },
+
+    /** Centre of everything drawn (the location of shape-only fields), or null. */
+    get shapesCentre() {
+      if (!this.geojsonText) return null;
+      let data;
+      try { data = JSON.parse(this.geojsonText); } catch { return null; }
+      let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+      const walk = (node) => {
+        if (!Array.isArray(node)) {
+          if (node && typeof node === "object") ["coordinates", "geometry", "geometries", "features"].forEach((k) => node[k] && walk(node[k]));
+          return;
+        }
+        if (typeof node[0] === "number" && typeof node[1] === "number") {
+          minLng = Math.min(minLng, node[0]); maxLng = Math.max(maxLng, node[0]);
+          minLat = Math.min(minLat, node[1]); maxLat = Math.max(maxLat, node[1]);
+          return;
+        }
+        node.forEach(walk);
+      };
+      walk(data);
+      return minLat === Infinity ? null : { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
+    },
+
+    get locationLabel() {
+      if (this.hasLocation) return `${this.lat}, ${this.lng}`;
+      const c = !this.showMarker ? this.shapesCentre : null;
+      return c ? `${c.lat.toFixed(6)}, ${c.lng.toFixed(6)}` : null;
     },
     _castPropValue(val, type) {
         switch (type) {

@@ -564,48 +564,124 @@
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px 10px 14px;
+    gap: 10px;
+    padding: 12px 10px 10px 12px;
     color: var(--text-color, #1f2933);
     background: var(--white, #fff);
-    border-bottom: 1px solid var(--supgeo-border);
 }
 
-.supgeo__fe-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.supgeo__fe-badge { background: var(--supgeo-subtle); color: var(--supgeo-muted); font-weight: 500; font-size: 12px; padding: 1px 6px; border-radius: 3px; }
-.supgeo__fe-close { background: none; border: none; color: var(--supgeo-muted); cursor: pointer; display: flex; align-items: center; padding: 3px; border-radius: 3px; }
+.supgeo__fe-swatch {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    color: var(--shape);
+    background: color-mix(in srgb, var(--shape) 14%, #fff);
+}
+
+.supgeo__fe-heading { display: grid; flex: 1; min-width: 0; gap: 1px; }
+.supgeo__fe-name {
+    width: 100%;
+    padding: 2px 6px;
+    margin-left: -6px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color, #1f2933);
+    text-overflow: ellipsis;
+}
+.supgeo__fe-name:hover { border-color: var(--supgeo-border); }
+.supgeo__fe-name:focus { border-color: var(--supgeo-accent); outline: none; background: #fff; }
+.supgeo__fe-name::placeholder { color: var(--supgeo-muted); font-weight: 500; }
+.supgeo__fe-meta { font-size: 13px; color: var(--supgeo-muted); font-variant-numeric: tabular-nums; }
+
+.supgeo__fe-close { align-self: flex-start; background: none; border: none; color: var(--supgeo-muted); cursor: pointer; display: flex; align-items: center; padding: 6px; border-radius: 4px; }
 .supgeo__fe-close:hover { background: var(--supgeo-subtle); color: var(--text-color, #1f2933); }
 
-.supgeo__fe-tabs { display: flex; border-bottom: 1px solid #e5e7eb; background: #f9fafb; flex-shrink: 0; }
-.supgeo__fe-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 12px; font-size: 13px; cursor: pointer; color: #6b7280; transition: all 0.15s; }
-.supgeo__fe-tab:hover { color: var(--text-color); }
-.supgeo__fe-tab.--active { color: var(--supgeo-accent); border-bottom-color: var(--supgeo-accent); }
+.supgeo__fe-tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--supgeo-border); flex-shrink: 0; }
+.supgeo__fe-tab { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 6px 4px 8px; margin-right: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--supgeo-muted); }
+.supgeo__fe-tab:hover { color: var(--text-color, #1f2933); }
+.supgeo__fe-tab.--active { color: var(--text-color, #1f2933); border-bottom-color: var(--supgeo-accent); }
 
-.supgeo__fe-body { padding: 10px 14px; overflow-y: auto; flex: 1; }
+.supgeo__fe-body { display: grid; gap: 16px; align-content: start; padding: 14px 12px; overflow-y: auto; flex: 1; }
+.supgeo__fe-section { display: grid; gap: 8px; }
+.supgeo__fe-label { font-size: 12px; font-weight: 600; color: var(--supgeo-muted); }
 
-.supgeo__fe-table { width: 100%; border-collapse: collapse; }
-.supgeo__fe-table th { font-size: 12px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 6px 6px; text-align: left; font-weight: 500; }
-.supgeo__fe-table td { padding: 3px 6px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+.supgeo__fe-colors { display: flex; flex-wrap: wrap; gap: 6px; }
+.supgeo__fe-color {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--c);
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+    transition: transform 0.12s;
+}
+.supgeo__fe-color:hover { transform: scale(1.12); }
+.supgeo__fe-color.--active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--c); }
+.supgeo__fe-color.--custom {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: conic-gradient(#ef4444, #f59e0b, #22c55e, #06b6d4, #6366f1, #d946ef, #ef4444);
+}
+.supgeo__fe-color.--custom input { width: 200%; height: 200%; opacity: 0; cursor: pointer; }
 
-.supgeo__fe-input { width: 100%; border: none; background: transparent; font-size: 13px;  color: var(--text-color); padding: 2px 3px; border-radius: 3px; outline: none; }
-.supgeo__fe-input:focus { background: #f3f4f6; }
+.supgeo__fe-props { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.supgeo__fe-prop {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto auto;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 3px 3px 4px;
+    border-radius: 6px;
+    background: var(--supgeo-subtle);
+}
+.supgeo__fe-input { width: 100%; min-width: 0; border: 1px solid transparent; background: transparent; font-size: 13px; color: var(--text-color, #1f2933); padding: 4px 6px; border-radius: 4px; outline: none; }
+.supgeo__fe-input:hover { border-color: var(--supgeo-border); }
+.supgeo__fe-input:focus { border-color: var(--supgeo-accent); background: #fff; }
+.supgeo__fe-key { color: var(--supgeo-muted); font-weight: 500; }
 
-.supgeo__fe-del { background: none; border: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; padding: 3px; border-radius: 3px; }
+.supgeo__fe-type {
+    min-width: 34px;
+    height: 24px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+    color: var(--supgeo-muted);
+    font: 600 11px/24px var(--code-font, ui-monospace, monospace);
+    cursor: pointer;
+}
+.supgeo__fe-type:hover { color: var(--supgeo-accent); }
+
+.supgeo__fe-del { background: none; border: none; cursor: pointer; color: var(--supgeo-muted); display: flex; align-items: center; padding: 6px; border-radius: 4px; }
 .supgeo__fe-del:hover { color: #dc2626; background: #fef2f2; }
-.supgeo__fe-empty { text-align: center; color: #9ca3af; padding: 12px 0; font-size: 13px; }
+.supgeo__fe-empty { margin: 0; color: var(--supgeo-muted); font-size: 13px; line-height: 1.45; }
 
-.supgeo__fe-addrow { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
-.supgeo__fe-addrow .supgeo__fe-input { flex: 1; border: 1px solid #e5e7eb; border-radius: 4px; padding: 5px 8px; }
-.supgeo__fe-addrow .supgeo__fe-input:focus { border-color: var(--supgeo-accent); background: #fff; }
+.supgeo__fe-addrow { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto; gap: 6px; align-items: center; }
+.supgeo__fe-addrow .supgeo__fe-input { border-color: var(--supgeo-border); background: #fff; padding: 5px 8px; }
 
-.supgeo__fe-vertices { display: flex; flex-direction: column; gap: 6px; }
-.supgeo__fe-vertex { display: flex; align-items: center; gap: 6px; background: #f9fafb; border-radius: 4px; padding: 4px 8px; }
-.supgeo__fe-vtx-idx { font-size: 12px; color: var(--supgeo-accent); font-weight: 500; min-width: 22px; }
-.supgeo__fe-vertex label { font-size: 12px; color: #9ca3af; }
-.supgeo__fe-vertex .supgeo__fe-input { width: 90px; border: 1px solid #e5e7eb; border-radius: 3px; padding: 3px 5px; }
+.supgeo__fe-pre { margin: 0; background: #0f1117; color: #e8ecf0; border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.6; overflow: auto; max-height: 200px; white-space: pre; }
 
-.supgeo__fe-pre { background: #0f1117; color: #e8ecf0; border-radius: 4px; padding: 10px 12px; font-size: 13px; line-height: 1.6; overflow: auto; max-height: 160px; white-space: pre;  }
-.supgeo__fe-copy-bar { display: flex; justify-content: flex-end; margin-top: 8px; }
+.supgeo__fe-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border-top: 1px solid var(--supgeo-border);
+    background: var(--supgeo-subtle);
+}
+.supgeo .btn.small.supgeo__fe-delete { margin-left: auto; color: #b91c1c; }
+.supgeo .btn.small.supgeo__fe-delete:hover { background: #fef2f2; }
 .supgeo .btn.small.--copied { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
 
 /* Make sure the map wrapper is position:relative for the panel to anchor to */
