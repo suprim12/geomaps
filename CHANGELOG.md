@@ -1,6 +1,6 @@
 # Release Notes for Geo Maps
 
-## Unreleased
+## 1.2.0 - 2026-10-22
 
 ### Added
 - A redesigned shape panel in the field: click a shape to rename it, see its area or length as you draw, pick its colour from swatches, and edit its properties, or zoom to, copy or delete just that shape.
