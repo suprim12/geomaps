@@ -1,10 +1,5 @@
 # Release Notes for Geo Maps
 
-## 1.2.1 - 2026-10-22
-
-### Changed
-- Links to the source code, issues, documentation and changelog point to the repository’s new address, github.com/suprim12/geomaps.
-
 ## 1.2.0 - 2026-10-22
 
 ### Added
@@ -13,7 +8,6 @@
 - Shapes in the field are drawn in their own `color`, `stroke` and `fill`, matching front-end maps.
 - Lines on `embed()` maps are 4px wide by default, and any shape’s line width can be set with a `weight` property.
 - The config file template includes the **Map Tiles URL** and **Map Credit** settings.
-- Documentation: Trail Maps example, the shape panel, and a Privacy and Data page describing what the plugin stores and sends to map services.
 
 ### Changed
 - OpenStreetMap geocoding (Nominatim) requests are spaced at least a second apart, as its usage policy requires, and pause for 10 minutes if Nominatim asks the site to slow down.
@@ -27,9 +21,6 @@
 - Feed Me treated any two-letter country, such as `UK`, as a country code and lost the country name.
 - A “Map styles must be an array” warning in the browser console with Google maps.
 
-### Removed
-- Unused internal classes (two distance calculators, a GraphQL resolver and type generator, and a leftover zone helper).
-
 ## 1.1.1 - 2026-10-20
 
 ### Added
@@ -39,7 +30,6 @@
 ### Changed
 - The field saves the map’s zoom level with each location, and **Initial Location** in field settings saves its zoom.
 - Feed Me fills in the country name from a two-letter code, and the field type is listed as “Geo Maps”.
-- The support email is now support@suprim.com.au.
 
 ### Fixed
 - Pressing Enter in the field’s address search saved the entry.
@@ -93,8 +83,6 @@
 ### Changed
 - The GeoJSON editor loads only when its panel is opened, roughly halving the control panel script loaded on entry pages (283 KB → 149 KB gzipped).
 - Field settings no longer store leftover value properties in project config.
-- Rewritten documentation covering the field, templating, location search, maps, GraphQL, Feed Me and console commands.
-- Third-party licences for bundled libraries now ship with the plugin (`THIRD-PARTY-LICENSES.md`).
 - Drawing tools moved to the top-left; circle tools removed because GeoJSON can’t store circles.
 - Google geocoding errors (e.g. a restricted key) now fall back to OpenStreetMap instead of returning no results.
 - Requires Craft CMS 5.10 or later.
