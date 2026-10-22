@@ -133,6 +133,10 @@ php craft geomaps/import --field=storeMap   # one field
 
 Common template patterns (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()`) keep working.
 
+## Roadmap
+
+Geo Maps is free, and everything it does today stays free. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
+
 ## License
 
 Geo Maps is licensed under the [Craft License](LICENSE.md). Bundled open-source libraries are listed in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
