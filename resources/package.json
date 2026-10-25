@@ -14,7 +14,6 @@
 		"@codemirror/lang-json": "^6.0.2",
 		"@codemirror/state": "^6.6.0",
 		"@geoman-io/leaflet-geoman-free": "^2.13.0",
-		"@maptiler/geocoding-control": "^3.0.0",
 		"alpinejs": "^3.10.2",
 		"codemirror": "^6.0.2",
 		"geojson-validation": "^1.0.2",
