@@ -6,7 +6,7 @@
   "authors": [
     {
       "name": "suprim",
-      "homepage": "https://suprimgolay.com.np"
+      "homepage": "https://suprim.com.au"
     }
   ],
   "support": {
@@ -37,7 +37,7 @@
     "developer": "suprim",
     "documentationUrl": "https://github.com/suprim12/geomaps",
     "class": "suprim\\geomaps\\Plugin",
-    "developerUrl": "https://suprimgolay.com.np",
+    "developerUrl": "https://suprim.com.au",
     "developerEmail": "support@suprim.com.au",
     "changelogUrl": "https://raw.githubusercontent.com/suprim12/geomaps/main/CHANGELOG.md"
   },

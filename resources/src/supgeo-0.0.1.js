@@ -1,6 +1,6 @@
 /**
- *  https://suprimgolay.com.np/craft-plugins
- * author suprim <support@suprim.com.au> <https://suprimgolay.com.np>
+ *  https://suprim.com.au
+ * author suprim <support@suprim.com.au> <https://suprim.com.au>
  * copyright Copyright (c) 2026 suprim
  * 
  */

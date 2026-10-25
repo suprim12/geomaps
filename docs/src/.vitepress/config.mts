@@ -72,7 +72,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'A Craft CMS plugin by <a href="https://suprimgolay.com.np/" target="_blank">Suprim</a> · <a href="/privacy">Privacy policy</a>',
+      message: 'A Craft CMS plugin by <a href="https://suprim.com.au" target="_blank">Suprim</a> · <a href="/privacy">Privacy policy</a>',
     },
 
     editLink: {
