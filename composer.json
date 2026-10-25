@@ -13,7 +13,7 @@
     "email": "support@suprim.com.au",
     "issues": "https://github.com/suprim12/geomaps/issues?state=open",
     "source": "https://github.com/suprim12/geomaps",
-    "docs": "https://github.com/suprim12/geomaps",
+    "docs": "https://plugins.geomaps.suprim.com.au/",
     "rss": "https://github.com/suprim12/geomaps/releases.atom"
   },
   "require": {
@@ -35,7 +35,7 @@
     "handle": "geomaps",
     "name": "Geo Maps",
     "developer": "suprim",
-    "documentationUrl": "https://github.com/suprim12/geomaps",
+    "documentationUrl": "https://plugins.geomaps.suprim.com.au/",
     "class": "suprim\\geomaps\\Plugin",
     "developerUrl": "https://suprim.com.au",
     "developerEmail": "support@suprim.com.au",

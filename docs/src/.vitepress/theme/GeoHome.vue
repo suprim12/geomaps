@@ -9,6 +9,7 @@ const examples = [
   { href: '/examples/custom-pins', img: '/examples/custom-pins.jpg', name: 'Custom pins and cards', line: 'Your own pin image and an info card on click.', alt: 'Store pins on a map of Adelaide with an info card open' },
 ]
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { withBase } from 'vitepress'
 import 'leaflet/dist/leaflet.css'
 
 // ---------------------------------------------------------------------------
@@ -181,8 +182,8 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
         <h1>Location fields for Craft CMS</h1>
         <p class="gh-lead">Pin addresses, draw zones and find the nearest entries, on free OpenStreetMap maps. Click anywhere on the map below to try it.</p>
         <p class="gh-actions">
-          <a class="gh-btn" href="/getting-started/installation">Get started</a>
-          <a class="gh-link gh-link--light" href="/examples/store-locator">See the examples →</a>
+          <a class="gh-btn" :href="withBase('/getting-started/installation')">Get started</a>
+          <a class="gh-link gh-link--light" :href="withBase('/examples/store-locator')">See the examples →</a>
         </p>
       </div>
 
@@ -250,23 +251,23 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
       <div class="gh-cells">
         <article class="gh-cell" data-reveal>
           <div class="gh-cell__text"><h3>Address search</h3><p>Type a street or a business. Street, suburb, postcode and coordinates fill in by themselves.</p></div>
-          <img src="/home/search.jpg" width="1400" height="707" alt="The field's address search listing places on Rundle Mall, Adelaide" loading="lazy">
+          <img :src="withBase('/home/search.jpg')" width="1400" height="707" alt="The field's address search listing places on Rundle Mall, Adelaide" loading="lazy">
         </article>
         <article class="gh-cell gh-cell--flip" data-reveal>
           <div class="gh-cell__text"><h3>Zones as GeoJSON</h3><p>Draw areas with holes, give them properties and edit everything as GeoJSON beside the map.</p></div>
-          <img src="/home/geojson.jpg" width="1400" height="1033" alt="A zone with a hole drawn on the map, its GeoJSON open beside it" loading="lazy">
+          <img :src="withBase('/home/geojson.jpg')" width="1400" height="1033" alt="A zone with a hole drawn on the map, its GeoJSON open beside it" loading="lazy">
         </article>
         <article class="gh-cell" data-reveal>
           <div class="gh-cell__text"><h3>Your own pins</h3><p>Front-end maps take your pin image and any HTML for the card that opens on click.</p></div>
-          <img src="/home/pins.jpg" width="1400" height="764" alt="Purple store pins on a map with an info window open" loading="lazy">
+          <img :src="withBase('/home/pins.jpg')" width="1400" height="764" alt="Purple store pins on a map with an info window open" loading="lazy">
         </article>
         <article class="gh-cell gh-cell--flip" data-reveal>
           <div class="gh-cell__text"><h3>Settings per field</h3><p>Hide the pin for zone fields, turn drawing off, limit search to five countries.</p></div>
-          <img src="/home/settings.jpg" width="1400" height="925" alt="Field settings: Enable Drawing, Show Location Pin, Hide Search, Hide Address and Hide Map switches" loading="lazy">
+          <img :src="withBase('/home/settings.jpg')" width="1400" height="925" alt="Field settings: Enable Drawing, Show Location Pin, Hide Search, Hide Address and Hide Map switches" loading="lazy">
         </article>
         <article class="gh-cell" data-reveal>
           <div class="gh-cell__text"><h3>No API key needed</h3><p>OpenStreetMap from the moment you install. Add Google keys only if you want Google.</p></div>
-          <img src="/home/no-key.jpg" width="1400" height="410" alt="Plugin settings: Google Maps keys are optional" loading="lazy">
+          <img :src="withBase('/home/no-key.jpg')" width="1400" height="410" alt="Plugin settings: Google Maps keys are optional" loading="lazy">
         </article>
         <article class="gh-cell gh-cell--flip" data-reveal>
           <div class="gh-cell__text"><h3>Ready for GraphQL</h3><p>Read locations, search by distance and find zones from a headless front end.</p></div>
@@ -287,7 +288,7 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
     <section class="gh-shape" aria-labelledby="gh-shape-title">
       <div class="gh-wrap gh-shape__grid">
         <figure class="gh-shape__shot" data-reveal>
-          <img src="/images/shape-panel-zone.jpg" width="1400" height="996" alt="Clicking a zone opens its panel: the name Bin Zone C, “Area · 2.48 km²”, colour swatches and a collectionDay property" loading="lazy">
+          <img :src="withBase('/images/shape-panel-zone.jpg')" width="1400" height="996" alt="Clicking a zone opens its panel: the name Bin Zone C, “Area · 2.48 km²”, colour swatches and a collectionDay property" loading="lazy">
         </figure>
         <div class="gh-shape__text">
           <h2 id="gh-shape-title" data-reveal>Every shape carries its own details</h2>
@@ -297,7 +298,7 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
             <li><strong>Typed values.</strong> Text, numbers, true/false, colours or JSON.</li>
             <li><strong>Styled on the front end.</strong> The colour you pick is the colour visitors see.</li>
           </ul>
-          <p data-reveal><a class="gh-link" href="/guides/field#the-shape-panel">More about drawing shapes →</a></p>
+          <p data-reveal><a class="gh-link" :href="withBase('/guides/field#the-shape-panel')">More about drawing shapes →</a></p>
         </div>
       </div>
     </section>
@@ -307,8 +308,8 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
       <div class="gh-wrap">
         <h2 id="gh-ex-title" data-reveal>Built with Geo Maps</h2>
         <p class="gh-ex__intro" data-reveal>Complete templates you can copy, each running on real Adelaide streets.</p>
-        <a class="gh-ex__lead" href="/examples/store-locator" data-reveal>
-          <img src="/examples/store-locator.jpg" width="1800" height="1054" alt="A store locator with numbered stores beside a map of Adelaide" loading="lazy">
+        <a class="gh-ex__lead" :href="withBase('/examples/store-locator')" data-reveal>
+          <img :src="withBase('/examples/store-locator.jpg')" width="1800" height="1054" alt="A store locator with numbered stores beside a map of Adelaide" loading="lazy">
           <span class="gh-ex__text">
             <span class="gh-ex__name">Store locator</span>
             <span class="gh-ex__line">Search by address or “use my location”, numbered pins, distances and pagination.</span>
@@ -316,8 +317,8 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
         </a>
         <ul class="gh-ex__grid">
           <li v-for="ex in examples" :key="ex.href" data-reveal>
-            <a :href="ex.href">
-              <img :src="ex.img" width="1800" height="1054" :alt="ex.alt" loading="lazy">
+            <a :href="withBase(ex.href)">
+              <img :src="withBase(ex.img)" width="1800" height="1054" :alt="ex.alt" loading="lazy">
               <span class="gh-ex__name">{{ ex.name }}</span>
               <span class="gh-ex__line">{{ ex.line }}</span>
             </a>
@@ -329,18 +330,18 @@ const installCmd = 'composer require suprim/geomaps && php craft plugin/install 
     <section class="gh-city" aria-labelledby="gh-city-title">
       <div class="gh-wrap gh-city__grid">
         <figure class="gh-city__plan" data-reveal>
-          <img src="/world/light-plan-of-adelaide-1840.jpg" width="847" height="1400" alt="An 1840 engraving of the City of Adelaide street grid, with the acre allotments numbered, surveyed by Colonel Light" loading="lazy">
+          <img :src="withBase('/world/light-plan-of-adelaide-1840.jpg')" width="847" height="1400" alt="An 1840 engraving of the City of Adelaide street grid, with the acre allotments numbered, surveyed by Colonel Light" loading="lazy">
           <figcaption>The City of Adelaide, surveyed by Col. Light. Engraved by John Arrowsmith, 1840.</figcaption>
         </figure>
         <div class="gh-city__text">
           <h2 id="gh-city-title" data-reveal>Every example runs on Adelaide</h2>
           <p data-reveal>Colonel Light laid out Adelaide’s grid in 1837. The stores, zones and addresses in these docs sit on the same streets, from 1 King William Street to The Parade in Norwood, so every example can be tried with real places.</p>
           <figure data-reveal>
-            <img src="/world/king-william-street-adelaide.jpg" width="1400" height="1050" alt="King William Street, Adelaide, seen from above, with trams and early twentieth-century buildings" loading="lazy">
+            <img :src="withBase('/world/king-william-street-adelaide.jpg')" width="1400" height="1050" alt="King William Street, Adelaide, seen from above, with trams and early twentieth-century buildings" loading="lazy">
             <figcaption>King William Street, home of the docs’ first store. Photograph by Frank Hurley.</figcaption>
           </figure>
           <figure data-reveal>
-            <img src="/world/hurtle-square-children-sitting-under-tree.jpg" width="1400" height="1050" alt="Children sitting under a tree in Hurtle Square, Adelaide" loading="lazy">
+            <img :src="withBase('/world/hurtle-square-children-sitting-under-tree.jpg')" width="1400" height="1050" alt="Children sitting under a tree in Hurtle Square, Adelaide" loading="lazy">
             <figcaption>Hurtle Square, one of the five squares on Light’s plan.</figcaption>
           </figure>
         </div>
@@ -378,8 +379,8 @@ php craft plugin/install geomaps</code></pre>
 <span class="gh-dim">  - Installing suprim/geomaps (1.1.0)</span>
 <span class="t-k">$</span> php craft plugin/install geomaps
 <span class="gh-ok">*** installed geomaps successfully</span></code></pre>
-            <img class="gh-frame__slide" :class="{ 'is-on': step === 1 }" src="/home/field.jpg" width="1400" height="1169" alt="" loading="lazy">
-            <img class="gh-frame__slide" :class="{ 'is-on': step === 2 }" src="/examples/zone-lookup.jpg" width="1400" height="987" alt="" loading="lazy">
+            <img class="gh-frame__slide" :class="{ 'is-on': step === 1 }" :src="withBase('/home/field.jpg')" width="1400" height="1169" alt="" loading="lazy">
+            <img class="gh-frame__slide" :class="{ 'is-on': step === 2 }" :src="withBase('/examples/zone-lookup.jpg')" width="1400" height="987" alt="" loading="lazy">
           </div>
         </div>
       </div>
@@ -392,7 +393,7 @@ php craft plugin/install geomaps</code></pre>
         <div class="gh-close__row">
           <pre class="gh-close__cmd"><code>composer require suprim/geomaps</code></pre>
           <button type="button" class="gh-btn" @click="copy('composer require suprim/geomaps', 'close')">{{ copied === 'close' ? 'Copied' : 'Copy command' }}</button>
-          <a class="gh-link gh-link--light" href="/getting-started/installation">Installation guide →</a>
+          <a class="gh-link gh-link--light" :href="withBase('/getting-started/installation')">Installation guide →</a>
         </div>
       </div>
     </section>
@@ -404,11 +405,11 @@ php craft plugin/install geomaps</code></pre>
         <p class="gh-tile__small">Map data © OpenStreetMap contributors. Photographs: “King William Street, Adelaide” by Frank Hurley and “Hurtle Square” by the State Government Photographer, both CC0 via Wikimedia Commons. Plan of Adelaide by W. Light and J. Arrowsmith, 1840, public domain via Wikimedia Commons.</p>
       </div>
       <nav class="gh-tile gh-tile--nav" aria-label="Docs">
-        <a href="/getting-started/installation">Installation</a>
-        <a href="/examples/store-locator">Examples</a>
-        <a href="/guides/search">Location search</a>
-        <a href="/getting-started/troubleshooting">Troubleshooting</a>
-        <a href="/privacy">Privacy policy</a>
+        <a :href="withBase('/getting-started/installation')">Installation</a>
+        <a :href="withBase('/examples/store-locator')">Examples</a>
+        <a :href="withBase('/guides/search')">Location search</a>
+        <a :href="withBase('/getting-started/troubleshooting')">Troubleshooting</a>
+        <a :href="withBase('/privacy')">Privacy policy</a>
         <a href="https://github.com/suprim12/geomaps">GitHub</a>
       </nav>
       <div class="gh-tile gh-tile--time">
@@ -420,7 +421,7 @@ php craft plugin/install geomaps</code></pre>
         <a href="mailto:support@suprim.com.au">support@suprim.com.au</a>
       </div>
       <div class="gh-tile gh-tile--mark"><span>Geo Maps</span></div>
-      <a class="gh-tile gh-tile--go" href="/getting-started/installation">
+      <a class="gh-tile gh-tile--go" :href="withBase('/getting-started/installation')">
         <span>Read the docs</span>
         <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><path d="M12 44 44 12M20 12h24v24" fill="none" stroke="currentColor" stroke-width="4"/></svg>
       </a>

@@ -31,7 +31,7 @@ composer require suprim/geomaps
 php craft plugin/install geomaps
 ```
 
-Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://github.com/suprim12/geomaps/blob/main/docs/src/getting-started/configuration.md) to add Google keys or a different tile provider.
+Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://plugins.geomaps.suprim.com.au/getting-started/configuration) to add Google keys or a different tile provider.
 
 ## Examples
 
@@ -117,10 +117,10 @@ Requires a Google key with the Maps Static API enabled.
 
 Complete examples in the docs:
 
-- [Store locator](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/store-locator.md), with “use my location” and pagination
-- [Location page](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/location-page.md), with directions, nearby places and structured data
-- [Bin collection zones](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/zone-lookup.md), including a GraphQL version that doesn't reload the page
-- [Map of areas](https://github.com/suprim12/geomaps/blob/main/docs/src/examples/area-map.md), with one colour per zone
+- [Store locator](https://plugins.geomaps.suprim.com.au/examples/store-locator), with “use my location” and pagination
+- [Location page](https://plugins.geomaps.suprim.com.au/examples/location-page), with directions, nearby places and structured data
+- [Bin collection zones](https://plugins.geomaps.suprim.com.au/examples/zone-lookup), including a GraphQL version that doesn't reload the page
+- [Map of areas](https://plugins.geomaps.suprim.com.au/examples/area-map), with one colour per zone
 
 ## Switching from another map plugin
 

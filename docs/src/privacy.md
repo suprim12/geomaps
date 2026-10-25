@@ -20,7 +20,7 @@ Your browser saves one setting on your own device: whether you chose the light o
 
 Loading these pages contacts a few other services. Like any website, they receive your IP address and browser details:
 
-- **Our web host**, which serves the pages and may keep short-lived server logs for security and reliability.
+- **Vercel**, which hosts these pages and may keep short-lived server logs for security and reliability. See the [Vercel privacy policy](https://vercel.com/legal/privacy-policy).
 - **Fontshare** (Indian Type Foundry), which serves the Clash Grotesk typeface.
 - **OpenStreetMap tile servers**, run by the OpenStreetMap Foundation, which serve the map images on the home page. See the [OSMF privacy policy](https://osmfoundation.org/wiki/Privacy_Policy).
 

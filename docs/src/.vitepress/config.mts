@@ -1,14 +1,18 @@
 import { defineConfig } from 'vitepress'
 
+// The docs are served from the domain root. Set DOCS_BASE to serve them from a subfolder.
+const base = process.env.DOCS_BASE ?? '/'
+
 export default defineConfig({
   title: 'Geo Maps',
   description: 'Locations, shapes and distance search for Craft CMS',
-  base: '/',
+  base,
+  cleanUrls: true,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
-    ['link', { rel: 'icon', type: 'image/png', sizes: '64x64', href: '/favicon.png' }],
-    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '64x64', href: `${base}favicon.png` }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: `${base}apple-touch-icon.png` }],
     ['meta', { name: 'theme-color', content: '#12141c' }],
     ['link', { rel: 'preconnect', href: 'https://api.fontshare.com' }],
     ['link', { rel: 'preconnect', href: 'https://cdn.fontshare.com', crossorigin: '' }],
@@ -72,7 +76,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'A Craft CMS plugin by <a href="https://suprim.com.au" target="_blank">Suprim</a> · <a href="/privacy">Privacy policy</a>',
+      message: `A Craft CMS plugin by <a href="https://suprim.com.au" target="_blank">Suprim</a> · <a href="${base}privacy">Privacy policy</a>`,
     },
 
     editLink: {
