@@ -3,6 +3,12 @@
   "description": "Location fields for Craft CMS: address autocomplete, GeoJSON drawing, proximity search, static and embedded maps, GraphQL and Feed Me support.",
   "type": "craft-plugin",
   "license": "proprietary",
+  "authors": [
+    {
+      "name": "suprim",
+      "homepage": "https://suprimgolay.com.np"
+    }
+  ],
   "support": {
     "email": "support@suprim.com.au",
     "issues": "https://github.com/suprim12/geomaps/issues?state=open",
