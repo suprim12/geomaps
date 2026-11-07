@@ -93,6 +93,31 @@ class GeoService extends Component
     }
 
     /**
+     * Geocodes an address with OpenStreetMap (Nominatim), for coordinates that will be saved into content.
+     *
+     * OpenStreetMap data may be stored with credit, whereas Google's terms only allow caching its
+     * results for 30 days, so this never uses Google. Returns the coordinates, null when nothing was
+     * found, or false when Nominatim is unavailable (paused after a 403/429, or a network error).
+     *
+     * @return array{lat: float, lng: float}|false|null
+     */
+    public static function geocodeForSaving(string $address, ?string $country = null): array|false|null
+    {
+        $country = $country ? strtoupper(trim($country)) : null;
+        if (!$country || !static::isCountryCode($country)) {
+            $country = null;
+        }
+
+        $data = self::nominatim('search', self::nominatimSearchParams($address, $country));
+
+        if ($data === false) {
+            return false;
+        }
+
+        return self::firstNominatimResult($data);
+    }
+
+    /**
      * Reverse geocodes a coordinate. Returns `['address' => string, 'parts' => array]`.
      */
     public static function reverseGeocode(float $lat, float $lng): ?array
@@ -181,12 +206,27 @@ class GeoService extends Component
 
     private static function geocodeWithNominatim(string $address, ?string $country): ?array
     {
+        $data = self::nominatim('search', self::nominatimSearchParams($address, $country));
+
+        return $data ? self::firstNominatimResult($data) : null;
+    }
+
+    private static function nominatimSearchParams(string $address, ?string $country): array
+    {
         $params = ['q' => $address, 'format' => 'jsonv2', 'limit' => 1];
         if ($country) {
             $params['countrycodes'] = strtolower($country);
         }
 
-        $result = self::nominatim('search', $params)[0] ?? null;
+        return $params;
+    }
+
+    /**
+     * @return array{lat: float, lng: float}|null
+     */
+    private static function firstNominatimResult(?array $data): ?array
+    {
+        $result = $data[0] ?? null;
 
         return isset($result['lat'], $result['lon'])
             ? ['lat' => (float)$result['lat'], 'lng' => (float)$result['lon']]
@@ -197,7 +237,7 @@ class GeoService extends Component
     {
         $result = self::nominatim('reverse', ['lat' => $lat, 'lon' => $lng, 'format' => 'jsonv2', 'addressdetails' => 1]);
 
-        return isset($result['display_name'])
+        return is_array($result) && isset($result['display_name'])
             ? ['address' => $result['display_name'], 'parts' => $result['address'] ?? []]
             : null;
     }
@@ -210,8 +250,11 @@ class GeoService extends Component
     /**
      * Queries Nominatim (OpenStreetMap). Results are cached and requests identify the site,
      * per the Nominatim usage policy: https://operations.osmfoundation.org/policies/nominatim/
+     *
+     * Returns the response, null when nothing was found, or false when Nominatim is unavailable
+     * (paused after a 403/429, or the request failed).
      */
-    private static function nominatim(string $endpoint, array $params): ?array
+    private static function nominatim(string $endpoint, array $params): array|false|null
     {
         $params['accept-language'] = Craft::$app->language;
         $cacheKey = "geo:nominatim:$endpoint:" . md5(Json::encode($params));
@@ -224,7 +267,7 @@ class GeoService extends Component
 
         // Nominatim asked us to slow down or blocked us: don't retry on every search.
         if ($cache->get(self::NOMINATIM_BLOCKED_KEY)) {
-            return null;
+            return false;
         }
 
         // The usage policy allows at most one request per second.
@@ -255,10 +298,10 @@ class GeoService extends Component
             } else {
                 Craft::error('Geo Maps: Nominatim request failed: ' . $e->getMessage(), __METHOD__);
             }
-            return null;
+            return false;
         } catch (Throwable $e) {
             Craft::error('Geo Maps: Nominatim request failed: ' . $e->getMessage(), __METHOD__);
-            return null;
+            return false;
         }
 
         if (!is_array($data) || isset($data['error'])) {

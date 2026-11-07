@@ -33,6 +33,7 @@ use suprim\geomaps\records\GeoRecord;
 use suprim\geomaps\services\GeoService;
 use suprim\geomaps\services\ImportService;
 use suprim\geomaps\services\MapService;
+use suprim\geomaps\services\MissingCoordinates;
 use suprim\geomaps\services\ZoneService;
 use suprim\geomaps\utilities\ImportUtility;
 use suprim\geomaps\variables\GeoVariable;
@@ -43,6 +44,7 @@ use yii\base\Event;
  * @property-read MapService $maps
  * @property-read ImportService $import
  * @property-read ZoneService $zones
+ * @property-read MissingCoordinates $missingCoordinates
  * @method Settings getSettings()
  */
 
@@ -79,6 +81,7 @@ class Plugin extends BasePlugin
                 'maps' => MapService::class,
                 'import' => ImportService::class,
                 'zones' => ZoneService::class,
+                'missingCoordinates' => MissingCoordinates::class,
             ],
         ];
     }

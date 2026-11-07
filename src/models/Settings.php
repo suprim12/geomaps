@@ -20,6 +20,8 @@ class Settings extends Model
     /** Raster tile URL template used when no Google key is set. */
     public string $tileUrl = self::OSM_TILE_URL;
     public string $tileAttribution = self::OSM_ATTRIBUTION;
+    /** Pro: find coordinates in the background for saved locations that only have an address. */
+    public bool $geocodeMissing = true;
 
     public const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     public const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';

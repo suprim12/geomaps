@@ -20,6 +20,9 @@ return [
         // Busy public sites should use a tile provider instead of tile.openstreetmap.org.
         // 'tileUrl' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         // 'tileAttribution' => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+
+        // Pro: look up coordinates in the background for locations saved with only an address.
+        // 'geocodeMissing' => true,
     ],
 
     // Environment-specific overrides

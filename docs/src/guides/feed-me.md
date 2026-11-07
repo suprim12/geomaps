@@ -12,4 +12,4 @@ Map any of them to columns in your feed. A few things are handled for you:
 - **Latitude** and **Longitude** that aren’t numbers are reported as validation errors on the entry, rather than saved as `0`.
 - Imported coordinates are indexed for [Location Search](/guides/search) as entries are saved.
 
-If a feed only has addresses and no coordinates, import them into **Full Address**. Entries will show the address, but won’t appear in location search until they have coordinates — open them and pick the address from search, or geocode the feed beforehand.
+If a feed only has addresses and no coordinates, import them into **Full Address** (or the address parts). With [Geo Maps Pro](/getting-started/pro), the coordinates are then [looked up automatically](/guides/missing-coordinates) in the background. On the free edition, entries show the address but won’t appear in location search until they have coordinates — open them and pick the address from search, or geocode the feed beforehand.

@@ -49,6 +49,7 @@ export default defineConfig({
           { text: 'GraphQL', link: '/guides/graphql' },
           { text: 'Feed Me', link: '/guides/feed-me' },
           { text: 'Console Commands', link: '/guides/console' },
+          { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
         ],
       },
       {

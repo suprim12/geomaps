@@ -87,6 +87,7 @@
 {# Pro features, so people can see what the edition adds and whether it's active. #}
 {% set proFeatures = [
 	{ name: 'Marker clustering'|t('geomaps'), text: 'Group nearby pins on embed() maps into numbered bubbles.'|t('geomaps'), url: 'https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering' },
+	{ name: 'Missing coordinates'|t('geomaps'), text: 'Find coordinates for locations that only have an address, such as imported ones.'|t('geomaps'), url: 'https://plugins.geomaps.suprim.com.au/guides/missing-coordinates' },
 ] %}
 
 <h2>{{ 'Geo Maps Pro'|t('geomaps') }}
@@ -105,3 +106,14 @@
 		<li><strong>{{ feature.name }}.</strong> {{ feature.text }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Docs'|t('geomaps') }}</a></li>
 	{% endfor %}
 </ul>
+
+{% if plugin.isPro() %}
+	{{ forms.lightswitchField({
+		label: 'Find missing coordinates automatically'|t('geomaps'),
+		instructions: 'When a location is saved with an address but no coordinates (for example from a Feed Me import), look them up with OpenStreetMap in a background job. You can also run `php craft geomaps/geocode`.'|t('geomaps'),
+		id: 'geocodeMissing',
+		name: 'geocodeMissing',
+		on: settings.geocodeMissing,
+		disabled: configFileExists and config.geocodeMissing is defined,
+	}) }}
+{% endif %}

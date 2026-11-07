@@ -118,6 +118,12 @@ class GeoField extends Field implements PreviewableFieldInterface
         if (!$element->getIsDraft() && !$element->getIsRevision()) {
             $value = $element->getFieldValue($this->handle);
             Plugin::getInstance()->maps->saveLookup($this, $element, $value instanceof GeoValue ? $value : null);
+
+            // Pro: an address without coordinates (e.g. from an import) gets them in the background.
+            $missing = Plugin::getInstance()->missingCoordinates;
+            if ($missing->shouldQueue($value instanceof GeoValue ? $value : null, $this)) {
+                $missing->queue();
+            }
         }
 
         parent::afterElementSave($element, $isNew);

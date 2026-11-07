@@ -16,3 +16,13 @@ php craft geomaps/import --field=storeMap   # a single field
 ```
 
 Converts fields to Geo Maps fields — the same as **Utilities → Geo Maps Import**. See [Importing Existing Fields](/getting-started/importing).
+
+## Find missing coordinates <Badge type="tip" text="Pro" />
+
+```bash
+php craft geomaps/geocode                  # every Geo Maps field
+php craft geomaps/geocode --dry-run        # list what would be looked up
+```
+
+Looks up coordinates for locations that have an address but no latitude and longitude. See [Missing Coordinates](/guides/missing-coordinates).
+
