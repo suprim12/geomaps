@@ -532,6 +532,9 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'tileAttribution' => $settings->tileAttribution,
                 'restrictCountries' => $this->getSearchCountries(),
                 'language' => Craft::$app->language,
+                // The field saves what's found, so Mapbox is only used with permanent geocoding.
+                'search' => $settings->usesMapboxForSaving() ? 'mapbox' : null,
+                'mapboxToken' => $settings->usesMapboxForSaving() ? $settings->getMapboxToken() : null,
             ],
             'settings' => $this->getSettings(),
             'settingsUrl' => UrlHelper::cpUrl('settings/plugins/geomaps'),

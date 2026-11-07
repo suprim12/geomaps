@@ -26,7 +26,7 @@ The default `tile.openstreetmap.org` tiles are free for light use, such as the c
 :::
 
 ::: tip Mapbox
-The settings page has **Quick setup** buttons for Mapbox styles. See [Mapbox Maps](/examples/mapbox).
+The settings page has **Quick setup** buttons for Mapbox map styles, and Mapbox can also be chosen as the **Geocoding service** for address lookups. See [Mapbox Maps](/examples/mapbox).
 :::
 
 ## Config File

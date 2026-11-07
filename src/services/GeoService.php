@@ -23,7 +23,9 @@ class GeoService extends Component
 {
     public const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
     public const NOMINATIM_ENDPOINT = 'https://nominatim.openstreetmap.org';
+    public const MAPBOX_GEOCODE_ENDPOINT = 'https://api.mapbox.com/search/geocode/v6/forward';
     private const GOOGLE_UNAVAILABLE_KEY = 'geo:google-geocoding-unavailable';
+    private const MAPBOX_UNAVAILABLE_KEY = 'geo:mapbox-geocoding-unavailable';
     private const NOMINATIM_BLOCKED_KEY = 'geo:nominatim-blocked';
     private const NOMINATIM_LAST_REQUEST_KEY = 'geo:nominatim-last-request';
 
@@ -63,7 +65,15 @@ class GeoService extends Component
             $country = null;
         }
 
-        if (self::geocoder() === 'nominatim') {
+        $geocoder = self::geocoder();
+
+        if ($geocoder === 'mapbox') {
+            $result = self::geocodeWithMapbox($address, $country);
+            // Mapbox refused, failed or found nothing: try OpenStreetMap.
+            return $result ?: self::geocodeWithNominatim($address, $country);
+        }
+
+        if ($geocoder === 'nominatim') {
             return self::geocodeWithNominatim($address, $country);
         }
 
@@ -96,7 +106,8 @@ class GeoService extends Component
      * Geocodes an address with OpenStreetMap (Nominatim), for coordinates that will be saved into content.
      *
      * OpenStreetMap data may be stored with credit, whereas Google's terms only allow caching its
-     * results for 30 days, so this never uses Google. Returns the coordinates, null when nothing was
+     * results for 30 days, so this never uses Google. Mapbox is used only with permanent geocoding
+     * switched on, since only permanent results may be stored. Returns the coordinates, null when nothing was
      * found, or false when Nominatim is unavailable (paused after a 403/429, or a network error).
      *
      * @return array{lat: float, lng: float}|false|null
@@ -106,6 +117,14 @@ class GeoService extends Component
         $country = $country ? strtoupper(trim($country)) : null;
         if (!$country || !static::isCountryCode($country)) {
             $country = null;
+        }
+
+        // Mapbox results may only be stored with permanent geocoding.
+        if (Plugin::getInstance()->getSettings()->usesMapboxForSaving()) {
+            $result = self::geocodeWithMapbox($address, $country);
+            if ($result !== false) {
+                return $result;
+            }
         }
 
         $data = self::nominatim('search', self::nominatimSearchParams($address, $country));
@@ -209,6 +228,115 @@ class GeoService extends Component
         $data = self::nominatim('search', self::nominatimSearchParams($address, $country));
 
         return $data ? self::firstNominatimResult($data) : null;
+    }
+
+    /**
+     * Geocodes with the Mapbox Geocoding API. Returns the coordinates, null when nothing was found,
+     * or false when Mapbox isn't set up, refused the token, or failed (so callers can fall back).
+     *
+     * Mapbox's terms don't allow caching temporary results, so results are only cached when
+     * permanent geocoding is switched on.
+     *
+     * @return array{lat: float, lng: float}|false|null
+     */
+    private static function geocodeWithMapbox(string $address, ?string $country): array|false|null
+    {
+        $settings = Plugin::getInstance()->getSettings();
+        $token = $settings->getMapboxToken();
+        $cache = Craft::$app->getCache();
+
+        if (!$token || $cache->get(self::MAPBOX_UNAVAILABLE_KEY)) {
+            return false;
+        }
+
+        $params = [
+            'q' => mb_substr($address, 0, 256),
+            // A few candidates, so a good second match can be used when the first is a guess.
+            'limit' => 5,
+            'autocomplete' => 'false',
+            'language' => substr(Craft::$app->language, 0, 2),
+        ];
+        if ($country) {
+            $params['country'] = strtolower($country);
+        }
+        if ($settings->mapboxPermanent) {
+            $params['permanent'] = 'true';
+        }
+
+        $cacheKey = 'geo:mapbox:' . md5(Json::encode($params));
+        if ($settings->mapboxPermanent) {
+            $cached = $cache->get($cacheKey);
+            if ($cached !== false) {
+                return $cached ?: null;
+            }
+        }
+
+        // Tokens restricted to the site's domains are checked against the Referer, so send it.
+        $siteUrl = Craft::$app->getSites()->getPrimarySite()->getBaseUrl() ?? '';
+
+        try {
+            $response = Craft::createGuzzleClient(['timeout' => 5])->get(self::MAPBOX_GEOCODE_ENDPOINT, [
+                'query' => $params + ['access_token' => $token],
+                'headers' => array_filter(['Referer' => $siteUrl]),
+            ]);
+            $data = Json::decode((string)$response->getBody());
+        } catch (RequestException $e) {
+            $status = $e->getResponse()?->getStatusCode();
+            if (in_array($status, [401, 403, 429], true)) {
+                $cache->set(self::MAPBOX_UNAVAILABLE_KEY, $status, 600);
+                Craft::warning("Geo Maps: Mapbox geocoding returned $status, so OpenStreetMap is used for 10 minutes. Check the Mapbox access token, its URL restrictions, and permanent geocoding on your Mapbox account.", __METHOD__);
+            } else {
+                Craft::error('Geo Maps: Mapbox geocoding failed: ' . $e->getMessage(), __METHOD__);
+            }
+            return false;
+        } catch (Throwable $e) {
+            Craft::error('Geo Maps: Mapbox geocoding failed: ' . $e->getMessage(), __METHOD__);
+            return false;
+        }
+
+        $result = null;
+        foreach ($data['features'] ?? [] as $feature) {
+            $properties = $feature['properties'] ?? [];
+            $coordinates = $properties['coordinates'] ?? null;
+            if (isset($coordinates['latitude'], $coordinates['longitude']) && self::isMapboxMatch($address, $properties)) {
+                $result = ['lat' => (float)$coordinates['latitude'], 'lng' => (float)$coordinates['longitude']];
+                break;
+            }
+        }
+
+        if ($settings->mapboxPermanent) {
+            $cache->set($cacheKey, $result ?? [], self::CACHE_DURATION);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Mapbox returns its best guess even for addresses it doesn't know, sometimes in another country.
+     * Reject a result whose street didn't match, or that shares no meaningful word with the search.
+     */
+    private static function isMapboxMatch(string $query, array $properties): bool
+    {
+        if (($properties['match_code']['street'] ?? null) === 'unmatched') {
+            return false;
+        }
+
+        $found = mb_strtolower((string)($properties['full_address'] ?? $properties['name'] ?? ''));
+        $ignore = ['street', 'road', 'avenue', 'drive', 'lane', 'place', 'court', 'parade', 'terrace', 'highway', 'north', 'south', 'east', 'west', 'australia'];
+        preg_match_all('/[\p{L}\p{N}]{4,}/u', mb_strtolower($query), $words);
+        $words = array_diff($words[0], $ignore);
+
+        if (!$words) {
+            return true;
+        }
+
+        foreach ($words as $word) {
+            if (str_contains($found, $word)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function nominatimSearchParams(string $address, ?string $country): array

@@ -12,6 +12,7 @@
 - `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
 - The plugin settings page shows which map and search services the site is using, and previews the map tiles URL as you type.
 - Mapbox map styles: a **Mapbox access token** setting, and quick setup buttons for Mapbox Streets, Light, Dark and Satellite that fill in the tiles URL and the credit Mapbox requires.
+- Mapbox can be chosen as the **Geocoding service** for location searches, address suggestions and missing coordinates, with an option for Mapbox permanent geocoding where results are saved.
 
 ## 1.3.0 - 2026-11-08
 

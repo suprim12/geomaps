@@ -15,6 +15,7 @@ use craft\base\Model;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\Plugin;
 use suprim\geomaps\services\GeoService;
 use suprim\geomaps\web\AddressAsset;
 use Twig\Markup;
@@ -85,6 +86,11 @@ class AddressInput extends Model
 
         Craft::$app->getView()->registerAssetBundle(AddressAsset::class);
 
+        // Mapbox suggestions: always for search boxes, but for boxes that save into a field only with
+        // permanent geocoding, because Mapbox only allows storing results from permanent requests.
+        $settings = Plugin::getInstance()->getSettings();
+        $useMapbox = $settings->getGeocoder() === 'mapbox' && ($this->field === null || $settings->mapboxPermanent);
+
         $hidden = '';
         foreach (self::VALUE_KEYS as $key) {
             $hidden .= Html::hiddenInput("{$name}[{$key}]", $values[$key] ?? '', [
@@ -138,6 +144,9 @@ class AddressInput extends Model
             'data-msg-pick' => $messages['pick'],
             'data-msg-none' => $messages['none'] ?? null,
             'data-msg-results' => $messages['results'] ?? null,
+            'data-provider' => $useMapbox ? 'mapbox' : null,
+            'data-mapbox-token' => $useMapbox ? $settings->getMapboxToken() : null,
+            'data-permanent' => $useMapbox && $settings->mapboxPermanent ? '1' : null,
         ]);
 
         return new Markup($html, 'UTF-8');

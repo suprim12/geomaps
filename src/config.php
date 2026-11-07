@@ -21,6 +21,11 @@ return [
         // 'tileUrl' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         // For Mapbox styles, put {mapboxToken} in the tiles URL and set the token here:
         // 'mapboxToken' => '$MAPBOX_TOKEN',
+
+        // Address lookups: 'auto' (Google with a server key, otherwise OpenStreetMap), 'nominatim', 'google' or 'mapbox'.
+        // 'geocoder' => 'auto',
+        // Mapbox only allows saving results from permanent geocoding (needs a card on your Mapbox account).
+        // 'mapboxPermanent' => false,
         // 'tileAttribution' => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 
         // Pro: look up coordinates in the background for locations saved with only an address.

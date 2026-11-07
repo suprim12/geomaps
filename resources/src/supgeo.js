@@ -18,6 +18,7 @@ let cm = null;
 const loadEditor = async () => (cm ??= await import("./geojson-editor.js"));
 import "leaflet.fullscreen";
 import "leaflet.fullscreen/Control.FullScreen.css";
+import { mapboxSuggest, mapboxReverse } from "./mapbox-search.js";
 
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -106,6 +107,8 @@ document.addEventListener("alpine:init", () => {
     _placesService: null,
     _sessionToken: null,
     _suggestDebounce: null,
+    searchProvider: null,
+    mapboxToken: null,
     activeSuggestion: -1,
     selectedLayer: null,
     featureEditorOpen: false,
@@ -143,6 +146,9 @@ document.addEventListener("alpine:init", () => {
 
       this.showMarker = data.showMarker !== false;
       this.provider = data.provider === "osm" ? "osm" : "google";
+      // Mapbox address search (only sent when permanent geocoding allows saving its results).
+      this.searchProvider = data.search === "mapbox" && data.mapboxToken ? "mapbox" : null;
+      this.mapboxToken = data.mapboxToken || null;
       this.restrictCountries = (Array.isArray(data.restrictCountries) ? data.restrictCountries : [])
         .map((c) => String(c).toUpperCase());
       this.language = data.language || null;
@@ -409,6 +415,7 @@ document.addEventListener("alpine:init", () => {
       this._suggestDebounce = setTimeout(() => this._fetchSuggestions(q), 220);
     },
     _fetchSuggestions(query) {
+      if (this.searchProvider === "mapbox") return this._fetchMapboxSuggestions(query);
       if (this.provider === "osm") return this._fetchOsmSuggestions(query);
       if (!this._autocompleteService) return;
 
@@ -443,6 +450,45 @@ document.addEventListener("alpine:init", () => {
           this.suggestionsOpen = this.suggestions.length > 0;
         },
       );
+    },
+    async _fetchMapboxSuggestions(query) {
+      this.loadingSuggestions = true;
+      try {
+        const centre = this.map ? this.map.getCenter() : null;
+        const found = await mapboxSuggest(query, {
+          token: this.mapboxToken,
+          permanent: true,
+          countries: this.restrictCountries,
+          language: this.language,
+          near: centre ? { lat: centre.lat, lng: centre.lng } : null,
+        });
+        if (this.searchQuery.trim() !== query) return; // stale response
+        this.suggestions = found.map((s) => ({
+          placeId: "mapbox-" + s.key,
+          mainText: s.main,
+          secondaryText: s.secondary,
+          fullText: s.values.full_address,
+          mapbox: s.values,
+        }));
+        this.suggestionsOpen = this.suggestions.length > 0;
+      } catch (e) {
+        // Mapbox refused (token, URL restrictions, permanent geocoding not enabled): use OpenStreetMap.
+        console.warn("Geo Maps: Mapbox search failed, using OpenStreetMap", e);
+        this.searchProvider = null;
+        return this._fetchOsmSuggestions(query);
+      } finally {
+        this.loadingSuggestions = false;
+      }
+    },
+    fillValues(values) {
+      this.full_address = values.full_address || null;
+      this.lat = values.lat || null;
+      this.lng = values.lng || null;
+      this.address1 = values.address1 || null;
+      this.suburb = values.suburb || null;
+      this.postcode = values.postcode || null;
+      this.country = values.country || null;
+      this.countryCode = values.countryCode || null;
     },
     // Photon (komoot) is an OpenStreetMap geocoder built for search-as-you-type.
     async _fetchOsmSuggestions(query) {
@@ -517,6 +563,15 @@ document.addEventListener("alpine:init", () => {
       this.searchQuery = suggestion.fullText;
       this.suggestionsOpen = false;
       this.suggestions = [];
+
+      if (suggestion.mapbox) {
+        const lat = parseFloat(suggestion.mapbox.lat);
+        const lng = parseFloat(suggestion.mapbox.lng);
+        this.fillValues(suggestion.mapbox);
+        this.focusOn(lat, lng);
+        this.createMarker(lat, lng);
+        return;
+      }
 
       if (suggestion.osm) {
         const [lng, lat] = suggestion.osm.geometry.coordinates;
@@ -1287,6 +1342,20 @@ document.addEventListener("alpine:init", () => {
         this.lat = lat.toFixed(6);
         this.lng = lng.toFixed(6);
         if (!this.isInput) return;
+
+        if (this.searchProvider === "mapbox") {
+          try {
+            const found = await mapboxReverse(lat, lng, { token: this.mapboxToken, permanent: true, language: this.language });
+            if (found) {
+              this.fillValues({ ...found.values, lat: lat.toFixed(6), lng: lng.toFixed(6) });
+              return;
+            }
+          } catch (e) {
+            console.warn("Geo Maps: Mapbox reverse geocoding failed, using OpenStreetMap", e);
+          }
+          await this.reverseGeocodeOsm(lat, lng);
+          return;
+        }
 
         if (this.provider === "osm") {
           await this.reverseGeocodeOsm(lat, lng);

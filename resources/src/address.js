@@ -6,6 +6,7 @@
  * which post in the same shape as the control panel field.
  */
 import "./address.css";
+import { mapboxSuggest, MAPBOX_CREDIT } from "./mapbox-search.js";
 
 const PHOTON_URL = "https://photon.komoot.io/api/?";
 const PHOTON_LANGS = ["en", "de", "fr", "it"];
@@ -58,6 +59,10 @@ function init(root) {
   const lang = (root.dataset.lang || document.documentElement.lang || "").slice(0, 2).toLowerCase();
 
   let suggestions = [];
+  let source = "photon";
+  const mapbox = root.dataset.provider === "mapbox" && root.dataset.mapboxToken
+    ? { token: root.dataset.mapboxToken, permanent: root.dataset.permanent === "1" }
+    : null;
   let active = -1;
   let timer = null;
   let requestId = 0;
@@ -138,8 +143,9 @@ function init(root) {
     const credit = document.createElement("li");
     credit.className = "geomaps-address__credit";
     credit.setAttribute("role", "presentation");
-    credit.innerHTML =
-      'Search by <a href="https://photon.komoot.io" target="_blank" rel="noopener">Photon</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+    credit.innerHTML = source === "mapbox"
+      ? MAPBOX_CREDIT
+      : 'Search by <a href="https://photon.komoot.io" target="_blank" rel="noopener">Photon</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
     list.append(credit);
 
     list.hidden = false;
@@ -159,20 +165,37 @@ function init(root) {
 
     root.classList.add("geomaps-address--loading");
     try {
-      const res = await fetch(PHOTON_URL + params);
-      const json = await res.json();
+      let found = null;
+      if (mapbox) {
+        try {
+          found = await mapboxSuggest(query, {
+            token: mapbox.token,
+            permanent: mapbox.permanent,
+            countries,
+            language: lang,
+            near: root.dataset.lat ? { lat: root.dataset.lat, lng: root.dataset.lng } : null,
+          });
+          source = "mapbox";
+        } catch (e) {
+          console.warn("Geo Maps: Mapbox search failed, using OpenStreetMap", e);
+        }
+      }
+      if (found === null) {
+        const res = await fetch(PHOTON_URL + params);
+        const json = await res.json();
+        let features = json.features || [];
+        if (countries.length) {
+          features = features.filter((f) => countries.includes((f.properties?.countrycode || "").toUpperCase()));
+        }
+        found = features.map(suggestionFromFeature);
+        source = "photon";
+      }
       if (id !== requestId) return; // a newer search has started
 
-      let features = json.features || [];
-      if (countries.length) {
-        features = features.filter((f) => countries.includes((f.properties?.countrycode || "").toUpperCase()));
-      }
-
       const seen = new Set();
-      suggestions = features
-        .map(suggestionFromFeature)
+      suggestions = found
         .filter((s) => {
-          // Photon often returns several OpenStreetMap objects for the same place.
+          // The same place often comes back more than once.
           const key = s.values.full_address.toLowerCase();
           if (!s.values.lat || seen.has(key)) return false;
           seen.add(key);

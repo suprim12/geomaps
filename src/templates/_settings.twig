@@ -12,7 +12,8 @@
 {% set docs = 'https://plugins.geomaps.suprim.com.au' %}
 {% set isPro = plugin.isPro() %}
 {% set usesGoogleMaps = settings.getMapProvider() == 'google' %}
-{% set usesGoogleGeocoding = settings.getGeocoder() == 'google' %}
+{% set geocoder = settings.getGeocoder() %}
+{% set geocoderNames = { google: 'Google Geocoding', mapbox: 'Mapbox', nominatim: 'Nominatim' } %}
 
 {% set icons = {
 	map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>',
@@ -51,12 +52,12 @@
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.search|raw }}</span>
 			<span class="gm-status__label">{{ 'Address search'|t('geomaps') }}</span>
-			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Places' : 'Photon' }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ settings.usesMapboxForSaving() ? 'Mapbox' : (usesGoogleMaps ? 'Google Places' : 'Photon') }}</span>
 		</div>
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.pin|raw }}</span>
 			<span class="gm-status__label">{{ 'Location search'|t('geomaps') }}</span>
-			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleGeocoding ? 'Google Geocoding' : 'Nominatim' }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ geocoderNames[geocoder] }}</span>
 		</div>
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.star|raw }}</span>
@@ -111,6 +112,46 @@
 					<li>{{ 'Store the keys in your <code>.env</code> file and enter them here as environment variables, such as <code>$GOOGLE_MAPS_KEY</code>.'|t('geomaps')|raw }}</li>
 				</ol>
 			</details>
+		</div>
+	</section>
+
+	{# Address lookups #}
+	<section class="gm-card">
+		<header class="gm-card__head">
+			<span class="gm-card__icon">{{ icons.search|raw }}</span>
+			<div>
+				<h2>{{ 'Address lookups'|t('geomaps') }}</h2>
+				<p>{{ 'The service that turns addresses into coordinates, for location searches such as {example}, address suggestions and finding missing coordinates.'|t('geomaps', { example: '<code>location: \'Glenelg SA\'</code>' })|raw }}</p>
+			</div>
+		</header>
+
+		<div class="gm-card__body">
+			{{ forms.selectField({
+				label: 'Geocoding service'|t('geomaps'),
+				instructions: 'If the chosen service has no key, or refuses a request, OpenStreetMap is used instead.'|t('geomaps'),
+				id: 'geocoder',
+				name: 'geocoder',
+				value: settings.geocoder,
+				options: [
+					{ value: 'auto', label: 'Automatic: Google with a server key, otherwise OpenStreetMap'|t('geomaps') },
+					{ value: 'nominatim', label: 'OpenStreetMap (Nominatim and Photon, free, no key)'|t('geomaps') },
+					{ value: 'google', label: 'Google (needs the server key above)'|t('geomaps') },
+					{ value: 'mapbox', label: 'Mapbox (needs the Mapbox access token below)'|t('geomaps') },
+				],
+				disabled: configFileExists and config.geocoder is defined,
+				errors: settings.getErrors('geocoder'),
+			}) }}
+
+			<div class="gm-mapbox-geocoding" data-gm-show-when-mapbox{{ settings.geocoder != 'mapbox' ? ' hidden' }}>
+				{{ forms.lightswitchField({
+					label: 'Mapbox permanent geocoding'|t('geomaps'),
+					instructions: 'Mapbox only allows saving results from permanent geocoding, which needs a card on your Mapbox account and is billed at a higher rate. When it’s on, Mapbox also suggests addresses in the field and entry forms, and finds missing coordinates. When it’s off, Mapbox is used for searches only, and addresses that are saved come from OpenStreetMap or Google.'|t('geomaps'),
+					id: 'mapboxPermanent',
+					name: 'mapboxPermanent',
+					on: settings.mapboxPermanent,
+					disabled: configFileExists and config.mapboxPermanent is defined,
+				}) }}
+			</div>
 		</div>
 	</section>
 
@@ -290,6 +331,8 @@
 .gm-preset.is-on { background: var(--gm-accent); border-color: var(--gm-accent); color: #fff; }
 .gm-presets__note { margin: 0 0 16px !important; font-size: 12px; line-height: 1.5; color: var(--light-text-color, #64748b); }
 .gm-preview { margin-top: 12px; }
+.gm-mapbox-geocoding { margin-top: 20px; }
+.gm-mapbox-geocoding[hidden] { display: none; }
 .gm-preview__tiles { display: grid; grid-template-columns: repeat(4, 1fr); height: 132px; overflow: hidden; border-radius: 8px; border: 1px solid var(--gm-line); background: var(--gray-100, #f1f5f9); }
 .gm-preview__tiles img { width: 100%; height: 132px; object-fit: cover; display: block; }
 .gm-preview__tiles.is-empty::after { content: attr(data-message); grid-column: 1 / -1; align-self: center; text-align: center; font-size: 12px; color: var(--light-text-color, #64748b); }
@@ -319,6 +362,13 @@
 {% endcss %}
 
 {% js %}
+(() => {
+	// Show the Mapbox geocoding options only when Mapbox is chosen.
+	const geocoder = document.getElementById('{{ 'geocoder'|namespaceInputId }}');
+	const mapboxOptions = document.querySelector('[data-gm-show-when-mapbox]');
+	geocoder?.addEventListener('change', () => { if (mapboxOptions) mapboxOptions.hidden = geocoder.value !== 'mapbox'; });
+})();
+
 (() => {
 	// Live preview of the tiles URL: four tiles across Adelaide at zoom 12.
 	const preview = document.querySelector('[data-gm-preview]');

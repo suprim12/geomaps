@@ -2,7 +2,7 @@
 
 Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [store locator](/guides/store-locator) and the map in the control panel. It works on the free edition, with no code.
 
-Mapbox tiles are used when there’s no Google key. Address search and geocoding keep using OpenStreetMap.
+Mapbox tiles are used when there’s no Google key. Mapbox can also look up addresses: see [Address search with Mapbox](#address-search-with-mapbox).
 
 ## 1. Create an access token
 
@@ -75,6 +75,21 @@ Mapbox’s [attribution rules](https://docs.mapbox.com/help/getting-started/attr
 ```
 
 This covers every `embed()` map, including the store locator’s.
+
+## Address search with Mapbox
+
+Mapbox can also turn addresses into coordinates, instead of OpenStreetMap or Google. Under **Address lookups**, set **Geocoding service** to **Mapbox**. It uses the same access token.
+
+Mapbox’s terms only allow saving results from its **permanent** geocoding, which needs a card on your Mapbox account and is billed at a higher rate. Geo Maps follows this:
+
+| | Permanent geocoding off | Permanent geocoding on |
+|---|---|---|
+| Location searches, such as `location: 'Glenelg SA'` | Mapbox (results aren’t cached) | Mapbox (cached for 30 days) |
+| Suggestions in search boxes: [`addressInput()`](/examples/address-autocomplete) with `name`, and the [store locator](/guides/store-locator) | Mapbox | Mapbox |
+| Suggestions that are saved: the field in the control panel, and `addressInput()` with `field` | OpenStreetMap or Google | Mapbox |
+| [Missing coordinates](/guides/missing-coordinates) | OpenStreetMap | Mapbox, without the one-per-second limit |
+
+If Mapbox refuses a request, for example because the token is restricted to other domains, or finds nothing, OpenStreetMap is used instead, and Geo Maps logs a warning.
 
 ## Good to know
 

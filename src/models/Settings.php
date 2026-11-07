@@ -16,8 +16,15 @@ class Settings extends Model
 {
     public ?string $mapToken = null;
     public ?string $geoToken = null;
-    /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL. */
+    /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL and used for Mapbox geocoding. */
     public ?string $mapboxToken = null;
+    /** Address lookups: `auto` (Google with a server key, otherwise OpenStreetMap), `nominatim`, `google` or `mapbox`. */
+    public string $geocoder = 'auto';
+    /**
+     * Use Mapbox permanent geocoding. Mapbox only allows storing (and caching) results from permanent
+     * requests, so Mapbox is used where coordinates are saved only when this is on.
+     */
+    public bool $mapboxPermanent = false;
 
     /** Raster tile URL template used when no Google key is set. */
     public string $tileUrl = self::OSM_TILE_URL;
@@ -37,6 +44,8 @@ class Settings extends Model
             ['tileUrl', 'default', 'value' => self::OSM_TILE_URL],
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
             ['geocodeMissing', 'boolean'],
+            ['geocoder', 'in', 'range' => ['auto', 'nominatim', 'google', 'mapbox']],
+            ['mapboxPermanent', 'boolean'],
         ]);
     }
     public function getMapToken(): ?string
@@ -93,11 +102,26 @@ class Settings extends Model
     }
 
     /**
-     * Server-side geocoding uses Google when a geocoding token is set, otherwise Nominatim.
+     * The service used for address lookups on the server: `google`, `mapbox` or `nominatim`.
+     * A chosen service without its key falls back to the next available one.
      */
     public function getGeocoder(): string
     {
-        return $this->getGeoToken() ? 'google' : 'nominatim';
+        $google = $this->getGeoToken() ? 'google' : 'nominatim';
+
+        return match ($this->geocoder) {
+            'mapbox' => $this->getMapboxToken() ? 'mapbox' : $google,
+            'nominatim' => 'nominatim',
+            default => $google,
+        };
+    }
+
+    /**
+     * Whether Mapbox may be used where coordinates are saved (the field, entry forms, missing coordinates).
+     */
+    public function usesMapboxForSaving(): bool
+    {
+        return $this->getGeocoder() === 'mapbox' && $this->mapboxPermanent;
     }
 
     private function _parseEnv($value): array|bool|string|null
