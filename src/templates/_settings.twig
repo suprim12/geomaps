@@ -1,119 +1,317 @@
-{# 
+{#
 	* Geo Maps plugin for Craft CMS
 	*
 	* @link      https://suprim.com.au
 	* @author suprim <support@suprim.com.au> <https://suprim.com.au>
 	* @copyright Copyright (c) 2026 suprim
-	* 
- #}
+#}
 
 {% import '_includes/forms.twig' as forms %}
 
 {% set configFileExists = config is not empty %}
+{% set docs = 'https://plugins.geomaps.suprim.com.au' %}
+{% set isPro = plugin.isPro() %}
+{% set usesGoogleMaps = settings.getMapProvider() == 'google' %}
+{% set usesGoogleGeocoding = settings.getGeocoder() == 'google' %}
 
-{% if configFileExists %}
- <div class="readable">
-        <blockquote class="note">
-            <p>
-                {{ 'Some settings are being overridden by your' }}
-                <code>config/geomaps.php</code>
-            </p>
-        </blockquote>
-    </div>
-{% endif %}
+{% set icons = {
+	map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>',
+	search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+	pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+	key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M15 8l2 2"/></svg>',
+	layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
+	star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"/></svg>',
+	cluster: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="9" r="4"/><circle cx="16.5" cy="8" r="2.5"/><circle cx="15" cy="16" r="3.5"/></svg>',
+	geocode: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 10h7M4 14h5"/><path d="M17 21s-4-3.6-4-6.6a4 4 0 0 1 8 0c0 3-4 6.6-4 6.6z"/><circle cx="17" cy="14.4" r="1.3"/></svg>',
+} %}
 
-
-<h2>{{ 'Google Maps (optional)'|t('geomaps') }}</h2>
-<p class="geo-intro">{{ 'Add Google keys to use Google’s map tiles, address search and static map images. Leave them blank to use free OpenStreetMap instead.'|t('geomaps') }}
-	<a href="https://developers.google.com/maps/get-started" target="_blank" rel="noopener">{{ 'Get a Google key'|t('geomaps') }}</a></p>
-
-{{ forms.autosuggestField({
-	label: 'Google Maps API Key (browser)'|t('geomaps'),
-	instructions: 'Used in the browser for map tiles, address search and static map images. Enable the **Maps JavaScript API**, **Places API** and **Maps Static API**, and restrict the key to your site’s domains (HTTP referrers), including local ones such as `*.ddev.site/*`.'|t('geomaps'),
-	id: 'mapToken',
-	name: 'mapToken',
-	suggestEnvVars: true,
-	value: settings.mapToken,
-	placeholder: '$GOOGLE_MAPS_KEY',
-	disabled: configFileExists and config.mapToken is defined,
-	errors: settings.getErrors('mapToken'),
-}) }}
-
-{{ forms.autosuggestField({
-	label: 'Google Geocoding API Key (server)'|t('geomaps'),
-	instructions: 'Used by your server to look up addresses in location searches. Enable the **Geocoding API** and restrict the key to your server’s IP address. If Google refuses the key, OpenStreetMap is used instead.'|t('geomaps'),
-	id: 'geoToken',
-	name: 'geoToken',
-	suggestEnvVars: true,
-	value: settings.geoToken,
-	placeholder: '$GOOGLE_GEOCODING_KEY',
-	disabled: configFileExists and config.geoToken is defined,
-	errors: settings.getErrors('geoToken'),
-}) }}
-
-<hr>
-
-<h2>{{ 'OpenStreetMap'|t('geomaps') }}</h2>
-<p class="geo-intro">{{ 'Used when there’s no Google key, or if Google rejects it.'|t('geomaps') }}</p>
-
-{{ forms.autosuggestField({
-	label: 'Map Tiles URL'|t('geomaps'),
-	instructions: 'Where the map images come from. `{z}`, `{x}` and `{y}` are filled in for each square of the map. The default OpenStreetMap tiles are free for light use such as the control panel; for maps on busy public sites, sign up with a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com) and paste the URL they give you.'|t('geomaps'),
-	id: 'tileUrl',
-	name: 'tileUrl',
-	suggestEnvVars: true,
-	value: settings.tileUrl,
-	placeholder: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-	disabled: configFileExists and config.tileUrl is defined,
-	errors: settings.getErrors('tileUrl'),
-}) }}
-
-{{ forms.textField({
-	label: 'Map Credit'|t('geomaps'),
-	instructions: 'The credit shown in the corner of the map. Tile providers require it, so update it if you change the tiles URL. HTML allowed.'|t('geomaps'),
-	id: 'tileAttribution',
-	name: 'tileAttribution',
-	value: settings.tileAttribution,
-	disabled: configFileExists and config.tileAttribution is defined,
-	errors: settings.getErrors('tileAttribution'),
-}) }}
-
-{% css %}
-	.geo-intro { margin: -6px 0 20px; color: var(--medium-text-color); max-width: 70ch; }
-{% endcss %}
-
-<hr>
-
-{# Pro features, so people can see what the edition adds and whether it's active. #}
 {% set proFeatures = [
-	{ name: 'Marker clustering'|t('geomaps'), text: 'Group nearby pins on embed() maps into numbered bubbles.'|t('geomaps'), url: 'https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering' },
-	{ name: 'Missing coordinates'|t('geomaps'), text: 'Find coordinates for locations that only have an address, such as imported ones.'|t('geomaps'), url: 'https://plugins.geomaps.suprim.com.au/guides/missing-coordinates' },
+	{ key: 'cluster', name: 'Marker clustering'|t('geomaps'), text: 'Groups nearby pins on embed() maps into numbered bubbles, so maps with hundreds of locations stay readable.'|t('geomaps'), url: docs ~ '/guides/maps#marker-clustering' },
+	{ key: 'geocode', name: 'Missing coordinates'|t('geomaps'), text: 'Looks up coordinates for locations that only have an address, such as imported ones.'|t('geomaps'), url: docs ~ '/guides/missing-coordinates', setting: 'geocodeMissing' },
 ] %}
 
-<h2>{{ 'Geo Maps Pro'|t('geomaps') }}
-	{% if plugin.isPro() %}<span class="status-label green"><span class="status green"></span><span class="status-label-text">{{ 'Active'|t('geomaps') }}</span></span>{% endif %}
-</h2>
-<p class="geo-intro">
-	{% if plugin.isPro() %}
-		{{ 'These features are switched on for this site.'|t('geomaps') }}
-	{% else %}
-		{{ 'Geo Maps Pro adds the features below. Try it free on local and staging sites by switching to Pro under Settings → Plugins.'|t('geomaps') }}
-		<a href="{{ cpUrl('plugin-store/geomaps') }}">{{ 'See Geo Maps in the Plugin Store'|t('geomaps') }}</a>
-	{% endif %}
-</p>
-<ul class="bullets">
-	{% for feature in proFeatures %}
-		<li><strong>{{ feature.name }}.</strong> {{ feature.text }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Docs'|t('geomaps') }}</a></li>
-	{% endfor %}
-</ul>
+<div class="gm">
 
-{% if plugin.isPro() %}
-	{{ forms.lightswitchField({
-		label: 'Find missing coordinates automatically'|t('geomaps'),
-		instructions: 'When a location is saved with an address but no coordinates (for example from a Feed Me import), look them up with OpenStreetMap in a background job. You can also run `php craft geomaps/geocode`.'|t('geomaps'),
-		id: 'geocodeMissing',
-		name: 'geocodeMissing',
-		on: settings.geocodeMissing,
-		disabled: configFileExists and config.geocodeMissing is defined,
-	}) }}
-{% endif %}
+	{% if configFileExists %}
+		<div class="gm-notice">
+			{{ icons.key|raw }}
+			<p>{{ 'Some settings are set in {file} and can’t be changed here.'|t('geomaps', { file: '<code>config/geomaps.php</code>' })|raw }}</p>
+		</div>
+	{% endif %}
+
+	{# Overview: what this site is using right now. #}
+	<div class="gm-status">
+		<div class="gm-status__item">
+			<span class="gm-status__icon">{{ icons.map|raw }}</span>
+			<span class="gm-status__label">{{ 'Maps'|t('geomaps') }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Maps' : 'OpenStreetMap' }}</span>
+		</div>
+		<div class="gm-status__item">
+			<span class="gm-status__icon">{{ icons.search|raw }}</span>
+			<span class="gm-status__label">{{ 'Address search'|t('geomaps') }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Places' : 'Photon (OpenStreetMap)' }}</span>
+		</div>
+		<div class="gm-status__item">
+			<span class="gm-status__icon">{{ icons.pin|raw }}</span>
+			<span class="gm-status__label">{{ 'Location search'|t('geomaps') }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleGeocoding ? 'Google Geocoding' : 'Nominatim (OpenStreetMap)' }}</span>
+		</div>
+		<div class="gm-status__item">
+			<span class="gm-status__icon">{{ icons.star|raw }}</span>
+			<span class="gm-status__label">{{ 'Edition'|t('geomaps') }}</span>
+			<span class="gm-status__value">
+				{% if isPro %}<span class="gm-badge gm-badge--pro">Pro</span>{% else %}<span class="gm-badge">{{ 'Free'|t('geomaps') }}</span>{% endif %}
+			</span>
+		</div>
+	</div>
+
+	{# Google #}
+	<section class="gm-card">
+		<header class="gm-card__head">
+			<span class="gm-card__icon">{{ icons.key|raw }}</span>
+			<div>
+				<h2>{{ 'Google Maps'|t('geomaps') }} <span class="gm-badge">{{ 'Optional'|t('geomaps') }}</span></h2>
+				<p>{{ 'Add keys to use Google’s maps, Places address search and static map images. Leave them blank to use OpenStreetMap, which needs no key. If Google rejects a key, Geo Maps switches to OpenStreetMap on its own.'|t('geomaps') }}</p>
+			</div>
+		</header>
+
+		<div class="gm-card__body">
+			{{ forms.autosuggestField({
+				label: 'Browser key'|t('geomaps'),
+				instructions: 'For maps, address search and static images. Restrict it to your site’s domains.'|t('geomaps'),
+				id: 'mapToken',
+				name: 'mapToken',
+				suggestEnvVars: true,
+				value: settings.mapToken,
+				placeholder: '$GOOGLE_MAPS_KEY',
+				disabled: configFileExists and config.mapToken is defined,
+				errors: settings.getErrors('mapToken'),
+			}) }}
+
+			{{ forms.autosuggestField({
+				label: 'Server key'|t('geomaps'),
+				instructions: 'For looking up addresses in location searches. Restrict it to your server’s IP address.'|t('geomaps'),
+				id: 'geoToken',
+				name: 'geoToken',
+				suggestEnvVars: true,
+				value: settings.geoToken,
+				placeholder: '$GOOGLE_GEOCODING_KEY',
+				disabled: configFileExists and config.geoToken is defined,
+				errors: settings.getErrors('geoToken'),
+			}) }}
+
+			<details class="gm-help">
+				<summary>{{ 'How to set up your Google keys'|t('geomaps') }}</summary>
+				<ol>
+					<li>{{ 'In the {link}, create a project and turn on billing.'|t('geomaps', { link: '<a href="https://console.cloud.google.com/google/maps-apis" target="_blank" rel="noopener">Google Cloud console</a>' })|raw }}</li>
+					<li>{{ 'Enable the <strong>Maps JavaScript API</strong>, <strong>Places API</strong> and <strong>Maps Static API</strong> for the browser key, and the <strong>Geocoding API</strong> for the server key.'|t('geomaps')|raw }}</li>
+					<li>{{ 'Restrict the browser key to your domains (HTTP referrers), including local ones such as <code>*.ddev.site/*</code>, and the server key to your server’s IP address.'|t('geomaps')|raw }}</li>
+					<li>{{ 'Store the keys in your <code>.env</code> file and enter them here as environment variables, such as <code>$GOOGLE_MAPS_KEY</code>.'|t('geomaps')|raw }}</li>
+				</ol>
+			</details>
+		</div>
+	</section>
+
+	{# OpenStreetMap tiles #}
+	<section class="gm-card">
+		<header class="gm-card__head">
+			<span class="gm-card__icon">{{ icons.layers|raw }}</span>
+			<div>
+				<h2>{{ 'OpenStreetMap tiles'|t('geomaps') }}</h2>
+				<p>{{ 'The map images used when there’s no Google key. The default tiles are free for light use, such as the control panel; for busy public sites, use a tile provider such as {stadia}, {maptiler} or {thunderforest}.'|t('geomaps', {
+					stadia: '<a href="https://stadiamaps.com" target="_blank" rel="noopener">Stadia Maps</a>',
+					maptiler: '<a href="https://www.maptiler.com" target="_blank" rel="noopener">MapTiler</a>',
+					thunderforest: '<a href="https://www.thunderforest.com" target="_blank" rel="noopener">Thunderforest</a>',
+				})|raw }}</p>
+			</div>
+		</header>
+
+		<div class="gm-card__body">
+			{{ forms.autosuggestField({
+				label: 'Map tiles URL'|t('geomaps'),
+				instructions: '`{z}`, `{x}` and `{y}` are filled in for each square of the map.'|t('geomaps'),
+				id: 'tileUrl',
+				name: 'tileUrl',
+				suggestEnvVars: true,
+				value: settings.tileUrl,
+				placeholder: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+				disabled: configFileExists and config.tileUrl is defined,
+				errors: settings.getErrors('tileUrl'),
+			}) }}
+
+			<div class="gm-preview" data-gm-preview data-saved="{{ settings.getTileUrl() }}">
+				<div class="gm-preview__tiles" aria-hidden="true"></div>
+				<p class="gm-preview__caption">{{ 'Preview of Adelaide with these tiles'|t('geomaps') }}</p>
+			</div>
+
+			{{ forms.textField({
+				label: 'Map credit'|t('geomaps'),
+				instructions: 'Shown in the corner of the map. Tile providers require it, so update it when you change the tiles URL. HTML allowed.'|t('geomaps'),
+				id: 'tileAttribution',
+				name: 'tileAttribution',
+				value: settings.tileAttribution,
+				disabled: configFileExists and config.tileAttribution is defined,
+				errors: settings.getErrors('tileAttribution'),
+			}) }}
+		</div>
+	</section>
+
+	{# Pro #}
+	<section class="gm-card gm-card--pro">
+		<header class="gm-card__head">
+			<span class="gm-card__icon">{{ icons.star|raw }}</span>
+			<div>
+				<h2>{{ 'Geo Maps Pro'|t('geomaps') }}
+					{% if isPro %}<span class="gm-badge gm-badge--on"><span class="status green"></span>{{ 'Active'|t('geomaps') }}</span>{% endif %}
+				</h2>
+				<p>
+					{% if isPro %}
+						{{ 'These features are switched on for this site.'|t('geomaps') }}
+					{% else %}
+						{{ 'Extra features for bigger sites. Try them free on local and staging sites by switching Geo Maps to Pro.'|t('geomaps') }}
+					{% endif %}
+				</p>
+			</div>
+		</header>
+
+		<ul class="gm-features">
+			{% for feature in proFeatures %}
+				<li class="gm-feature">
+					<span class="gm-feature__icon">{{ icons[feature.key]|raw }}</span>
+					<div class="gm-feature__text">
+						<strong>{{ feature.name }}</strong>
+						<span>{{ feature.text }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Learn more'|t('geomaps') }}</a></span>
+					</div>
+					{% if isPro and feature.setting is defined %}
+						<div class="gm-feature__control">
+							{{ forms.lightswitch({
+								id: feature.setting,
+								name: feature.setting,
+								on: attribute(settings, feature.setting),
+								small: true,
+								disabled: configFileExists and attribute(config, feature.setting) is defined,
+							}) }}
+							<span class="gm-feature__control-label">{{ 'Automatic'|t('geomaps') }}</span>
+						</div>
+					{% endif %}
+				</li>
+			{% endfor %}
+		</ul>
+
+		{% if not isPro %}
+			<div class="gm-card__actions">
+				<a class="btn submit" href="{{ cpUrl('settings/plugins') }}">{{ 'Try Pro'|t('geomaps') }}</a>
+				<a class="btn" href="{{ cpUrl('plugin-store/geomaps') }}">{{ 'View in the Plugin Store'|t('geomaps') }}</a>
+			</div>
+		{% endif %}
+	</section>
+
+	<footer class="gm-footer">
+		<a href="{{ docs }}" target="_blank" rel="noopener">{{ 'Documentation'|t('geomaps') }}</a>
+		<a href="https://github.com/suprim12/geomaps/issues" target="_blank" rel="noopener">{{ 'Report an issue'|t('geomaps') }}</a>
+		<a href="mailto:support@suprim.com.au">{{ 'Email support'|t('geomaps') }}</a>
+		<span>Geo Maps {{ plugin.version }}</span>
+	</footer>
+</div>
+
+{% css %}
+.gm { --gm-accent: #4f46e5; --gm-accent-soft: #eef0fd; --gm-line: var(--hairline-color, rgba(51, 64, 77, 0.1)); max-width: 1100px; }
+.gm h2 { margin: 0 0 4px; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gm p { margin: 0; }
+
+.gm-notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; margin-bottom: 20px; border-radius: 8px; background: var(--yellow-050, #fffbeb); color: var(--yellow-800, #854d0e); }
+.gm-notice svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+
+.gm-status { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.gm-status__item { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 14px; border: 1px solid var(--gm-line); border-radius: 10px; background: var(--gray-050, #f8fafc); }
+.gm-status__icon { grid-row: span 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #fff; color: var(--gm-accent); box-shadow: 0 0 0 1px var(--gm-line); }
+.gm-status__icon svg { width: 18px; height: 18px; }
+.gm-status__label { font-size: 12px; color: var(--light-text-color, #64748b); text-transform: uppercase; letter-spacing: 0.04em; }
+.gm-status__value { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; min-width: 0; }
+.gm-status__value .status { flex: none; }
+
+.gm-card { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 8px 32px; padding: 24px 0; border-top: 1px solid var(--gm-line); }
+.gm-card__head { display: flex; gap: 12px; align-items: flex-start; }
+.gm-card__head p { color: var(--medium-text-color, #475569); font-size: 13px; line-height: 1.55; }
+.gm-card__icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 9px; background: var(--gm-accent-soft); color: var(--gm-accent); }
+.gm-card__icon svg { width: 19px; height: 19px; }
+.gm-card__body > .field:first-child { margin-top: 0; }
+.gm-card__body .field + .field, .gm-card__body .gm-preview + .field { margin-top: 20px; }
+
+.gm-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; background: var(--gray-100, #f1f5f9); color: var(--medium-text-color, #475569); }
+.gm-badge--pro { background: var(--gm-accent); color: #fff; }
+.gm-badge--on { background: #dcfce7; color: #166534; }
+
+.gm-help { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: var(--gray-050, #f8fafc); border: 1px solid var(--gm-line); }
+.gm-help summary { cursor: pointer; font-weight: 600; color: var(--link-color, #2563eb); }
+.gm-help ol { margin: 10px 0 2px 18px; padding: 0; list-style: decimal; }
+.gm-help li { margin: 6px 0; line-height: 1.5; }
+
+.gm-preview { margin-top: 12px; }
+.gm-preview__tiles { display: grid; grid-template-columns: repeat(4, 1fr); height: 132px; overflow: hidden; border-radius: 8px; border: 1px solid var(--gm-line); background: var(--gray-100, #f1f5f9); }
+.gm-preview__tiles img { width: 100%; height: 132px; object-fit: cover; display: block; }
+.gm-preview__tiles.is-empty::after { content: attr(data-message); grid-column: 1 / -1; align-self: center; text-align: center; font-size: 12px; color: var(--light-text-color, #64748b); }
+.gm-preview__caption { margin-top: 6px !important; font-size: 12px; color: var(--light-text-color, #64748b); }
+
+.gm-card--pro .gm-card__icon { background: var(--gm-accent); color: #fff; }
+.gm-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.gm-feature { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid var(--gm-line); border-radius: 10px; }
+.gm-feature__icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; background: var(--gm-accent-soft); color: var(--gm-accent); }
+.gm-feature__icon svg { width: 19px; height: 19px; }
+.gm-feature__text { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; color: var(--medium-text-color, #475569); }
+.gm-feature__text strong { color: var(--text-color, #1f2937); font-size: 14px; }
+.gm-feature__control { display: flex; align-items: center; gap: 8px; }
+.gm-feature__control-label { font-size: 12px; color: var(--light-text-color, #64748b); }
+.gm-card__actions { grid-column: 2; display: flex; gap: 8px; margin-top: 6px; }
+.gm-card--pro .gm-features { grid-column: 2; grid-row: 1 / span 2; }
+
+.gm-footer { display: flex; flex-wrap: wrap; gap: 18px; padding-top: 18px; border-top: 1px solid var(--gm-line); font-size: 13px; }
+.gm-footer span { margin-left: auto; color: var(--light-text-color, #64748b); }
+
+@media (max-width: 1100px) { .gm-status { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 800px) {
+	.gm-card { grid-template-columns: 1fr; }
+	.gm-card--pro .gm-features, .gm-card__actions { grid-column: 1; grid-row: auto; }
+	.gm-status { grid-template-columns: 1fr; }
+}
+{% endcss %}
+
+{% js %}
+(() => {
+	// Live preview of the tiles URL: four tiles across Adelaide at zoom 12.
+	const preview = document.querySelector('[data-gm-preview]');
+	const input = document.getElementById('{{ 'tileUrl'|namespaceInputId }}');
+	if (!preview || !input) return;
+	const strip = preview.querySelector('.gm-preview__tiles');
+	const tiles = [3623, 3624, 3625, 3626].map((x) => ({ z: 12, x, y: 2472 }));
+
+	const render = () => {
+		const value = input.value.trim();
+		// Environment variables are only known on the server, so preview the saved value for those.
+		const template = value === '' ? preview.dataset.saved : (value.startsWith('$') || value.startsWith('@') ? preview.dataset.saved : value);
+		strip.innerHTML = '';
+		strip.classList.remove('is-empty');
+		if (!/\{z\}/.test(template) || !/\{x\}/.test(template) || !/\{y\}/.test(template)) {
+			strip.classList.add('is-empty');
+			strip.dataset.message = {{ 'The URL needs {z}, {x} and {y}.'|t('geomaps')|json_encode|raw }};
+			return;
+		}
+		tiles.forEach((t) => {
+			const img = document.createElement('img');
+			img.alt = '';
+			img.loading = 'lazy';
+			img.src = template.replace('{s}', 'a').replace('{r}', '').replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y);
+			img.onerror = () => {
+				strip.classList.add('is-empty');
+				strip.dataset.message = {{ 'These tiles didn’t load. Check the URL and any API key in it.'|t('geomaps')|json_encode|raw }};
+				strip.querySelectorAll('img').forEach((i) => i.remove());
+			};
+			strip.append(img);
+		});
+	};
+
+	let timer;
+	input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(render, 400); });
+	render();
+})();
+{% endjs %}

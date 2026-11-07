@@ -34,6 +34,7 @@ class Settings extends Model
             [['tileUrl', 'tileAttribution'], 'string'],
             ['tileUrl', 'default', 'value' => self::OSM_TILE_URL],
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
+            ['geocodeMissing', 'boolean'],
         ]);
     }
     public function getMapToken(): ?string
