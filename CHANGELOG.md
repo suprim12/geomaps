@@ -13,6 +13,9 @@
 - The plugin settings page shows which map and search services the site is using, and previews the map tiles URL as you type.
 - Mapbox map styles: a **Mapbox access token** setting, and quick setup buttons for Mapbox Streets, Light, Dark and Satellite that fill in the tiles URL and the credit Mapbox requires.
 - Mapbox can be chosen as the **Geocoding service** for location searches, address suggestions and missing coordinates, with an option for Mapbox permanent geocoding where results are saved.
+- **Maps** settings to choose Google Maps or the map tiles separately for the front end and the control panel, and `embed({ provider: 'google' })` or `provider: 'tiles'` for a single map.
+- Static map images from Mapbox, using your Mapbox style, when the front-end maps aren’t Google maps, or with `img({ provider: 'mapbox' })`.
+- The settings page warns when Google address lookups are combined with non-Google maps, which Google’s terms don’t allow.
 
 ## 1.3.0 - 2026-11-08
 

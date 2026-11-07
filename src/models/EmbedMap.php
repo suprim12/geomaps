@@ -47,6 +47,8 @@ class EmbedMap extends Model
      * Group nearby markers into numbered clusters (Pro): `true`, or `{ color, radius, maxZoom }`.
      */
     public mixed   $cluster = false;
+    /** `google` or `tiles` to override the Map provider setting for this map. */
+    public ?string $provider = null;
 
     public function __toString(): string
     {
@@ -60,6 +62,11 @@ class EmbedMap extends Model
         $id = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
         $settings = Plugin::getInstance()->getSettings();
         $mapToken = $settings->getMapToken();
+        $provider = match ($this->provider) {
+            'google' => $mapToken ? 'google' : 'osm',
+            'tiles', 'osm' => 'osm',
+            default => $settings->getMapProvider('site'),
+        };
         $center = $this->resolveCenter();
         $markers = $this->resolveMarkers($center);
         $cluster = $this->resolveCluster();
@@ -74,7 +81,7 @@ class EmbedMap extends Model
             'fitMarkers' => $this->fitMarkers,
             'cluster' => $cluster,
             'options' => $this->options,
-            'provider' => $settings->getMapProvider(),
+            'provider' => $provider,
             'tileUrl' => $settings->getTileUrl(),
             'tileAttribution' => $settings->tileAttribution,
         ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); // safe inside <script>
@@ -88,7 +95,7 @@ class EmbedMap extends Model
             $view->registerAssetBundle(ClusterAsset::class);
         }
 
-        if ($mapToken) {
+        if ($provider === 'google') {
             // Catch Google rejecting the key (it reports this asynchronously via window.gm_authFailure).
             $view->registerJs(<<<'HOOK'
             if (!window.__supgeoAuthHooked) {

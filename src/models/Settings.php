@@ -18,6 +18,10 @@ class Settings extends Model
     public ?string $geoToken = null;
     /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL and used for Mapbox geocoding. */
     public ?string $mapboxToken = null;
+    /** Maps on the front end (`embed()`, the store locator): `auto` (Google with a browser key, otherwise the map tiles), `google` or `tiles`. */
+    public string $mapProvider = 'auto';
+    /** Maps in the control panel (the field): `auto`, `google` or `tiles`. */
+    public string $cpMapProvider = 'auto';
     /** Address lookups: `auto` (Google with a server key, otherwise OpenStreetMap), `nominatim`, `google` or `mapbox`. */
     public string $geocoder = 'auto';
     /**
@@ -45,6 +49,7 @@ class Settings extends Model
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
             ['geocodeMissing', 'boolean'],
             ['geocoder', 'in', 'range' => ['auto', 'nominatim', 'google', 'mapbox']],
+            [['mapProvider', 'cpMapProvider'], 'in', 'range' => ['auto', 'google', 'tiles']],
             ['mapboxPermanent', 'boolean'],
         ]);
     }
@@ -96,9 +101,45 @@ class Settings extends Model
         };
     }
 
-    public function getMapProvider(): string
+    /**
+     * The map shown on the front end (`site`) or in the control panel (`cp`): `google`, or `osm` for the
+     * map tiles URL (OpenStreetMap, Mapbox or another tile provider). Google needs the browser key.
+     */
+    public function getMapProvider(string $context = 'site'): string
     {
-        return $this->getMapToken() ? 'google' : 'osm';
+        $choice = $context === 'cp' ? $this->cpMapProvider : $this->mapProvider;
+
+        if ($choice === 'tiles' || !$this->getMapToken()) {
+            return 'osm';
+        }
+
+        return 'google';
+    }
+
+    /**
+     * The service for static map images (`img()`): Google with a Google map and a browser key,
+     * otherwise Mapbox when there's a Mapbox token, otherwise Google if there's a key.
+     */
+    public function getStaticMapProvider(): ?string
+    {
+        if ($this->getMapProvider('site') === 'google') {
+            return 'google';
+        }
+
+        if ($this->getMapboxToken()) {
+            return 'mapbox';
+        }
+
+        return $this->getMapToken() ? 'google' : null;
+    }
+
+    /**
+     * Google's terms don't allow Geocoding or Places API results with a non-Google map.
+     */
+    public function hasGoogleGeocodingWithOtherMaps(): bool
+    {
+        return $this->getGeocoder() === 'google'
+            && ($this->getMapProvider('site') !== 'google' || $this->getMapProvider('cp') !== 'google');
     }
 
     /**

@@ -26,6 +26,8 @@ class StaticMap extends Model
     public string $format = 'png';
     public string $mapType = 'roadmap';
     public mixed $colorScheme = null;
+    /** `google` or `mapbox`. Defaults to the map provider: Google with Google maps, otherwise Mapbox when there's a token. */
+    public ?string $provider = null;
     private ?string $_resolvedCenter = null;
 
     public function img(array $options = []): ?string
@@ -67,6 +69,12 @@ class StaticMap extends Model
     private function buildUrl(int $scale = 1): ?string
     {
         $settings = Plugin::getInstance()->getSettings();
+        $provider = in_array($this->provider, ['google', 'mapbox'], true) ? $this->provider : $settings->getStaticMapProvider();
+
+        if ($provider === 'mapbox') {
+            return $this->buildMapboxUrl($scale);
+        }
+
         $apiKey = $settings->getMapToken();
 
         if (!$apiKey) {
@@ -101,6 +109,92 @@ class StaticMap extends Model
         }
 
         return 'https://maps.googleapis.com/maps/api/staticmap?' . $query;
+    }
+
+    /**
+     * A Mapbox Static Images API URL. Uses the Mapbox style from the map tiles URL when it's a Mapbox
+     * style, otherwise Mapbox Streets. Mapbox adds its logo and credit to the image.
+     */
+    private function buildMapboxUrl(int $scale = 1): ?string
+    {
+        $settings = Plugin::getInstance()->getSettings();
+        $token = $settings->getMapboxToken();
+
+        if (!$token) {
+            Craft::warning('GeoMaps: a Mapbox access token is required for Mapbox static maps', 'geomaps');
+            return null;
+        }
+
+        $style = preg_match('#api\.mapbox\.com/styles/v1/([\w.-]+)/([\w.-]+)/tiles#', $settings->getTileUrl(), $m)
+            ? "{$m[1]}/{$m[2]}"
+            : 'mapbox/streets-v12';
+
+        $center = self::lngLat($this->_resolvedCenter ?? $this->resolveCenter());
+        $overlays = [];
+
+        foreach ($this->markers ?: ($center ? [['location' => ['lat' => $center[1], 'lng' => $center[0]]]] : []) as $marker) {
+            $point = self::lngLat($marker['location'] ?? null);
+            if (!$point) {
+                continue;
+            }
+
+            $label = '';
+            if (!empty($marker['label']) && preg_match('/[a-z0-9]/i', \craft\helpers\StringHelper::toAscii((string)$marker['label']), $l)) {
+                $label = '-' . strtolower($l[0]);
+            }
+            $color = self::markerColor($marker['color'] ?? null);
+            $color = $color && str_starts_with($color, '0x') ? '+' . substr($color, 2, 6) : '+ff0000';
+
+            $overlays[] = "pin-s{$label}{$color}({$point[0]},{$point[1]})";
+        }
+
+        if (!$center && !$overlays) {
+            Craft::warning('GeoMaps: could not resolve center for static map', 'geomaps');
+            return null;
+        }
+
+        $position = $center ? "{$center[0]},{$center[1]},{$this->zoom}" : 'auto';
+
+        // Mapbox allows up to 1280 × 1280 (doubled with @2x).
+        $width = max(1, $this->width);
+        $height = max(1, $this->height);
+        $ratio = min(1, 1280 / max($width, $height));
+        $size = max(1, (int)floor($width * $ratio)) . 'x' . max(1, (int)floor($height * $ratio)) . ($scale > 1 ? '@2x' : '');
+
+        $path = implode('/', array_filter([
+            $overlays ? rawurlencode(implode(',', $overlays)) : null,
+            $position,
+            $size,
+        ]));
+
+        return "https://api.mapbox.com/styles/v1/{$style}/static/{$path}?" . http_build_query(['access_token' => $token], '', '&', PHP_QUERY_RFC3986);
+    }
+
+    /**
+     * `[lng, lat]` from coordinates, a "lat,lng" string or an address (looked up with the geocoding service).
+     *
+     * @return array{0: float, 1: float}|null
+     */
+    private static function lngLat(mixed $location): ?array
+    {
+        if (is_array($location)) {
+            $lat = $location['lat'] ?? $location[0] ?? null;
+            $lng = $location['lng'] ?? $location[1] ?? null;
+
+            return is_numeric($lat) && is_numeric($lng) ? [round((float)$lng, 6), round((float)$lat, 6)] : null;
+        }
+
+        if (!is_string($location) || trim($location) === '') {
+            return null;
+        }
+
+        if (preg_match('/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/', $location, $m)) {
+            return [round((float)$m[2], 6), round((float)$m[1], 6)];
+        }
+
+        $found = \suprim\geomaps\services\GeoService::geocode(trim($location));
+
+        return $found ? [round($found['lng'], 6), round($found['lat'], 6)] : null;
     }
 
     /**

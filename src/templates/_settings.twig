@@ -11,7 +11,9 @@
 {% set configFileExists = config is not empty %}
 {% set docs = 'https://plugins.geomaps.suprim.com.au' %}
 {% set isPro = plugin.isPro() %}
-{% set usesGoogleMaps = settings.getMapProvider() == 'google' %}
+{% set usesGoogleMaps = settings.getMapProvider('cp') == 'google' %}
+{% macro mapName(provider) %}{{ provider == 'google' ? 'Google Maps' : craft.app.plugins.getPlugin('geomaps').getSettings().getTileProviderName() }}{% endmacro %}
+{% from _self import mapName %}
 {% set geocoder = settings.getGeocoder() %}
 {% set geocoderNames = { google: 'Google Geocoding', mapbox: 'Mapbox', nominatim: 'Nominatim' } %}
 
@@ -47,7 +49,7 @@
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.map|raw }}</span>
 			<span class="gm-status__label">{{ 'Maps'|t('geomaps') }}</span>
-			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Maps' : settings.getTileProviderName() }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ mapName(settings.getMapProvider('site')) }}{% if settings.getMapProvider('cp') != settings.getMapProvider('site') %}<span class="gm-status__sub">· {{ 'CP: {name}'|t('geomaps', { name: mapName(settings.getMapProvider('cp')) }) }}</span>{% endif %}</span>
 		</div>
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.search|raw }}</span>
@@ -67,6 +69,57 @@
 			</span>
 		</div>
 	</div>
+
+	{# Which map is shown where #}
+	<section class="gm-card">
+		<header class="gm-card__head">
+			<span class="gm-card__icon">{{ icons.map|raw }}</span>
+			<div>
+				<h2>{{ 'Maps'|t('geomaps') }}</h2>
+				<p>{{ 'Choose which maps are shown on your site and in the control panel. A single map can override this with {option}.'|t('geomaps', { option: '<code>embed({ provider: … })</code>' })|raw }}</p>
+			</div>
+		</header>
+
+		<div class="gm-card__body">
+			{% set mapOptions = [
+				{ value: 'auto', label: 'Automatic (Google with a browser key)'|t('geomaps') },
+				{ value: 'google', label: 'Google Maps'|t('geomaps') },
+				{ value: 'tiles', label: 'Map tiles (OpenStreetMap, Mapbox…)'|t('geomaps') },
+			] %}
+			<div class="gm-row">
+				{{ forms.selectField({
+					label: 'Front end'|t('geomaps'),
+					instructions: 'Maps from {embed} and the store locator. Automatic uses the map tiles without a Google browser key.'|t('geomaps', { embed: '`embed()`' }),
+					id: 'mapProvider',
+					name: 'mapProvider',
+					value: settings.mapProvider,
+					options: mapOptions,
+					disabled: configFileExists and config.mapProvider is defined,
+					errors: settings.getErrors('mapProvider'),
+				}) }}
+				{{ forms.selectField({
+					label: 'Control panel'|t('geomaps'),
+					instructions: 'The map in the field, where authors place locations.'|t('geomaps'),
+					id: 'cpMapProvider',
+					name: 'cpMapProvider',
+					value: settings.cpMapProvider,
+					options: mapOptions,
+					disabled: configFileExists and config.cpMapProvider is defined,
+					errors: settings.getErrors('cpMapProvider'),
+				}) }}
+			</div>
+
+			{% if (settings.mapProvider == 'google' or settings.cpMapProvider == 'google') and not settings.getMapToken() %}
+				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google Maps is chosen but there’s no browser key, so the map tiles are shown instead.'|t('geomaps') }}</p></div>
+			{% endif %}
+
+			{% if settings.hasGoogleGeocodingWithOtherMaps() %}
+				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Address lookups use Google, but some maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”. Show Google results only on Google maps, or choose OpenStreetMap or Mapbox for address lookups.'|t('geomaps') }}</p></div>
+			{% endif %}
+
+			<p class="gm-presets__note">{{ 'Address suggestions in the field follow its map: Google Places on Google maps, and OpenStreetMap or Mapbox on other maps, as Google’s terms require. Static images from {img} use Google with Google maps, otherwise Mapbox when there’s a Mapbox token.'|t('geomaps', { img: '<code>img()</code>' })|raw }}</p>
+		</div>
+	</section>
 
 	{# Google #}
 	<section class="gm-card">
@@ -133,10 +186,10 @@
 				name: 'geocoder',
 				value: settings.geocoder,
 				options: [
-					{ value: 'auto', label: 'Automatic: Google with a server key, otherwise OpenStreetMap'|t('geomaps') },
-					{ value: 'nominatim', label: 'OpenStreetMap (Nominatim and Photon, free, no key)'|t('geomaps') },
-					{ value: 'google', label: 'Google (needs the server key above)'|t('geomaps') },
-					{ value: 'mapbox', label: 'Mapbox (needs the Mapbox access token below)'|t('geomaps') },
+					{ value: 'auto', label: 'Automatic (Google with a server key)'|t('geomaps') },
+					{ value: 'nominatim', label: 'OpenStreetMap (free, no key)'|t('geomaps') },
+					{ value: 'google', label: 'Google (server key)'|t('geomaps') },
+					{ value: 'mapbox', label: 'Mapbox (access token)'|t('geomaps') },
 				],
 				disabled: configFileExists and config.geocoder is defined,
 				errors: settings.getErrors('geocoder'),
@@ -304,6 +357,7 @@
 .gm-status__label { align-self: end; font-size: 11px; line-height: 1.2; color: var(--light-text-color, #64748b); text-transform: uppercase; letter-spacing: 0.05em; }
 .gm-status__value { align-self: start; display: flex; align-items: center; gap: 7px; min-width: 0; font-weight: 600; font-size: 14px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gm-status__value .status { flex: none; margin: 0; }
+.gm-status__sub { font-weight: 500; font-size: 12px; color: var(--light-text-color, #64748b); }
 .gm-status__value .gm-badge { font-size: 12px; padding: 2px 10px; }
 
 .gm-card { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 8px 32px; padding: 24px 0; border-top: 1px solid var(--gm-line); }
@@ -332,6 +386,12 @@
 .gm-presets__note { margin: 0 0 16px !important; font-size: 12px; line-height: 1.5; color: var(--light-text-color, #64748b); }
 .gm-preview { margin-top: 12px; }
 .gm-mapbox-geocoding { margin-top: 20px; }
+.gm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.gm-row > .field { margin: 0 !important; }
+.gm-warning { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; padding: 12px 14px; border-radius: 8px; background: var(--yellow-050, #fffbeb); color: var(--yellow-800, #854d0e); font-size: 13px; line-height: 1.5; }
+.gm-warning svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.gm-card__body > .gm-presets__note:last-child { margin: 16px 0 0 !important; }
+@media (max-width: 1100px) { .gm-row { grid-template-columns: 1fr; } }
 .gm-mapbox-geocoding[hidden] { display: none; }
 .gm-preview__tiles { display: grid; grid-template-columns: repeat(4, 1fr); height: 132px; overflow: hidden; border-radius: 8px; border: 1px solid var(--gm-line); background: var(--gray-100, #f1f5f9); }
 .gm-preview__tiles img { width: 100%; height: 132px; object-fit: cover; display: block; }
