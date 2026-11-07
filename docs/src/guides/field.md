@@ -62,6 +62,10 @@ GeoJSON has no circle type, so circle tools aren’t offered — draw a polygon 
 | Min Zoom / Max Zoom | How far authors can zoom out and in (0 = whole world, 18 = street level). |
 | Limit Search to Countries | Only shows address search results in up to 5 chosen countries. Leave empty to search everywhere. |
 
+## Finding entries by address in the control panel
+
+Add the field as a column in an entry list to see each entry’s address. To find entries by street, suburb or postcode with the control panel’s search box, turn on **Use this field’s values as search keywords** in the field’s settings, then run `php craft resave/entries --update-search-index` once so existing entries are indexed.
+
 ## Validation
 
 Geo Maps checks that latitude and longitude are numbers in range and are set together, and that GeoJSON is valid (types, coordinates and nesting). Problems are shown on the field when the entry is saved.

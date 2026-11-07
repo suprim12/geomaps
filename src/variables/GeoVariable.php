@@ -10,6 +10,7 @@
 
 namespace suprim\geomaps\variables;
 
+use suprim\geomaps\models\AddressInput;
 use suprim\geomaps\models\EmbedMap;
 use suprim\geomaps\models\StaticMap;
 
@@ -52,5 +53,13 @@ class GeoVariable
             }
         }
         return $map;
+    }
+
+    /**
+     * An address search box with suggestions for front-end forms.
+     */
+    public function addressInput(array $options = []): \Twig\Markup
+    {
+        return (new AddressInput())->render($options);
     }
 }

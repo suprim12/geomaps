@@ -1,0 +1,127 @@
+/*
+ * Default styles for craft.geomaps.addressInput(). Kept light so they sit inside any
+ * design; override the custom properties or the classes in your own CSS.
+ */
+.geomaps-address {
+  --geomaps-border: #cbd2e0;
+  --geomaps-focus: #4f46e5;
+  --geomaps-bg: #fff;
+  --geomaps-text: #1f2937;
+  --geomaps-muted: #6b7280;
+  --geomaps-active: #eef0fd;
+  --geomaps-error: #dc2626;
+  --geomaps-radius: 8px;
+
+  position: relative;
+}
+
+.geomaps-address__input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.65em 0.85em;
+  font: inherit;
+  color: var(--geomaps-text);
+  background: var(--geomaps-bg);
+  border: 1px solid var(--geomaps-border);
+  border-radius: var(--geomaps-radius);
+}
+
+.geomaps-address__input:focus {
+  outline: 2px solid var(--geomaps-focus);
+  outline-offset: 1px;
+}
+
+.geomaps-address__input[aria-invalid="true"] {
+  border-color: var(--geomaps-error);
+}
+
+.geomaps-address--loading .geomaps-address__input {
+  background-image: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.08), transparent);
+  background-size: 200% 100%;
+  animation: geomaps-address-loading 1s linear infinite;
+}
+
+@keyframes geomaps-address-loading {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+.geomaps-address__list {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--geomaps-bg);
+  border: 1px solid var(--geomaps-border);
+  border-radius: var(--geomaps-radius);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.geomaps-address__list[hidden] {
+  display: none;
+}
+
+.geomaps-address__option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.55em 0.7em;
+  border-radius: calc(var(--geomaps-radius) - 3px);
+  cursor: pointer;
+  color: var(--geomaps-text);
+}
+
+.geomaps-address__option:hover,
+.geomaps-address__option[aria-selected="true"] {
+  background: var(--geomaps-active);
+}
+
+.geomaps-address__main {
+  font-weight: 500;
+}
+
+.geomaps-address__secondary {
+  font-size: 0.85em;
+  color: var(--geomaps-muted);
+}
+
+.geomaps-address__credit {
+  /* Stays visible while the list scrolls: OpenStreetMap data must be credited. */
+  position: sticky;
+  bottom: -4px;
+  margin: 4px -4px -4px;
+  padding: 0.45em 1.1em;
+  background: var(--geomaps-bg);
+  border-top: 1px solid var(--geomaps-border);
+  font-size: 0.72em;
+  color: var(--geomaps-muted);
+}
+
+.geomaps-address__credit a {
+  color: inherit;
+}
+
+.geomaps-address__error {
+  margin: 0.4em 0 0;
+  font-size: 0.875em;
+  color: var(--geomaps-error);
+}
+
+.geomaps-address__error[hidden] {
+  display: none;
+}
+
+.geomaps-address__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

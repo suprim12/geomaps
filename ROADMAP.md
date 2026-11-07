@@ -6,6 +6,10 @@ New features we’re planning are below. Some may become part of a paid **Pro** 
 
 Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/issues) or email [support@suprim.com.au](mailto:support@suprim.com.au).
 
+## Done
+
+- **Address autocomplete for front-end forms** (1.3). See the [example](https://plugins.geomaps.suprim.com.au/examples/address-autocomplete).
+
 ## Next
 
 - **Marker clustering.** Group nearby pins on maps with hundreds of locations, and split them apart as visitors zoom in.
@@ -24,4 +28,3 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 
 - Elevation profiles for trails.
 - Geofenced content: show different content to visitors in different areas.
-- Address autocomplete for front-end forms.

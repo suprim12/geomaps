@@ -46,6 +46,7 @@ Searches by coordinates (`{ lat, lng }`) or by another entry’s value aren’t 
 | A page shows `embed()` with OpenStreetMap | OpenStreetMap tile servers, or your tile provider | Which map area is viewed. No cookies. |
 | A page shows `embed()` with Google | Google Maps | Which map area is viewed. Google may set cookies and processes data under the [Google Privacy Policy](https://policies.google.com/privacy). |
 | A page shows `img()` / `imgSrcSet()` | Google Static Maps | The image’s location and markers |
+| A visitor types in an `addressInput()` box | [Photon](https://photon.komoot.io) (komoot) | The text typed, the box’s countries and its `near` position. No cookies. |
 
 Custom pin images and everything else on the page come from your own site.
 
@@ -69,7 +70,7 @@ To avoid Google entirely, leave the Google keys blank: maps, address search and 
 
 Adapt this to the services your site actually uses:
 
-> **Maps.** Our pages show maps from OpenStreetMap [and Google Maps]. When a map is shown, your browser requests map images from these services, which receive your IP address and the area being viewed. [Google may set cookies; see the Google Privacy Policy.] When you search our site by address, the address is sent to a geocoding service (OpenStreetMap Nominatim [or Google]) to find its location.
+> **Maps.** Our pages show maps from OpenStreetMap [and Google Maps]. When a map is shown, your browser requests map images from these services, which receive your IP address and the area being viewed. [Google may set cookies; see the Google Privacy Policy.] When you search our site by address, the address is sent to a geocoding service (OpenStreetMap Nominatim [or Google]) to find its location. [When you type an address in our forms, the text is sent to Photon (komoot) to suggest matching addresses.]
 
 ## Usage policies of the free services
 

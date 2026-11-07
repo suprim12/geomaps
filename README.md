@@ -13,6 +13,7 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 - **Draw shapes.** Markers, lines, rectangles and polygons (with holes), with per-shape properties, a GeoJSON editor, and `.geojson` upload and download.
 - **Distance search.** Find entries within a radius of an address, coordinates or another entry, sorted nearest first, with the distance on every result.
 - **Containment search.** Find the delivery area, sales territory or bin-collection zone that contains an address.
+- **Address autocomplete for your forms.** Add an address box with suggestions to front-end forms with one Twig tag, to save locations or search by address.
 - **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google static map images, straight from Twig.
 - **Flexible field settings.** Hide the pin, drawing, search, address or map; set zoom limits; limit search to up to 5 countries.
 - **GraphQL and Feed Me.** Query, search and save locations in headless projects, and import locations from feeds.

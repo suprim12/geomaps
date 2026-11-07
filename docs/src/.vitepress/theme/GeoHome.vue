@@ -6,6 +6,7 @@ const examples = [
   { href: '/examples/area-map', img: '/examples/area-map.jpg', name: 'Map of zones', line: 'Every area on one map, coloured, with a legend.', alt: 'Three collection zones in blue, green and orange with a legend' },
   { href: '/examples/location-page', img: '/examples/location-page.jpg', name: 'Location page', line: 'Address, directions and the nearest other stores.', alt: 'A store page with its address, directions button and nearby stores' },
   { href: '/examples/trail-maps', img: '/examples/trail-maps.jpg', name: 'Trail maps', line: 'Routes drawn as lines, coloured by difficulty, with their length.', alt: 'Three Adelaide trails beside a map, coloured by difficulty' },
+  { href: '/examples/address-autocomplete', img: '/examples/address-autocomplete.jpg', name: 'Address autocomplete', line: 'Suggestions as visitors type, for your own forms.', alt: 'An address box listing suggestions for The Parade, Norwood, beside a map of Adelaide' },
   { href: '/examples/custom-pins', img: '/examples/custom-pins.jpg', name: 'Custom pins and cards', line: 'Your own pin image and an info card on click.', alt: 'Store pins on a map of Adelaide with an info card open' },
 ]
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
