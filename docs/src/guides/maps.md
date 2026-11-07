@@ -54,6 +54,27 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 | `cluster` | Group nearby markers into numbered bubbles: `true` or `{ color, radius, maxZoom }`. **Pro.** See [Marker clustering](#marker-clustering) | `false` |
 
+### Choosing Google or map tiles for one map
+
+Maps use Google when a Google browser key is set, and the [map tiles](/getting-started/configuration#map-providers) otherwise. Use `provider` to choose for a single map:
+
+```twig
+{# Always Google Maps (needs the browser key; falls back to the map tiles without one) #}
+{{ entry.storeLocation.embed({ provider: 'google', height: 360 }) }}
+
+{# Always the map tiles: OpenStreetMap, Mapbox or your tile provider, even with a Google key #}
+{{ craft.geomaps.embed({
+    provider: 'tiles',
+    center: 'Adelaide, South Australia',
+    zoom: 12,
+    height: 400,
+}) }}
+```
+
+To change the default for every map on your site, or in the control panel, set `mapProvider` or `cpMapProvider` in [`config/geomaps.php`](/getting-started/configuration#map-providers).
+
+Static images work the same way with `img({ provider: 'google' })` or `img({ provider: 'mapbox' })`; see [Static map images](#static-map-images).
+
 ### Marker clustering <Badge type="tip" text="Pro" /> {#marker-clustering}
 
 Maps with dozens or hundreds of markers get crowded. Turn on `cluster` and nearby markers group into a numbered bubble, which splits apart as visitors zoom in or click it:
