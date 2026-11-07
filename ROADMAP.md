@@ -1,30 +1,37 @@
 # Geo Maps Roadmap
 
-Geo Maps is free. Everything it does today stays free, including location fields, drawn zones and trails, distance and “which zone” search, front-end maps, GraphQL, Feed Me and importing from other map plugins.
+Geo Maps is free, and everything in the free edition stays free: location fields, drawn zones and trails, distance and “which zone” search, front-end maps, address autocomplete, GraphQL, Feed Me and importing from other map plugins.
 
-New features we’re planning are below. Some may become part of a paid **Pro** edition alongside the free one. Nothing that’s free now will move to Pro.
+**Geo Maps Pro** adds features that save developers time on bigger builds. Nothing that’s free moves to Pro.
 
 Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/issues) or email [support@suprim.com.au](mailto:support@suprim.com.au).
 
 ## Done
 
 - **Address autocomplete for front-end forms** (1.3). See the [example](https://plugins.geomaps.suprim.com.au/examples/address-autocomplete).
+- **Store locator component** (1.4, Pro). Address search, “Use my location”, results list and map from one Twig tag.
+- **Marker clustering** (1.4, Pro) for `embed()` maps.
+- **Missing coordinates** (1.4, Pro). Coordinates for imported locations that only have an address, in the background or with `php craft geomaps/geocode`.
 
 ## Next
 
-- **Marker clustering.** Group nearby pins on maps with hundreds of locations, and split them apart as visitors zoom in.
-- **Store locator component.** A ready-made search box, results list and map with one Twig tag, styled to fit your site.
-- **Geocode missing coordinates.** Find coordinates for entries that only have an address, such as those imported from a feed, in the background.
+- **Viewport and polygon search.** Find entries inside the visible map area or any polygon from element queries, for “search as the map moves” without custom SQL.
+- **Headless search endpoint.** A ready-made JSON endpoint and matching GraphQL arguments that return the nearest entries with distances, for React, Vue and app front ends.
+- **Provider adapters.** Mapbox, HERE and MapTiler for geocoding, map tiles and static images, and an interface for adding your own.
 
 ## Later
 
-- **Bulk shape import and export.** Create zone or trail entries from GeoJSON, KML, GPX or CSV files, and export them again.
-- **Static map images without Google.** `img()` from OpenStreetMap-based providers.
-- **Travel-time areas.** “Within 15 minutes’ drive” zones and delivery areas, with routing from an OpenStreetMap service.
+- **Multiple locations per entry.** One field holding several addresses, such as a business with many branches, with search matching the nearest.
+- **Large datasets.** Native database spatial indexes for sites with tens of thousands of locations.
+- **Bulk import and export commands.** Load and export locations, zones and trails as GeoJSON, KML, GPX or CSV.
+- **Route corridor search.** Find entries within a distance of a route or line.
 - **A map of your entries in the control panel.** See every location in a section on one map, and jump to an entry from its pin.
-- **More map styles.** Vector tiles from providers such as MapTiler and Mapbox.
 
 ## Considering
 
+- Travel-time search (“within 15 minutes’ drive”) using a routing service.
 - Elevation profiles for trails.
-- Geofenced content: show different content to visitors in different areas.
+
+## Always free
+
+Ways to build on Geo Maps stay in the free edition: events for geocoding and maps, Twig helpers, field values and query parameters, and clear errors and logging.
