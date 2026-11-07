@@ -1,5 +1,10 @@
 # Release Notes for Geo Maps
 
+## 1.2.2 - 2026-11-07
+
+### Fixed
+- Reinstalling Geo Maps over a lookup table left by an earlier install could break distance and zone search, and saving shapes, with an “Unknown column 'shape'” error. Installing now updates the existing table and re-indexes saved locations.
+
 ## 1.2.0 - 2026-10-22
 
 ### Added
