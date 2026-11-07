@@ -2,7 +2,7 @@
 
 Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [locator component](/guides/locator) and the map in the control panel. It works on the free edition, with no code.
 
-Mapbox tiles are used for maps set to **Map tiles** under **Settings → Plugins → Geo Maps → Maps** (or **Automatic** without a Google key), so you can use Google in the control panel and Mapbox on your site, or the other way round. Mapbox can also look up addresses (see [Address search with Mapbox](#address-search-with-mapbox)) and make [static map images](/guides/maps#static-map-images).
+Mapbox tiles are used when there’s no Google browser key, or for maps set to `'tiles'` in [`config/geomaps.php`](/getting-started/configuration#map-providers), so you can use Google in the control panel and Mapbox on your site, or the other way round. Mapbox can also look up addresses (see [Address search with Mapbox](#address-search-with-mapbox)) and make [static map images](/guides/maps#static-map-images).
 
 ## 1. Create an access token
 
@@ -95,6 +95,6 @@ If Mapbox refuses a request, for example because the token is restricted to othe
 
 - **Cost:** Mapbox bills by tile requests, with a free monthly allowance. Check [Mapbox pricing](https://www.mapbox.com/pricing) for your traffic.
 - **Privacy:** visitors’ browsers load the tiles from Mapbox, which receives their IP address. Mention Mapbox in your privacy policy; see [Privacy and Data](/getting-started/privacy-and-data).
-- **With a Google key too:** set **Maps** to **Map tiles** where you want Mapbox. **Automatic** prefers Google when a browser key is set.
+- **With a Google key too:** set `mapProvider` (front end) or `cpMapProvider` (control panel) to `'tiles'` in `config/geomaps.php` where you want Mapbox. Without it, Google is used when a browser key is set.
 - **Check the preview:** after saving, the **Map tiles** preview on the settings page shows the Mapbox tiles. A grey preview saying the tiles didn’t load usually means the token is missing, mistyped, or restricted to other domains.
 - **Later, Mapbox address search:** the same token will be used by future Mapbox features, so set it in **Mapbox access token** rather than writing it into the URL.

@@ -22,6 +22,10 @@ return [
         // For Mapbox styles, put {mapboxToken} in the tiles URL and set the token here:
         // 'mapboxToken' => '$MAPBOX_TOKEN',
 
+        // Which maps to show: 'auto' (Google with a browser key, otherwise the map tiles), 'google' or 'tiles'.
+        // 'mapProvider' => 'auto',      // front end: embed() and the locator component
+        // 'cpMapProvider' => 'auto',    // control panel: the map in the field
+
         // Address lookups: 'auto' (Google with a server key, otherwise OpenStreetMap), 'nominatim', 'google' or 'mapbox'.
         // 'geocoder' => 'auto',
         // Mapbox only allows saving results from permanent geocoding (needs a card on your Mapbox account).

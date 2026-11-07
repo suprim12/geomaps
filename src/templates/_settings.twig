@@ -70,56 +70,6 @@
 		</div>
 	</div>
 
-	{# Which map is shown where #}
-	<section class="gm-card">
-		<header class="gm-card__head">
-			<span class="gm-card__icon">{{ icons.map|raw }}</span>
-			<div>
-				<h2>{{ 'Maps'|t('geomaps') }}</h2>
-				<p>{{ 'Choose which maps are shown on your site and in the control panel. A single map can override this with {option}.'|t('geomaps', { option: '<code>embed({ provider: … })</code>' })|raw }}</p>
-			</div>
-		</header>
-
-		<div class="gm-card__body">
-			{% set mapOptions = [
-				{ value: 'auto', label: 'Automatic'|t('geomaps') },
-				{ value: 'google', label: 'Google Maps'|t('geomaps') },
-				{ value: 'tiles', label: 'Map tiles (OpenStreetMap, Mapbox…)'|t('geomaps') },
-			] %}
-			<div class="gm-row">
-				{{ forms.selectField({
-					label: 'Front end'|t('geomaps'),
-					instructions: 'Maps from {embed} and the locator component. Automatic shows Google Maps when a Google browser key is set, otherwise the map tiles.'|t('geomaps', { embed: '`embed()`' }),
-					id: 'mapProvider',
-					name: 'mapProvider',
-					value: settings.mapProvider,
-					options: mapOptions,
-					disabled: configFileExists and config.mapProvider is defined,
-					errors: settings.getErrors('mapProvider'),
-				}) }}
-				{{ forms.selectField({
-					label: 'Control panel'|t('geomaps'),
-					instructions: 'The map in the field, where authors place locations. Automatic works the same way.'|t('geomaps'),
-					id: 'cpMapProvider',
-					name: 'cpMapProvider',
-					value: settings.cpMapProvider,
-					options: mapOptions,
-					disabled: configFileExists and config.cpMapProvider is defined,
-					errors: settings.getErrors('cpMapProvider'),
-				}) }}
-			</div>
-
-			{% if (settings.mapProvider == 'google' or settings.cpMapProvider == 'google') and not settings.getMapToken() %}
-				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google Maps is chosen but there’s no browser key, so the map tiles are shown instead.'|t('geomaps') }}</p></div>
-			{% endif %}
-
-			{% if settings.isGoogleGeocodingBlocked() %}
-				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google address lookups are switched off because the front-end maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, so OpenStreetMap is used instead.'|t('geomaps') }}</p></div>
-			{% endif %}
-
-		</div>
-	</section>
-
 	{# Google #}
 	<section class="gm-card">
 		<header class="gm-card__head">
@@ -193,6 +143,10 @@
 				disabled: configFileExists and config.geocoder is defined,
 				errors: settings.getErrors('geocoder'),
 			}) }}
+
+			{% if settings.isGoogleGeocodingBlocked() %}
+				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google address lookups aren’t used, because the front-end maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, so OpenStreetMap is used instead.'|t('geomaps') }}</p></div>
+			{% endif %}
 
 			<div class="gm-mapbox-geocoding" data-gm-show-when-mapbox{{ settings.geocoder != 'mapbox' ? ' hidden' }}>
 				{{ forms.lightswitchField({
@@ -385,12 +339,9 @@
 .gm-presets__note { margin: 0 0 16px !important; font-size: 12px; line-height: 1.5; color: var(--light-text-color, #64748b); }
 .gm-preview { margin-top: 12px; }
 .gm-mapbox-geocoding { margin-top: 20px; }
-.gm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.gm-row > .field { margin: 0 !important; }
 .gm-warning { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; padding: 12px 14px; border-radius: 8px; background: var(--yellow-050, #fffbeb); color: var(--yellow-800, #854d0e); font-size: 13px; line-height: 1.5; }
 .gm-warning svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
-.gm-card__body > .gm-presets__note:last-child { margin: 16px 0 0 !important; }
-@media (max-width: 1100px) { .gm-row { grid-template-columns: 1fr; } }
+
 .gm-mapbox-geocoding[hidden] { display: none; }
 .gm-preview__tiles { display: grid; grid-template-columns: repeat(4, 1fr); height: 132px; overflow: hidden; border-radius: 8px; border: 1px solid var(--gm-line); background: var(--gray-100, #f1f5f9); }
 .gm-preview__tiles img { width: 100%; height: 132px; object-fit: cover; display: block; }

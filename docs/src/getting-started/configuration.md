@@ -6,16 +6,25 @@ Configure **Geo Maps** in the control panel under **Settings → Geo Maps**, or 
 
 ## Map Providers
 
-Geo Maps works without any API keys. Choose services under **Settings → Plugins → Geo Maps**, and mix them as you like:
+Geo Maps works without any API keys. Choose services under **Settings → Plugins → Geo Maps** or in `config/geomaps.php`, and mix them as you like:
 
 | Setting | Choices | Used for |
 |---|---|---|
-| **Maps → Front end** | Automatic, Google Maps, or Map tiles | `embed()` maps and the locator component |
-| **Maps → Control panel** | Automatic, Google Maps, or Map tiles | The map in the field |
+| `mapProvider` in `config/geomaps.php` | `'auto'`, `'google'` or `'tiles'` | `embed()` maps and the locator component |
+| `cpMapProvider` in `config/geomaps.php` | `'auto'`, `'google'` or `'tiles'` | The map in the field |
 | **Map tiles** | OpenStreetMap, [Mapbox](/examples/mapbox), or any tile URL | Every map that isn’t a Google map |
 | **Address lookups → Geocoding service** | Automatic, OpenStreetMap, Google, or [Mapbox](/examples/mapbox#address-search-with-mapbox) | Location searches such as `location: 'Adelaide'`, front-end address suggestions, missing coordinates |
 
-**Automatic** keeps things simple: Google maps when a Google browser key is set, Google address lookups when a Google server key is set, and OpenStreetMap otherwise.
+**Automatic** keeps things simple: Google maps when a Google browser key is set, and the map tiles otherwise. To use Google in the control panel but Mapbox on your site, or the other way round, set the map providers in `config/geomaps.php`:
+
+```php
+return [
+    'mapProvider' => 'tiles',     // front end: map tiles (e.g. Mapbox)
+    'cpMapProvider' => 'google',  // control panel: Google Maps
+];
+```
+
+A single map can use a different one with `embed({ provider: 'google' })` or `provider: 'tiles'`.
 
 Some things follow the map, so each service’s terms are met:
 

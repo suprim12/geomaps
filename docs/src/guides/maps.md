@@ -35,7 +35,7 @@ For a map that fills its container, use a CSS width:
 
 Shapes are coloured from their `color`, `stroke` and `fill` properties, lines are drawn 4px wide (set a `weight` property to change any shape’s line width), and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
 
-Which map is shown is set under **Settings → Plugins → Geo Maps → Maps**, separately for the front end and the control panel: Google Maps, or Leaflet with your [map tiles](/getting-started/configuration) (OpenStreetMap, [Mapbox](/examples/mapbox) or another provider). **Automatic** uses Google when a **Google Maps API Key** is set. If Google rejects the key, the map falls back to Leaflet automatically.
+Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with your [map tiles](/getting-started/configuration) (OpenStreetMap, [Mapbox](/examples/mapbox) or another provider) otherwise. To choose differently for the front end and the control panel, see [Map Providers](/getting-started/configuration#map-providers). If Google rejects the key, the map falls back to Leaflet automatically.
 
 | Option | Description | Default |
 |---|---|---|
@@ -50,7 +50,7 @@ Which map is shown is set under **Settings → Plugins → Geo Maps → Maps**, 
 | `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |
 | `fitShapes` | Zoom to fit the shapes | `true` |
 | `fitMarkers` | Zoom to fit the markers | `false` |
-| `provider` | `'google'` or `'tiles'` to use a different map from the **Maps** setting for this map | the front-end setting |
+| `provider` | `'google'` or `'tiles'` to choose the map for this map | Google with a browser key, otherwise the map tiles |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 | `cluster` | Group nearby markers into numbered bubbles: `true` or `{ color, radius, maxZoom }`. **Pro.** See [Marker clustering](#marker-clustering) | `false` |
 
@@ -135,7 +135,7 @@ Without a field value, use `craft.geomaps.img()` / `craft.geomaps.imgSrcSet()` w
 | `center` | `{ lat, lng }`, `[lat, lng]` or an address | the field value, or the first marker |
 | `zoom` | Zoom level | `14` |
 | `width`, `height` | Size in pixels. Google allows up to 640 and Mapbox up to 1280; larger sizes are scaled down, keeping their shape | `640` × `400` |
-| `provider` | `'google'` or `'mapbox'` | from the **Maps** setting |
+| `provider` | `'google'` or `'mapbox'` | Google with Google maps, otherwise Mapbox |
 | `mapType` | Google only: `roadmap`, `satellite`, `hybrid` or `terrain` | `roadmap` |
 | `mapId` | Google only: a Google Cloud map style ID | — |
 | `format` | Google only: `png`, `jpg`, … | `png` |
