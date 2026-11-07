@@ -95,7 +95,8 @@ class EmbedMap extends Model
 
         $width = self::cssLength($this->width, '640px');
         $height = self::cssLength($this->height, '400px');
-        $style = "width:$width;height:$height;";
+        // Own stacking context, so the map's layers (z-index up to 1000) stay under sticky headers and menus.
+        $style = "width:$width;height:$height;isolation:isolate;";
 
         $js = <<<JS
         (function() {

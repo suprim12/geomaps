@@ -1,5 +1,10 @@
 # Release Notes for Geo Maps
 
+## 1.2.3 - 2026-11-08
+
+### Fixed
+- Maps from `embed()` could cover a site’s sticky header or dropdown menus when scrolled under them; each map now keeps its layers inside its own box.
+
 ## 1.2.2 - 2026-11-07
 
 ### Fixed
