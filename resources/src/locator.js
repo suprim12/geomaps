@@ -14,7 +14,6 @@ function init(root) {
   const status = root.querySelector("[data-locator-status]");
   const locate = root.querySelector("[data-locator-locate]");
   const radius = root.querySelector("[data-locator-radius]");
-  const mapEl = root.querySelector("[data-geo-embed]");
   const items = [...root.querySelectorAll("[data-locator-result]")];
   const hidden = (key) => form.querySelector(`[data-geomaps-value="${key}"]`);
   const query = form.querySelector("[data-geomaps-query]");
@@ -62,7 +61,8 @@ function init(root) {
   // Clicking a result (outside its links) opens its pin.
   const select = (index) => {
     items.forEach((el, i) => el.classList.toggle("is-active", i === index));
-    mapEl?.geomaps?.open(index);
+    // Looked up each time: if Google rejects the key, the map is redrawn as a new element.
+    root.querySelector("[data-geo-embed]")?.geomaps?.open(index);
   };
 
   items.forEach((item, index) => {

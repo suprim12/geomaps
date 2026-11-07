@@ -95,7 +95,7 @@
 
 			{{ forms.autosuggestField({
 				label: 'Server key'|t('geomaps'),
-				instructions: 'Used only by Craft on your server, for location searches such as {example}. It’s never sent to browsers. Restrict it to your server’s IP address. Used only when front-end maps are Google maps.'|t('geomaps', { example: '`location: \'Adelaide\'`' }),
+				instructions: 'Used by Craft on your server to look up addresses in searches such as {example}, and never sent to browsers, so restrict it to your server’s IP address. It needs the browser key too, because Google only allows its results on Google maps.'|t('geomaps', { example: '`location: \'Adelaide\'`' }),
 				id: 'geoToken',
 				name: 'geoToken',
 				suggestEnvVars: true,
@@ -130,14 +130,14 @@
 		<div class="gm-card__body">
 			{{ forms.selectField({
 				label: 'Geocoding service'|t('geomaps'),
-				instructions: 'Automatic uses Google when a Google server key is set and front-end maps are Google maps, otherwise OpenStreetMap. If the chosen service has no key, or refuses a request, OpenStreetMap is used instead.'|t('geomaps'),
+				instructions: 'Automatic uses Google when both Google keys are set, otherwise OpenStreetMap. If the chosen service has no key, or refuses a request, OpenStreetMap is used instead.'|t('geomaps'),
 				id: 'geocoder',
 				name: 'geocoder',
 				value: settings.geocoder,
 				options: [
 					{ value: 'auto', label: 'Automatic'|t('geomaps') },
 					{ value: 'nominatim', label: 'OpenStreetMap (free, no key)'|t('geomaps') },
-					{ value: 'google', label: 'Google (server key, Google maps only)'|t('geomaps') },
+					{ value: 'google', label: 'Google (needs both Google keys)'|t('geomaps') },
 					{ value: 'mapbox', label: 'Mapbox (access token)'|t('geomaps') },
 				],
 				disabled: configFileExists and config.geocoder is defined,
@@ -145,7 +145,7 @@
 			}) }}
 
 			{% if settings.isGoogleGeocodingBlocked() %}
-				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google address lookups aren’t used, because the front-end maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, so OpenStreetMap is used instead.'|t('geomaps') }}</p></div>
+				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google address lookups aren’t used, because there’s no Google browser key, so maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, so OpenStreetMap is used instead.'|t('geomaps') }}</p></div>
 			{% endif %}
 
 			<div class="gm-mapbox-geocoding" data-gm-show-when-mapbox{{ settings.geocoder != 'mapbox' ? ' hidden' }}>
