@@ -22,7 +22,11 @@ Geo Maps works without any API keys. Add a Google key when you want Google’s m
 :::
 
 ::: warning OpenStreetMap tiles on busy sites
-The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Map Tiles URL** to a tile provider such as [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Map Credit** to match.
+The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Map Tiles URL** to a tile provider such as [Mapbox](/examples/mapbox), [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Map Credit** to match.
+:::
+
+::: tip Mapbox
+The settings page has **Quick setup** buttons for Mapbox styles. See [Mapbox Maps](/examples/mapbox).
 :::
 
 ## Config File

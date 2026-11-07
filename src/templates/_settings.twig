@@ -119,8 +119,8 @@
 		<header class="gm-card__head">
 			<span class="gm-card__icon">{{ icons.layers|raw }}</span>
 			<div>
-				<h2>{{ 'OpenStreetMap tiles'|t('geomaps') }}</h2>
-				<p>{{ 'The map images used when there’s no Google key. The default tiles are free for light use, such as the control panel; for busy public sites, use a tile provider such as {stadia}, {maptiler} or {thunderforest}.'|t('geomaps', {
+				<h2>{{ 'Map tiles'|t('geomaps') }}</h2>
+				<p>{{ 'The map images used when there’s no Google key. The default OpenStreetMap tiles are free for light use, such as the control panel; for busy public sites, use Mapbox or another tile provider such as {stadia}, {maptiler} or {thunderforest}.'|t('geomaps', {
 					stadia: '<a href="https://stadiamaps.com" target="_blank" rel="noopener">Stadia Maps</a>',
 					maptiler: '<a href="https://www.maptiler.com" target="_blank" rel="noopener">MapTiler</a>',
 					thunderforest: '<a href="https://www.thunderforest.com" target="_blank" rel="noopener">Thunderforest</a>',
@@ -129,6 +129,28 @@
 		</header>
 
 		<div class="gm-card__body">
+			{% set mapboxCredit = '© <a href="https://www.mapbox.com/about/maps">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://apps.mapbox.com/feedback/">Improve this map</a></strong>' %}
+			{% set tilePresets = [
+				{ label: 'OpenStreetMap', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', credit: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' },
+				{ label: 'Mapbox Streets', url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}', credit: mapboxCredit },
+				{ label: 'Mapbox Light', url: 'https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}', credit: mapboxCredit },
+				{ label: 'Mapbox Dark', url: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}', credit: mapboxCredit },
+				{ label: 'Mapbox Satellite', url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}', credit: mapboxCredit },
+			] %}
+			{% if not (configFileExists and (config.tileUrl is defined or config.tileAttribution is defined)) %}
+				<div class="gm-presets">
+					<span class="gm-presets__label">{{ 'Quick setup'|t('geomaps') }}</span>
+					{% for preset in tilePresets %}
+						<button type="button" class="gm-preset" data-gm-preset data-url="{{ preset.url }}" data-credit="{{ preset.credit }}">{{ preset.label }}</button>
+					{% endfor %}
+				</div>
+				<p class="gm-presets__note">{{ 'Mapbox styles use the {var} environment variable for your access token. Add it to your {env} file, and show the Mapbox logo on public maps, as Mapbox requires. {link}'|t('geomaps', {
+					var: '<code>MAPBOX_TOKEN</code>',
+					env: '<code>.env</code>',
+					link: '<a href="' ~ docs ~ '/examples/mapbox" target="_blank" rel="noopener">' ~ 'Mapbox setup'|t('geomaps') ~ '</a>',
+				})|raw }}</p>
+			{% endif %}
+
 			{{ forms.autosuggestField({
 				label: 'Map tiles URL'|t('geomaps'),
 				instructions: '`{z}`, `{x}` and `{y}` are filled in for each square of the map.'|t('geomaps'),
@@ -141,9 +163,9 @@
 				errors: settings.getErrors('tileUrl'),
 			}) }}
 
-			<div class="gm-preview" data-gm-preview data-saved="{{ settings.getTileUrl() }}">
+			<div class="gm-preview" data-gm-preview data-saved="{{ settings.getTileUrl() }}" data-saved-raw="{{ settings.tileUrl }}">
 				<div class="gm-preview__tiles" aria-hidden="true"></div>
-				<p class="gm-preview__caption">{{ 'Preview of Adelaide with these tiles'|t('geomaps') }}</p>
+				<p class="gm-preview__caption" data-default="{{ 'Preview of Adelaide with these tiles'|t('geomaps') }}" data-env="{{ 'This URL uses an environment variable, so save to preview it. Showing the saved tiles.'|t('geomaps') }}">{{ 'Preview of Adelaide with these tiles'|t('geomaps') }}</p>
 			</div>
 
 			{{ forms.textField({
@@ -250,6 +272,12 @@
 .gm-help ol { margin: 10px 0 2px 18px; padding: 0; list-style: decimal; }
 .gm-help li { margin: 6px 0; line-height: 1.5; }
 
+.gm-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+.gm-presets__label { font-size: 12px; font-weight: 600; color: var(--light-text-color, #64748b); margin-right: 4px; }
+.gm-preset { padding: 4px 11px; border-radius: 999px; border: 1px solid var(--gm-line); background: #fff; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-color, #1f2937); }
+.gm-preset:hover { border-color: var(--gm-accent); color: var(--gm-accent); }
+.gm-preset.is-on { background: var(--gm-accent); border-color: var(--gm-accent); color: #fff; }
+.gm-presets__note { margin: 0 0 16px !important; font-size: 12px; line-height: 1.5; color: var(--light-text-color, #64748b); }
 .gm-preview { margin-top: 12px; }
 .gm-preview__tiles { display: grid; grid-template-columns: repeat(4, 1fr); height: 132px; overflow: hidden; border-radius: 8px; border: 1px solid var(--gm-line); background: var(--gray-100, #f1f5f9); }
 .gm-preview__tiles img { width: 100%; height: 132px; object-fit: cover; display: block; }
@@ -290,8 +318,11 @@
 
 	const render = () => {
 		const value = input.value.trim();
-		// Environment variables are only known on the server, so preview the saved value for those.
-		const template = value === '' ? preview.dataset.saved : (value.startsWith('$') || value.startsWith('@') ? preview.dataset.saved : value);
+		// Environment variables ($VAR, ${VAR}) and aliases are only known on the server: preview the saved value instead.
+		const usesEnv = value.startsWith('@') || /\$\{?\w+\}?/.test(value.replace(/\{[zxyrs]\}/g, ''));
+		const template = value === '' || usesEnv ? preview.dataset.saved : value;
+		const caption = preview.querySelector('.gm-preview__caption');
+		caption.textContent = usesEnv && value !== preview.dataset.savedRaw ? caption.dataset.env : caption.dataset.default;
 		strip.innerHTML = '';
 		strip.classList.remove('is-empty');
 		if (!/\{z\}/.test(template) || !/\{x\}/.test(template) || !/\{y\}/.test(template)) {
@@ -314,7 +345,19 @@
 	};
 
 	let timer;
-	input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(render, 400); });
+	input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(render, 400); markPreset(); });
+
+	// Quick setup: fill in a provider's tiles URL and the credit it requires.
+	const credit = document.getElementById('{{ 'tileAttribution'|namespaceInputId }}');
+	const presets = [...document.querySelectorAll('[data-gm-preset]')];
+	const markPreset = () => presets.forEach((b) => b.classList.toggle('is-on', b.dataset.url === input.value.trim()));
+	presets.forEach((button) => button.addEventListener('click', () => {
+		input.value = button.dataset.url;
+		if (credit) credit.value = button.dataset.credit;
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		markPreset();
+	}));
+	markPreset();
 	render();
 })();
 {% endjs %}

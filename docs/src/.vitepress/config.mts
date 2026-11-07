@@ -62,6 +62,7 @@ export default defineConfig({
           { text: 'Bin Collection Zones', link: '/examples/zone-lookup' },
           { text: 'Map of Areas', link: '/examples/area-map' },
           { text: 'Trail Maps', link: '/examples/trail-maps' },
+          { text: 'Mapbox Maps', link: '/examples/mapbox' },
           { text: 'Address Autocomplete in Forms', link: '/examples/address-autocomplete' },
         ],
       },
