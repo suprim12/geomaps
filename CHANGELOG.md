@@ -5,9 +5,6 @@
 ### Added
 - `craft.geomaps.addressInput()`: an address box with suggestions for front-end forms. Picking an address fills in its coordinates and address parts, ready to save into a Geo Maps field from an entry form or to search by. Works with the keyboard and screen readers, needs no API key, and can be limited to chosen countries.
 
-### Fixed
-- Maps from `embed()` could cover a site’s sticky header or dropdown menus when scrolled under them; each map now keeps its layers inside its own box.
-
 ## 1.2.2 - 2026-11-07
 
 ### Fixed
