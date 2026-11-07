@@ -16,6 +16,8 @@ class Settings extends Model
 {
     public ?string $mapToken = null;
     public ?string $geoToken = null;
+    /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL. */
+    public ?string $mapboxToken = null;
 
     /** Raster tile URL template used when no Google key is set. */
     public string $tileUrl = self::OSM_TILE_URL;
@@ -29,8 +31,8 @@ class Settings extends Model
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
-            [['mapToken', 'geoToken'], 'string'],
-            [['mapToken', 'geoToken'], 'default', 'value' => null],
+            [['mapToken', 'geoToken', 'mapboxToken'], 'string'],
+            [['mapToken', 'geoToken', 'mapboxToken'], 'default', 'value' => null],
             [['tileUrl', 'tileAttribution'], 'string'],
             ['tileUrl', 'default', 'value' => self::OSM_TILE_URL],
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
@@ -56,7 +58,33 @@ class Settings extends Model
      */
     public function getTileUrl(): string
     {
-        return $this->_parseEnv($this->tileUrl) ?: self::OSM_TILE_URL;
+        $url = $this->_parseEnv($this->tileUrl) ?: self::OSM_TILE_URL;
+
+        return str_replace('{mapboxToken}', rawurlencode((string)$this->getMapboxToken()), $url);
+    }
+
+    public function getMapboxToken(): ?string
+    {
+        return $this->mapboxToken
+            ? ($this->_parseEnv($this->mapboxToken) ?: null)
+            : null;
+    }
+
+    /**
+     * The tile provider's name for the settings overview.
+     */
+    public function getTileProviderName(): string
+    {
+        $host = parse_url($this->getTileUrl(), PHP_URL_HOST) ?: '';
+
+        return match (true) {
+            str_ends_with($host, 'mapbox.com') => 'Mapbox',
+            str_ends_with($host, 'openstreetmap.org') => 'OpenStreetMap',
+            str_ends_with($host, 'maptiler.com') => 'MapTiler',
+            str_ends_with($host, 'stadiamaps.com') => 'Stadia Maps',
+            str_ends_with($host, 'thunderforest.com') => 'Thunderforest',
+            default => $host ?: 'OpenStreetMap',
+        };
     }
 
     public function getMapProvider(): string

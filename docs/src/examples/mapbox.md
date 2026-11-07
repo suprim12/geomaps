@@ -18,12 +18,16 @@ MAPBOX_TOKEN="pk.eyJ1Ijo…"
 
 ## 2. Choose a style
 
-Go to **Settings → Plugins → Geo Maps** and, under **Map tiles**, click a **Quick setup** button: **Mapbox Streets**, **Light**, **Dark** or **Satellite**. It fills in the tiles URL and the credit Mapbox requires. Save.
+Go to **Settings → Plugins → Geo Maps** and, under **Map tiles**:
 
-The tiles URL reads the token from `.env` with `${MAPBOX_TOKEN}`, so it isn’t stored in your project config:
+1. Click a **Quick setup** button: **Mapbox Streets**, **Light**, **Dark** or **Satellite**. It fills in the tiles URL and the credit Mapbox requires.
+2. Enter `$MAPBOX_TOKEN` in **Mapbox access token**, so the token stays in `.env` rather than your project config.
+3. Save. The **Maps** status at the top of the page shows **Mapbox**, and the preview shows the new tiles.
+
+The tiles URL has a `{mapboxToken}` placeholder that Geo Maps fills in with the token:
 
 ```text
-https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}
+https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token={mapboxToken}
 ```
 
 `256` keeps tiles the size Leaflet expects, and `@2x` makes them sharp on high-resolution screens.
@@ -33,7 +37,7 @@ https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?acc
 Design a style in [Mapbox Studio](https://studio.mapbox.com), click **Share**, and copy the **Style URL** (`mapbox://styles/your-name/style-id`). Put your username and style ID into the tiles URL:
 
 ```text
-https://api.mapbox.com/styles/v1/your-name/style-id/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}
+https://api.mapbox.com/styles/v1/your-name/style-id/tiles/256/{z}/{x}/{y}@2x?access_token={mapboxToken}
 ```
 
 ### In the config file
@@ -42,7 +46,8 @@ To set it per environment, use `config/geomaps.php` instead:
 
 ```php
 return [
-    'tileUrl' => 'https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}',
+    'mapboxToken' => '$MAPBOX_TOKEN',
+    'tileUrl' => 'https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/256/{z}/{x}/{y}@2x?access_token={mapboxToken}',
     'tileAttribution' => '© <a href="https://www.mapbox.com/about/maps">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://apps.mapbox.com/feedback/">Improve this map</a></strong>',
 ];
 ```
@@ -77,3 +82,4 @@ This covers every `embed()` map, including the store locator’s.
 - **Privacy:** visitors’ browsers load the tiles from Mapbox, which receives their IP address. Mention Mapbox in your privacy policy; see [Privacy and Data](/getting-started/privacy-and-data).
 - **Google keys win:** if a Google browser key is set, maps use Google instead. Remove it to use Mapbox.
 - **Check the preview:** after saving, the **Map tiles** preview on the settings page shows the Mapbox tiles. A grey preview saying the tiles didn’t load usually means the token is missing, mistyped, or restricted to other domains.
+- **Later, Mapbox address search:** the same token will be used by future Mapbox features, so set it in **Mapbox access token** rather than writing it into the URL.
