@@ -1,5 +1,17 @@
 # Release Notes for Geo Maps
 
+## 1.4.0 - 2026-11-08
+
+> [!NOTE]
+> Geo Maps now has a **Pro** edition. Everything in the free edition stays free; Pro adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
+
+### Added
+- Pro: `craft.geomaps.storeLocator()`, a complete store locator from one Twig tag, with address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins.
+- Pro: marker clustering for `embed()` maps (`cluster: true`), which groups nearby pins into numbered bubbles on OpenStreetMap and Google maps.
+- Pro: missing coordinates are found for locations saved with only an address, such as from Feed Me imports, in a background job or with `php craft geomaps/geocode`.
+- `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
+- The plugin settings page shows which map and search services the site is using, and previews the map tiles URL as you type.
+
 ## 1.3.0 - 2026-11-08
 
 ### Added

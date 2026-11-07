@@ -211,6 +211,8 @@
   flex-direction: column;
   gap: 3px;
   min-width: 180px;
+  max-width: 260px;
+  overflow-wrap: anywhere;
   font-size: 13px;
   line-height: 1.4;
 }
