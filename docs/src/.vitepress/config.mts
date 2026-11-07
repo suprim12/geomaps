@@ -66,10 +66,18 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Pro Examples',
+        items: [
+          { text: 'Store Locator with Filters', link: '/examples/locator-filters' },
+          { text: 'Opening Hours and Open Now', link: '/examples/opening-hours' },
+        ],
+      },
+      {
         text: 'Advanced Examples',
         items: [
           { text: 'Delivery Fee Checker', link: '/examples/delivery-fee' },
           { text: 'Live Map Search', link: '/examples/live-finder' },
+          { text: 'Content by Area', link: '/examples/content-by-area' },
           { text: 'Using Geo Maps from PHP', link: '/examples/php' },
         ],
       },
