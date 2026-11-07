@@ -48,8 +48,28 @@ use yii\base\Event;
 
 class Plugin extends BasePlugin
 {
+    /** The free edition. Its handle matches the edition already in the Plugin Store. */
+    public const EDITION_STANDARD = 'standard';
+    public const EDITION_PRO = 'pro';
+
     public string $schemaVersion = '1.0.2';
     public bool $hasCpSettings = true;
+
+    public static function editions(): array
+    {
+        return [
+            self::EDITION_STANDARD,
+            self::EDITION_PRO,
+        ];
+    }
+
+    /**
+     * Whether Geo Maps Pro is active. Pro features can be tried free on local and staging sites.
+     */
+    public function isPro(): bool
+    {
+        return $this->is(self::EDITION_PRO);
+    }
 
     public static function config(): array
     {

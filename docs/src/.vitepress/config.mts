@@ -36,6 +36,7 @@ export default defineConfig({
           { text: 'Importing Existing Fields', link: '/getting-started/importing' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'Privacy and Data', link: '/getting-started/privacy-and-data' },
+          { text: 'Geo Maps Pro', link: '/getting-started/pro' },
         ],
       },
       {

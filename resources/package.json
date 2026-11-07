@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && GEO_ENTRY=embed vite build && GEO_ENTRY=address vite build"
+		"build": "vite build && GEO_ENTRY=embed vite build && GEO_ENTRY=address vite build && GEO_ENTRY=cluster vite build"
 	},
 	"author": "suprim",
 	"license": "ISC",
@@ -14,12 +14,14 @@
 		"@codemirror/lang-json": "^6.0.2",
 		"@codemirror/state": "^6.6.0",
 		"@geoman-io/leaflet-geoman-free": "^2.13.0",
+		"@googlemaps/markerclusterer": "^2.6.2",
 		"alpinejs": "^3.10.2",
 		"codemirror": "^6.0.2",
 		"geojson-validation": "^1.0.2",
 		"leaflet": "^1.8.0",
 		"leaflet.fullscreen": "^2.4.0",
 		"leaflet.gridlayer.googlemutant": "^0.8.0",
+		"leaflet.markercluster": "^1.5.3",
 		"screenfull": "^6.0.2"
 	},
 	"devDependencies": {

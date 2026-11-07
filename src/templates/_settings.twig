@@ -81,3 +81,27 @@
 {% css %}
 	.geo-intro { margin: -6px 0 20px; color: var(--medium-text-color); max-width: 70ch; }
 {% endcss %}
+
+<hr>
+
+{# Pro features, so people can see what the edition adds and whether it's active. #}
+{% set proFeatures = [
+	{ name: 'Marker clustering'|t('geomaps'), text: 'Group nearby pins on embed() maps into numbered bubbles.'|t('geomaps'), url: 'https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering' },
+] %}
+
+<h2>{{ 'Geo Maps Pro'|t('geomaps') }}
+	{% if plugin.isPro() %}<span class="status-label green"><span class="status green"></span><span class="status-label-text">{{ 'Active'|t('geomaps') }}</span></span>{% endif %}
+</h2>
+<p class="geo-intro">
+	{% if plugin.isPro() %}
+		{{ 'These features are switched on for this site.'|t('geomaps') }}
+	{% else %}
+		{{ 'Geo Maps Pro adds the features below. Try it free on local and staging sites by switching to Pro under Settings → Plugins.'|t('geomaps') }}
+		<a href="{{ cpUrl('plugin-store/geomaps') }}">{{ 'See Geo Maps in the Plugin Store'|t('geomaps') }}</a>
+	{% endif %}
+</p>
+<ul class="bullets">
+	{% for feature in proFeatures %}
+		<li><strong>{{ feature.name }}.</strong> {{ feature.text }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Docs'|t('geomaps') }}</a></li>
+	{% endfor %}
+</ul>

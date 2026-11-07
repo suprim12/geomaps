@@ -16,6 +16,7 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use suprim\geomaps\Plugin;
 use suprim\geomaps\services\GeoService;
+use suprim\geomaps\web\ClusterAsset;
 use suprim\geomaps\web\EmbedAsset;
 
 class EmbedMap extends Model
@@ -40,6 +41,10 @@ class EmbedMap extends Model
     public mixed   $icon = null;
     /** Info window HTML for the centre pin (when no `markers` are given). Not escaped. */
     public mixed   $html = null;
+    /**
+     * Group nearby markers into numbered clusters (Pro): `true`, or `{ color, radius, maxZoom }`.
+     */
+    public mixed   $cluster = false;
 
     public function __toString(): string
     {
@@ -55,6 +60,7 @@ class EmbedMap extends Model
         $mapToken = $settings->getMapToken();
         $center = $this->resolveCenter();
         $markers = $this->resolveMarkers($center);
+        $cluster = $this->resolveCluster();
 
         $config = Json::encode([
             'id' => $id,
@@ -63,6 +69,7 @@ class EmbedMap extends Model
             'markers' => $markers,
             'geoJson' => $this->resolveGeoJson(),
             'fitShapes' => $this->fitShapes,
+            'cluster' => $cluster,
             'options' => $this->options,
             'provider' => $settings->getMapProvider(),
             'tileUrl' => $settings->getTileUrl(),
@@ -73,6 +80,10 @@ class EmbedMap extends Model
 
         // Leaflet is always loaded so maps can fall back to OpenStreetMap if Google rejects the key.
         $view->registerAssetBundle(EmbedAsset::class);
+
+        if ($cluster) {
+            $view->registerAssetBundle(ClusterAsset::class);
+        }
 
         if ($mapToken) {
             // Catch Google rejecting the key (it reports this asynchronously via window.gm_authFailure).
@@ -112,6 +123,8 @@ class EmbedMap extends Model
                 if (typeof L === 'undefined') return;
                 var map = L.map(el, config.options || {}).setView([config.center.lat, config.center.lng], config.zoom);
                 L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
+                var cluster = config.cluster && window.GeoMapsCluster ? window.GeoMapsCluster.leaflet(config.cluster) : null;
+                var openLater = [];
                 (config.markers || []).forEach(function(marker) {
                     if (marker.lat == null || marker.lng == null) return;
                     var m;
@@ -131,9 +144,16 @@ class EmbedMap extends Model
                     if (content) {
                         m.bindPopup(content, { maxWidth: 320 });
                     }
-                    m.addTo(map);
-                    if (content && marker.open) m.openPopup();
+                    m.addTo(cluster || map);
+                    if (content && marker.open) {
+                        if (cluster) openLater.push(m); else m.openPopup();
+                    }
                 });
+                if (cluster) {
+                    map.addLayer(cluster);
+                    // A marker inside a cluster has to be revealed before its popup can open.
+                    openLater.forEach(function(m) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); });
+                }
                 if (config.geoJson) {
                     var shapes = L.geoJSON(config.geoJson, {
                         style: function(feature) {
@@ -156,6 +176,8 @@ class EmbedMap extends Model
                     zoom: config.zoom,
                 }, config.options || {}));
                 var infoWindow = new google.maps.InfoWindow({ maxWidth: 320 });
+                var clusterOn = config.cluster && window.GeoMapsCluster;
+                var clustered = [];
                 (config.markers || []).forEach(function(marker) {
                     if (marker.lat == null || marker.lng == null) return;
                     var icon = marker.icon ? {
@@ -169,7 +191,7 @@ class EmbedMap extends Model
                     };
                     var m = new google.maps.Marker({
                         position: { lat: marker.lat, lng: marker.lng },
-                        map: map,
+                        map: clusterOn ? null : map,
                         title: marker.label || null,
                         icon: icon,
                     });
@@ -177,9 +199,19 @@ class EmbedMap extends Model
                     if (content) {
                         var open = function() { infoWindow.setContent(content); infoWindow.open({ anchor: m, map: map }); };
                         m.addListener('click', open);
-                        if (marker.open) open();
+                        if (marker.open) {
+                            if (clusterOn) {
+                                infoWindow.setContent(content);
+                                infoWindow.setPosition(m.getPosition());
+                                infoWindow.open({ map: map });
+                            } else {
+                                open();
+                            }
+                        }
                     }
+                    clustered.push(m);
                 });
+                if (clusterOn) window.GeoMapsCluster.google(map, clustered, config.cluster);
                 if (config.geoJson) {
                     var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
                         ? config.geoJson : { type: 'Feature', properties: {}, geometry: config.geoJson };
@@ -267,6 +299,33 @@ class EmbedMap extends Model
         ]);
 
         return  new \Twig\Markup($html, 'UTF-8');
+    }
+
+    /**
+     * Cluster options for the map script, or null when clustering is off or Geo Maps Pro isn't active.
+     *
+     * @return array{color: string, radius: int, maxZoom: int|null}|null
+     */
+    private function resolveCluster(): ?array
+    {
+        if (!$this->cluster) {
+            return null;
+        }
+
+        if (!Plugin::getInstance()->isPro()) {
+            Craft::warning('The embed() "cluster" option needs Geo Maps Pro, so markers are shown without clustering.', __METHOD__);
+            return null;
+        }
+
+        $options = is_array($this->cluster) ? $this->cluster : [];
+        $color = (string)($options['color'] ?? '');
+
+        return [
+            // Used in SVG and CSS, so only plain hex colours are allowed.
+            'color' => preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $color) ? $color : '#4f46e5',
+            'radius' => isset($options['radius']) ? max(10, min(200, (int)$options['radius'])) : 60,
+            'maxZoom' => isset($options['maxZoom']) ? max(0, min(22, (int)$options['maxZoom'])) : null,
+        ];
     }
 
     /**

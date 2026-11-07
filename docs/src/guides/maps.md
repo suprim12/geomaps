@@ -50,6 +50,43 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |
 | `fitShapes` | Zoom to fit the shapes | `true` |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
+| `cluster` | Group nearby markers into numbered bubbles: `true` or `{ color, radius, maxZoom }`. **Pro.** See [Marker clustering](#marker-clustering) | `false` |
+
+### Marker clustering <Badge type="tip" text="Pro" /> {#marker-clustering}
+
+Maps with dozens or hundreds of markers get crowded. Turn on `cluster` and nearby markers group into a numbered bubble, which splits apart as visitors zoom in or click it:
+
+![A map of Adelaide with hundreds of markers grouped into purple numbered bubbles](/images/marker-clustering.jpg)
+
+```twig
+{{ craft.geomaps.embed({
+    center: 'Adelaide, South Australia',
+    zoom: 10,
+    width: '100%',
+    height: 500,
+    markers: stores|map(store => {
+        location: { lat: store.storeLocation.lat, lng: store.storeLocation.lng },
+        label: store.title,
+    }),
+    cluster: true,
+}) }}
+```
+
+Pass options instead of `true` to change how it looks and behaves:
+
+| Option | Description | Default |
+|---|---|---|
+| `color` | Bubble colour, as a hex colour such as `'#0f766e'` | `'#4f46e5'` |
+| `radius` | How close markers must be to group, in pixels (10–200) | `60` |
+| `maxZoom` | Stop grouping from this zoom level, showing every marker | groups at every zoom |
+
+```twig
+cluster: { color: '#0f766e', radius: 40, maxZoom: 15 },
+```
+
+Clustering works with both OpenStreetMap and Google maps, and the clustering script only loads on maps that use it. Markers with `open: true` are revealed and their info window opened. To restyle the bubbles on OpenStreetMap maps, target `.geomaps-cluster span` in your CSS.
+
+Clustering is part of [Geo Maps Pro](/getting-started/pro). On the free edition, the `cluster` option is ignored and every marker is shown.
 
 ### Styling the map
 
