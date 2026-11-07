@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && GEO_ENTRY=embed vite build && GEO_ENTRY=address vite build && GEO_ENTRY=cluster vite build"
+		"build": "vite build && GEO_ENTRY=embed vite build && GEO_ENTRY=address vite build && GEO_ENTRY=cluster vite build && GEO_ENTRY=locator vite build"
 	},
 	"author": "suprim",
 	"license": "ISC",

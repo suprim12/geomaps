@@ -1,0 +1,71 @@
+{#
+	* Geo Maps plugin for Craft CMS
+	*
+	* Store locator markup for craft.geomaps.storeLocator() (Pro).
+	*
+	* @link      https://suprim.com.au
+	* @author suprim <support@suprim.com.au> <https://suprim.com.au>
+	* @copyright Copyright (c) 2026 suprim
+#}
+
+<div id="{{ id }}" class="geomaps-locator{{ class ? ' ' ~ class }}" style="--geomaps-locator-accent: {{ color }}; --geomaps-locator-height: {{ height }};"
+	data-geomaps-locator
+	data-msg-locating="{{ messages.locating }}"
+	data-msg-location-failed="{{ messages.locationFailed }}"
+	data-msg-your-location="{{ messages.yourLocation }}">
+
+	<div class="geomaps-locator__panel">
+		<form class="geomaps-locator__form" method="get" role="search" data-locator-form>
+			{{ search }}
+			<div class="geomaps-locator__row">
+				<select name="{{ name }}[radius]" aria-label="{{ messages.distance }}" data-locator-radius>
+					{% for r in radii %}
+						<option value="{{ r }}"{{ r == radius ? ' selected' }}>{{ r }} {{ unit }}</option>
+					{% endfor %}
+				</select>
+				<button type="button" class="geomaps-locator__button" data-locator-locate>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+					{{ messages.useMyLocation }}
+				</button>
+			</div>
+			<button type="submit" class="geomaps-locator__button geomaps-locator__button--primary">{{ messages.search }}</button>
+			<p class="geomaps-locator__status" role="status" aria-live="polite" data-locator-status></p>
+		</form>
+
+		{% if summary %}
+			<p class="geomaps-locator__summary">{{ summary }}</p>
+		{% endif %}
+
+		{% if searched and results is empty %}
+			<p class="geomaps-locator__empty">{{ none }}</p>
+		{% elseif not searched and results is empty %}
+			<p class="geomaps-locator__empty">{{ messages.prompt }}</p>
+		{% else %}
+			{% if not searched %}
+				<p class="geomaps-locator__summary">{{ messages.prompt }}</p>
+			{% endif %}
+			<ol class="geomaps-locator__results">
+				{% for result in results %}
+					<li class="geomaps-locator__result" tabindex="0" data-locator-result>
+						<span class="geomaps-locator__number" aria-hidden="true">{{ result.number }}</span>
+						{% if result.html %}
+							<div class="geomaps-locator__custom">{{ result.html|raw }}</div>
+						{% else %}
+							<h3 class="geomaps-locator__name">{{ result.entry }}</h3>
+							<span class="geomaps-locator__distance">{{ result.distance is not null ? result.distance|number_format(1) ~ ' ' ~ unit }}</span>
+							{% if result.address %}<p class="geomaps-locator__address">{{ result.address }}</p>{% endif %}
+							{% if result.directionsUrl or result.url %}
+								<p class="geomaps-locator__links">
+									{% if result.directionsUrl %}<a href="{{ result.directionsUrl }}" target="_blank" rel="noopener">{{ messages.directions }}</a>{% endif %}
+									{% if result.url %}<a href="{{ result.url }}">{{ messages.details }}</a>{% endif %}
+								</p>
+							{% endif %}
+						{% endif %}
+					</li>
+				{% endfor %}
+			</ol>
+		{% endif %}
+	</div>
+
+	<div class="geomaps-locator__map">{{ map }}</div>
+</div>

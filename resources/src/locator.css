@@ -1,0 +1,254 @@
+/*
+ * Default styles for craft.geomaps.storeLocator(). Change the colours with the custom
+ * properties, or style the classes in your own CSS.
+ */
+.geomaps-locator {
+  --geomaps-locator-accent: #4f46e5;
+  --geomaps-locator-text: #1f2937;
+  --geomaps-locator-muted: #6b7280;
+  --geomaps-locator-line: #e5e7eb;
+  --geomaps-locator-bg: #fff;
+  --geomaps-locator-active: #eef0fd;
+  --geomaps-locator-radius: 12px;
+  --geomaps-locator-height: 520px;
+
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 0;
+  color: var(--geomaps-locator-text);
+  background: var(--geomaps-locator-bg);
+  border: 1px solid var(--geomaps-locator-line);
+  border-radius: var(--geomaps-locator-radius);
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.geomaps-locator *,
+.geomaps-locator *::before,
+.geomaps-locator *::after {
+  box-sizing: border-box;
+}
+
+.geomaps-locator__panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: var(--geomaps-locator-height);
+  border-right: 1px solid var(--geomaps-locator-line);
+}
+
+.geomaps-locator__form {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--geomaps-locator-line);
+}
+
+.geomaps-locator__row {
+  display: flex;
+  gap: 8px;
+}
+
+.geomaps-locator__row > * {
+  flex: 1;
+}
+
+.geomaps-locator select,
+.geomaps-locator__button {
+  height: 40px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+  background: var(--geomaps-locator-bg);
+  border: 1px solid #cbd2e0;
+  border-radius: 8px;
+}
+
+.geomaps-locator__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.geomaps-locator__button svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.geomaps-locator__button--primary {
+  color: #fff;
+  background: var(--geomaps-locator-accent);
+  border-color: var(--geomaps-locator-accent);
+  font-weight: 600;
+}
+
+.geomaps-locator__button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.geomaps-locator__status {
+  min-height: 0;
+  font-size: 13px;
+  color: var(--geomaps-locator-muted);
+}
+
+.geomaps-locator__status:empty {
+  display: none;
+}
+
+.geomaps-locator__summary {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--geomaps-locator-muted);
+  border-bottom: 1px solid var(--geomaps-locator-line);
+}
+
+.geomaps-locator__results {
+  flex: 1;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.geomaps-locator__result {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 2px 10px;
+  padding: 12px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.geomaps-locator__result:hover,
+.geomaps-locator__result:focus-visible {
+  background: #f8fafc;
+  outline: none;
+}
+
+.geomaps-locator__result.is-active {
+  background: var(--geomaps-locator-active);
+}
+
+.geomaps-locator__number {
+  grid-row: span 3;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--geomaps-locator-accent);
+}
+
+.geomaps-locator__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.geomaps-locator__distance {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--geomaps-locator-accent);
+  white-space: nowrap;
+}
+
+.geomaps-locator__address {
+  grid-column: 2 / -1;
+  margin: 0;
+  font-size: 13px;
+  color: var(--geomaps-locator-muted);
+}
+
+.geomaps-locator__links {
+  grid-column: 2 / -1;
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.geomaps-locator__links a {
+  color: var(--geomaps-locator-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.geomaps-locator__links a:hover {
+  text-decoration: underline;
+}
+
+.geomaps-locator__custom {
+  grid-column: 2 / -1;
+}
+
+.geomaps-locator__empty {
+  margin: 0;
+  padding: 24px 16px;
+  font-size: 14px;
+  color: var(--geomaps-locator-muted);
+}
+
+.geomaps-locator__map {
+  height: var(--geomaps-locator-height);
+}
+
+/* Info windows */
+.geomaps-locator__popup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 180px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.geomaps-locator__popup strong {
+  font-size: 15px;
+}
+
+.geomaps-locator__popup-address {
+  color: #6b7280;
+}
+
+.geomaps-locator__popup-distance {
+  font-weight: 600;
+}
+
+.geomaps-locator__popup-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .geomaps-locator {
+    grid-template-columns: 1fr;
+  }
+
+  .geomaps-locator__panel {
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--geomaps-locator-line);
+  }
+
+  .geomaps-locator__results {
+    max-height: 360px;
+  }
+
+  .geomaps-locator__map {
+    height: 380px;
+  }
+}

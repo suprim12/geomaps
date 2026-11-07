@@ -37,6 +37,8 @@ class EmbedMap extends Model
     public bool    $marker = true;
     /** Zoom the map to fit the shapes. */
     public bool    $fitShapes = true;
+    /** Zoom the map to fit the markers. */
+    public bool    $fitMarkers = false;
     /** Default pin image for every marker: a URL, or `{ url, width, height }`. */
     public mixed   $icon = null;
     /** Info window HTML for the centre pin (when no `markers` are given). Not escaped. */
@@ -69,6 +71,7 @@ class EmbedMap extends Model
             'markers' => $markers,
             'geoJson' => $this->resolveGeoJson(),
             'fitShapes' => $this->fitShapes,
+            'fitMarkers' => $this->fitMarkers,
             'cluster' => $cluster,
             'options' => $this->options,
             'provider' => $settings->getMapProvider(),
@@ -125,8 +128,9 @@ class EmbedMap extends Model
                 L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
                 var cluster = config.cluster && window.GeoMapsCluster ? window.GeoMapsCluster.leaflet(config.cluster) : null;
                 var openLater = [];
+                var made = [];
                 (config.markers || []).forEach(function(marker) {
-                    if (marker.lat == null || marker.lng == null) return;
+                    if (marker.lat == null || marker.lng == null) { made.push(null); return; }
                     var m;
                     if (marker.icon) {
                         var w = marker.icon.width, h = marker.icon.height;
@@ -145,6 +149,7 @@ class EmbedMap extends Model
                         m.bindPopup(content, { maxWidth: 320 });
                     }
                     m.addTo(cluster || map);
+                    made.push(m);
                     if (content && marker.open) {
                         if (cluster) openLater.push(m); else m.openPopup();
                     }
@@ -154,6 +159,22 @@ class EmbedMap extends Model
                     // A marker inside a cluster has to be revealed before its popup can open.
                     openLater.forEach(function(m) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); });
                 }
+                var placed = made.filter(Boolean);
+                if (config.fitMarkers && placed.length > 1) {
+                    map.fitBounds(L.latLngBounds(placed.map(function(m) { return m.getLatLng(); })), { padding: [40, 40], maxZoom: 15 });
+                }
+                // A small handle for page scripts, such as a results list opening its marker.
+                el.geomaps = {
+                    map: map,
+                    open: function(i) {
+                        var m = made[i];
+                        if (!m) return;
+                        if (cluster) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); return; }
+                        map.panTo(m.getLatLng());
+                        if (m.getPopup()) m.openPopup();
+                    },
+                };
+                el.dispatchEvent(new CustomEvent('geomaps:ready', { bubbles: true, detail: el.geomaps }));
                 if (config.geoJson) {
                     var shapes = L.geoJSON(config.geoJson, {
                         style: function(feature) {
@@ -178,8 +199,9 @@ class EmbedMap extends Model
                 var infoWindow = new google.maps.InfoWindow({ maxWidth: 320 });
                 var clusterOn = config.cluster && window.GeoMapsCluster;
                 var clustered = [];
+                var made = [];
                 (config.markers || []).forEach(function(marker) {
-                    if (marker.lat == null || marker.lng == null) return;
+                    if (marker.lat == null || marker.lng == null) { made.push(null); return; }
                     var icon = marker.icon ? {
                         url: marker.icon.url,
                         scaledSize: new google.maps.Size(marker.icon.width, marker.icon.height),
@@ -196,6 +218,7 @@ class EmbedMap extends Model
                         icon: icon,
                     });
                     var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
+                    made.push({ marker: m, content: content });
                     if (content) {
                         var open = function() { infoWindow.setContent(content); infoWindow.open({ anchor: m, map: map }); };
                         m.addListener('click', open);
@@ -212,6 +235,29 @@ class EmbedMap extends Model
                     clustered.push(m);
                 });
                 if (clusterOn) window.GeoMapsCluster.google(map, clustered, config.cluster);
+                if (config.fitMarkers && clustered.length > 1) {
+                    var markerBounds = new google.maps.LatLngBounds();
+                    clustered.forEach(function(m) { markerBounds.extend(m.getPosition()); });
+                    map.fitBounds(markerBounds, 40);
+                }
+                el.geomaps = {
+                    map: map,
+                    open: function(i) {
+                        var item = made[i];
+                        if (!item) return;
+                        map.panTo(item.marker.getPosition());
+                        if (clusterOn && map.getZoom() < 15) map.setZoom(15);
+                        if (!item.content) return;
+                        infoWindow.setContent(item.content);
+                        if (clusterOn) {
+                            infoWindow.setPosition(item.marker.getPosition());
+                            infoWindow.open({ map: map });
+                        } else {
+                            infoWindow.open({ anchor: item.marker, map: map });
+                        }
+                    },
+                };
+                el.dispatchEvent(new CustomEvent('geomaps:ready', { bubbles: true, detail: el.geomaps }));
                 if (config.geoJson) {
                     var gj = config.geoJson.type === 'FeatureCollection' || config.geoJson.type === 'Feature'
                         ? config.geoJson : { type: 'Feature', properties: {}, geometry: config.geoJson };

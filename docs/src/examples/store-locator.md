@@ -1,5 +1,9 @@
 # Store Locator
 
+::: tip Geo Maps Pro
+With [Geo Maps Pro](/getting-started/pro), `craft.geomaps.storeLocator()` builds all of this from one tag. See [Store Locator](/guides/store-locator). This page shows how to build one yourself on the free edition.
+:::
+
 A complete “find a store near you” page: search by address or the visitor’s current location, list the nearest stores with distances, show them on a map, and paginate.
 
 ![A store locator listing the four nearest stores to Adelaide on a map, with distances, directions links and pagination](/examples/store-locator.jpg)

@@ -22,11 +22,13 @@
 	layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
 	star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3z"/></svg>',
 	cluster: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="9" r="4"/><circle cx="16.5" cy="8" r="2.5"/><circle cx="15" cy="16" r="3.5"/></svg>',
+	locator: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h7M3 13h5M3 17h6"/><path d="M17 20s-4-3.6-4-6.6a4 4 0 0 1 8 0c0 3-4 6.6-4 6.6z"/><circle cx="17" cy="13.4" r="1.3"/><path d="M3 5h18"/></svg>',
 	geocode: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 10h7M4 14h5"/><path d="M17 21s-4-3.6-4-6.6a4 4 0 0 1 8 0c0 3-4 6.6-4 6.6z"/><circle cx="17" cy="14.4" r="1.3"/></svg>',
 } %}
 
 {% set proFeatures = [
 	{ key: 'cluster', name: 'Marker clustering'|t('geomaps'), text: 'Groups nearby pins on embed() maps into numbered bubbles, so maps with hundreds of locations stay readable.'|t('geomaps'), url: docs ~ '/guides/maps#marker-clustering' },
+	{ key: 'locator', name: 'Store locator'|t('geomaps'), text: 'A complete store locator from one Twig tag: address search, “Use my location”, a results list and a map.'|t('geomaps'), url: docs ~ '/guides/store-locator' },
 	{ key: 'geocode', name: 'Missing coordinates'|t('geomaps'), text: 'Looks up coordinates for locations that only have an address, such as imported ones.'|t('geomaps'), url: docs ~ '/guides/missing-coordinates', setting: 'geocodeMissing' },
 ] %}
 

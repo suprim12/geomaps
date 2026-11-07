@@ -49,6 +49,7 @@ Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with you
 | `geoJson` | Shapes to draw: GeoJSON as an array or string | the field’s shapes |
 | `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |
 | `fitShapes` | Zoom to fit the shapes | `true` |
+| `fitMarkers` | Zoom to fit the markers | `false` |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 | `cluster` | Group nearby markers into numbered bubbles: `true` or `{ color, radius, maxZoom }`. **Pro.** See [Marker clustering](#marker-clustering) | `false` |
 
@@ -87,6 +88,18 @@ cluster: { color: '#0f766e', radius: 40, maxZoom: 15 },
 Clustering works with both OpenStreetMap and Google maps, and the clustering script only loads on maps that use it. Markers with `open: true` are revealed and their info window opened. To restyle the bubbles on OpenStreetMap maps, target `.geomaps-cluster span` in your CSS.
 
 Clustering is part of [Geo Maps Pro](/getting-started/pro). On the free edition, the `cluster` option is ignored and every marker is shown.
+
+### Working with the map in JavaScript
+
+Each map element gets a small `geomaps` object once it’s drawn, and fires a `geomaps:ready` event. Use it to open a marker’s info window from your own page, such as a list of stores beside the map:
+
+```js
+document.addEventListener('geomaps:ready', (e) => {
+  const map = e.detail;      // also available as element.geomaps
+  map.open(0);               // open the first marker (in the order of `markers`)
+  map.map;                   // the Leaflet or Google map, for anything else
+});
+```
 
 ### Styling the map
 

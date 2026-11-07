@@ -50,6 +50,7 @@ export default defineConfig({
           { text: 'Feed Me', link: '/guides/feed-me' },
           { text: 'Console Commands', link: '/guides/console' },
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
+          { text: 'Store Locator', link: '/guides/store-locator' },
         ],
       },
       {
