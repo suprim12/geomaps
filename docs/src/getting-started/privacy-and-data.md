@@ -46,7 +46,7 @@ Searches by coordinates (`{ lat, lng }`) or by another entry’s value aren’t 
 | A page shows `embed()` with OpenStreetMap | OpenStreetMap tile servers, or your tile provider | Which map area is viewed. No cookies. |
 | A page shows `embed()` with Google | Google Maps | Which map area is viewed. Google may set cookies and processes data under the [Google Privacy Policy](https://policies.google.com/privacy). |
 | A page shows `img()` / `imgSrcSet()` | Google Static Maps | The image’s location and markers |
-| A visitor uses **Use my location** in `storeLocator()` | Your own site only | The browser asks permission, then the position is sent to your site as the search |
+| A visitor uses **Use my location** in `locator()` | Your own site only | The browser asks permission, then the position is sent to your site as the search |
 | A visitor types in an `addressInput()` box | [Photon](https://photon.komoot.io) (komoot), or Mapbox when it’s the geocoding service | The text typed, the box’s countries and its `near` position. No cookies. |
 
 Custom pin images and everything else on the page come from your own site.

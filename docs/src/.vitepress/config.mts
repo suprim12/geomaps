@@ -50,7 +50,7 @@ export default defineConfig({
           { text: 'Feed Me', link: '/guides/feed-me' },
           { text: 'Console Commands', link: '/guides/console' },
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
-          { text: 'Store Locator', link: '/guides/store-locator' },
+          { text: 'Locator Component', link: '/guides/locator' },
         ],
       },
       {
@@ -69,7 +69,7 @@ export default defineConfig({
       {
         text: 'Pro Examples',
         items: [
-          { text: 'Store Locator with Filters', link: '/examples/locator-filters' },
+          { text: 'Locator with Filters', link: '/examples/locator-filters' },
           { text: 'Opening Hours and Open Now', link: '/examples/opening-hours' },
         ],
       },

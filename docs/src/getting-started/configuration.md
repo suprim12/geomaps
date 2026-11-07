@@ -10,7 +10,7 @@ Geo Maps works without any API keys. Choose services under **Settings → Plugin
 
 | Setting | Choices | Used for |
 |---|---|---|
-| **Maps → Front end** | Automatic, Google Maps, or Map tiles | `embed()` maps and the store locator |
+| **Maps → Front end** | Automatic, Google Maps, or Map tiles | `embed()` maps and the locator component |
 | **Maps → Control panel** | Automatic, Google Maps, or Map tiles | The map in the field |
 | **Map tiles** | OpenStreetMap, [Mapbox](/examples/mapbox), or any tile URL | Every map that isn’t a Google map |
 | **Address lookups → Geocoding service** | Automatic, OpenStreetMap, Google, or [Mapbox](/examples/mapbox#address-search-with-mapbox) | Location searches such as `location: 'Adelaide'`, front-end address suggestions, missing coordinates |

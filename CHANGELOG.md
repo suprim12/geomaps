@@ -6,7 +6,7 @@
 > Geo Maps now has a **Pro** edition. Everything in the free edition stays free; Pro adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
 
 ### Added
-- Pro: `craft.geomaps.storeLocator()`, a complete store locator from one Twig tag, with address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins.
+- Pro: `craft.geomaps.locator()`, a locator component that outputs an address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins for any element query.
 - Pro: marker clustering for `embed()` maps (`cluster: true`), which groups nearby pins into numbered bubbles on OpenStreetMap and Google maps.
 - Pro: missing coordinates are found for locations saved with only an address, such as from Feed Me imports, in a background job or with `php craft geomaps/geocode`.
 - `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
@@ -15,7 +15,9 @@
 - Mapbox can be chosen as the **Geocoding service** for location searches, address suggestions and missing coordinates, with an option for Mapbox permanent geocoding where results are saved.
 - **Maps** settings to choose Google Maps or the map tiles separately for the front end and the control panel, and `embed({ provider: 'google' })` or `provider: 'tiles'` for a single map.
 - Static map images from Mapbox, using your Mapbox style, when the front-end maps aren’t Google maps, or with `img({ provider: 'mapbox' })`.
-- The settings page warns when Google address lookups are combined with non-Google maps, which Google’s terms don’t allow.
+
+### Changed
+- Google address lookups are only used with Google maps on the front end, as Google’s terms require. Sites with a Google server key but other maps now use OpenStreetMap or Mapbox for lookups, and the settings page explains why.
 
 ## 1.3.0 - 2026-11-08
 

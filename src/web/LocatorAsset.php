@@ -13,7 +13,7 @@ namespace suprim\geomaps\web;
 use craft\web\AssetBundle;
 
 /**
- * Store locator layout and behaviour (`craft.geomaps.storeLocator()`, Pro).
+ * Locator component layout and behaviour (`craft.geomaps.locator()`, Pro).
  */
 class LocatorAsset extends AssetBundle
 {

@@ -24,13 +24,13 @@ use suprim\geomaps\web\LocatorAsset;
 use Twig\Markup;
 
 /**
- * A ready-made store locator (Pro): address search with suggestions, "use my location",
+ * The locator component (Pro): address search with suggestions, "use my location",
  * a distance filter, a numbered results list and a map, from one Twig tag.
  *
  * The search is a plain GET form, so results are server-rendered, linkable and work without
  * JavaScript; the script adds "use my location" and opens a result's pin when it's clicked.
  */
-class StoreLocator extends Model
+class Locator extends Model
 {
     /** Handle of the Geo Maps field to search. Required. */
     public ?string $field = null;
@@ -82,15 +82,15 @@ class StoreLocator extends Model
         }
 
         if (!Plugin::getInstance()->isPro()) {
-            Craft::warning('craft.geomaps.storeLocator() needs Geo Maps Pro, so nothing was output.', __METHOD__);
+            Craft::warning('craft.geomaps.locator() needs Geo Maps Pro, so nothing was output.', __METHOD__);
             return new Markup(Craft::$app->getConfig()->getGeneral()->devMode
-                ? '<!-- Geo Maps: storeLocator() needs Geo Maps Pro. Switch the edition under Settings → Plugins (free on local and staging sites). -->'
+                ? '<!-- Geo Maps: locator() needs Geo Maps Pro. Switch the edition under Settings → Plugins (free on local and staging sites). -->'
                 : '', 'UTF-8');
         }
 
         $field = $this->field ? Craft::$app->getFields()->getFieldByHandle($this->field) : null;
         if (!$field instanceof GeoField) {
-            Craft::warning("craft.geomaps.storeLocator() needs the handle of a Geo Maps field in `field`.", __METHOD__);
+            Craft::warning("craft.geomaps.locator() needs the handle of a Geo Maps field in `field`.", __METHOD__);
             return new Markup('', 'UTF-8');
         }
 

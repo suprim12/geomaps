@@ -9,15 +9,16 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 ## Done
 
 - **Address autocomplete for front-end forms** (1.3). See the [example](https://plugins.geomaps.suprim.com.au/examples/address-autocomplete).
-- **Store locator component** (1.4, Pro). Address search, “Use my location”, results list and map from one Twig tag.
+- **Locator component** (1.4, Pro). `craft.geomaps.locator()`: address search, “Use my location”, results list and map for any element query.
 - **Marker clustering** (1.4, Pro) for `embed()` maps.
+- **Mapbox** (1.4). Mapbox map styles, address lookups and static images.
 - **Missing coordinates** (1.4, Pro). Coordinates for imported locations that only have an address, in the background or with `php craft geomaps/geocode`.
 
 ## Next
 
 - **Viewport and polygon search.** Find entries inside the visible map area or any polygon from element queries, for “search as the map moves” without custom SQL.
 - **Headless search endpoint.** A ready-made JSON endpoint and matching GraphQL arguments that return the nearest entries with distances, for React, Vue and app front ends.
-- **Provider adapters.** Mapbox, HERE and MapTiler for geocoding, map tiles and static images, and an interface for adding your own.
+- **More providers.** HERE and MapTiler for address lookups and static images, and an interface for adding your own.
 
 ## Later
 

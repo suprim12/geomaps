@@ -30,9 +30,9 @@
 } %}
 
 {% set proFeatures = [
-	{ key: 'cluster', name: 'Marker clustering'|t('geomaps'), text: 'Groups nearby pins on embed() maps into numbered bubbles, so maps with hundreds of locations stay readable.'|t('geomaps'), url: docs ~ '/guides/maps#marker-clustering' },
-	{ key: 'locator', name: 'Store locator'|t('geomaps'), text: 'A complete store locator from one Twig tag: address search, “Use my location”, a results list and a map.'|t('geomaps'), url: docs ~ '/guides/store-locator' },
-	{ key: 'geocode', name: 'Missing coordinates'|t('geomaps'), text: 'Looks up coordinates for locations that only have an address, such as imported ones.'|t('geomaps'), url: docs ~ '/guides/missing-coordinates', setting: 'geocodeMissing' },
+	{ key: 'cluster', name: 'Marker clustering'|t('geomaps'), text: '`cluster: true` on `embed()` groups nearby markers into numbered bubbles, on Google and Leaflet maps.'|t('geomaps'), url: docs ~ '/guides/maps#marker-clustering' },
+	{ key: 'locator', name: 'Locator component'|t('geomaps'), text: '`craft.geomaps.locator()` outputs an address search, results list and map for any element query, with your own result templates.'|t('geomaps'), url: docs ~ '/guides/locator' },
+	{ key: 'geocode', name: 'Missing coordinates'|t('geomaps'), text: 'A queue job and the `geomaps/geocode` command fill in coordinates for elements saved with only an address, such as Feed Me imports.'|t('geomaps'), url: docs ~ '/guides/missing-coordinates', setting: 'geocodeMissing' },
 ] %}
 
 <div class="gm">
@@ -82,14 +82,14 @@
 
 		<div class="gm-card__body">
 			{% set mapOptions = [
-				{ value: 'auto', label: 'Automatic (Google with a browser key)'|t('geomaps') },
+				{ value: 'auto', label: 'Automatic'|t('geomaps') },
 				{ value: 'google', label: 'Google Maps'|t('geomaps') },
 				{ value: 'tiles', label: 'Map tiles (OpenStreetMap, Mapbox…)'|t('geomaps') },
 			] %}
 			<div class="gm-row">
 				{{ forms.selectField({
 					label: 'Front end'|t('geomaps'),
-					instructions: 'Maps from {embed} and the store locator. Automatic uses the map tiles without a Google browser key.'|t('geomaps', { embed: '`embed()`' }),
+					instructions: 'Maps from {embed} and the locator component. Automatic shows Google Maps when a Google browser key is set, otherwise the map tiles.'|t('geomaps', { embed: '`embed()`' }),
 					id: 'mapProvider',
 					name: 'mapProvider',
 					value: settings.mapProvider,
@@ -99,7 +99,7 @@
 				}) }}
 				{{ forms.selectField({
 					label: 'Control panel'|t('geomaps'),
-					instructions: 'The map in the field, where authors place locations.'|t('geomaps'),
+					instructions: 'The map in the field, where authors place locations. Automatic works the same way.'|t('geomaps'),
 					id: 'cpMapProvider',
 					name: 'cpMapProvider',
 					value: settings.cpMapProvider,
@@ -113,11 +113,10 @@
 				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google Maps is chosen but there’s no browser key, so the map tiles are shown instead.'|t('geomaps') }}</p></div>
 			{% endif %}
 
-			{% if settings.hasGoogleGeocodingWithOtherMaps() %}
-				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Address lookups use Google, but some maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”. Show Google results only on Google maps, or choose OpenStreetMap or Mapbox for address lookups.'|t('geomaps') }}</p></div>
+			{% if settings.isGoogleGeocodingBlocked() %}
+				<div class="gm-warning">{{ icons.key|raw }}<p>{{ 'Google address lookups are switched off because the front-end maps aren’t Google maps. Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, so OpenStreetMap is used instead.'|t('geomaps') }}</p></div>
 			{% endif %}
 
-			<p class="gm-presets__note">{{ 'Address suggestions in the field follow its map: Google Places on Google maps, and OpenStreetMap or Mapbox on other maps, as Google’s terms require. Static images from {img} use Google with Google maps, otherwise Mapbox when there’s a Mapbox token.'|t('geomaps', { img: '<code>img()</code>' })|raw }}</p>
 		</div>
 	</section>
 
@@ -134,7 +133,7 @@
 		<div class="gm-card__body">
 			{{ forms.autosuggestField({
 				label: 'Browser key'|t('geomaps'),
-				instructions: 'For maps, address search and static images. Restrict it to your site’s domains.'|t('geomaps'),
+				instructions: 'Used in visitors’ and editors’ browsers for Google maps, address suggestions and static images, so it’s visible in the page. Restrict it to your site’s domains.'|t('geomaps'),
 				id: 'mapToken',
 				name: 'mapToken',
 				suggestEnvVars: true,
@@ -146,7 +145,7 @@
 
 			{{ forms.autosuggestField({
 				label: 'Server key'|t('geomaps'),
-				instructions: 'For looking up addresses in location searches. Restrict it to your server’s IP address.'|t('geomaps'),
+				instructions: 'Used only by Craft on your server, for location searches such as {example}. It’s never sent to browsers. Restrict it to your server’s IP address. Used only when front-end maps are Google maps.'|t('geomaps', { example: '`location: \'Adelaide\'`' }),
 				id: 'geoToken',
 				name: 'geoToken',
 				suggestEnvVars: true,
@@ -181,14 +180,14 @@
 		<div class="gm-card__body">
 			{{ forms.selectField({
 				label: 'Geocoding service'|t('geomaps'),
-				instructions: 'If the chosen service has no key, or refuses a request, OpenStreetMap is used instead.'|t('geomaps'),
+				instructions: 'Automatic uses Google when a Google server key is set and front-end maps are Google maps, otherwise OpenStreetMap. If the chosen service has no key, or refuses a request, OpenStreetMap is used instead.'|t('geomaps'),
 				id: 'geocoder',
 				name: 'geocoder',
 				value: settings.geocoder,
 				options: [
-					{ value: 'auto', label: 'Automatic (Google with a server key)'|t('geomaps') },
+					{ value: 'auto', label: 'Automatic'|t('geomaps') },
 					{ value: 'nominatim', label: 'OpenStreetMap (free, no key)'|t('geomaps') },
-					{ value: 'google', label: 'Google (server key)'|t('geomaps') },
+					{ value: 'google', label: 'Google (server key, Google maps only)'|t('geomaps') },
 					{ value: 'mapbox', label: 'Mapbox (access token)'|t('geomaps') },
 				],
 				disabled: configFileExists and config.geocoder is defined,
@@ -296,7 +295,7 @@
 					{% if isPro %}
 						{{ 'These features are switched on for this site.'|t('geomaps') }}
 					{% else %}
-						{{ 'Extra features for bigger sites. Try them free on local and staging sites by switching Geo Maps to Pro.'|t('geomaps') }}
+						{{ 'Tools that save build time on bigger projects. Try them free on local and staging sites by switching Geo Maps to Pro.'|t('geomaps') }}
 					{% endif %}
 				</p>
 			</div>
@@ -308,7 +307,7 @@
 					<span class="gm-feature__icon">{{ icons[feature.key]|raw }}</span>
 					<div class="gm-feature__text">
 						<strong>{{ feature.name }}</strong>
-						<span>{{ feature.text }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Learn more'|t('geomaps') }}</a></span>
+						<span>{{ feature.text|md(inlineOnly=true) }} <a href="{{ feature.url }}" target="_blank" rel="noopener">{{ 'Learn more'|t('geomaps') }}</a></span>
 					</div>
 					{% if isPro and feature.setting is defined %}
 						<div class="gm-feature__control">

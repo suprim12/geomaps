@@ -1,6 +1,6 @@
 # Mapbox Maps
 
-Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [store locator](/guides/store-locator) and the map in the control panel. It works on the free edition, with no code.
+Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [locator component](/guides/locator) and the map in the control panel. It works on the free edition, with no code.
 
 Mapbox tiles are used for maps set to **Map tiles** under **Settings → Plugins → Geo Maps → Maps** (or **Automatic** without a Google key), so you can use Google in the control panel and Mapbox on your site, or the other way round. Mapbox can also look up addresses (see [Address search with Mapbox](#address-search-with-mapbox)) and make [static map images](/guides/maps#static-map-images).
 
@@ -74,7 +74,7 @@ Mapbox’s [attribution rules](https://docs.mapbox.com/help/getting-started/attr
 }
 ```
 
-This covers every `embed()` map, including the store locator’s.
+This covers every `embed()` map, including the locator component’s.
 
 ## Address search with Mapbox
 
@@ -85,7 +85,7 @@ Mapbox’s terms only allow saving results from its **permanent** geocoding, whi
 | | Permanent geocoding off | Permanent geocoding on |
 |---|---|---|
 | Location searches, such as `location: 'Glenelg SA'` | Mapbox (results aren’t cached) | Mapbox (cached for 30 days) |
-| Suggestions in search boxes: [`addressInput()`](/examples/address-autocomplete) with `name`, and the [store locator](/guides/store-locator) | Mapbox | Mapbox |
+| Suggestions in search boxes: [`addressInput()`](/examples/address-autocomplete) with `name`, and the [locator component](/guides/locator) | Mapbox | Mapbox |
 | Suggestions that are saved: the field in the control panel, and `addressInput()` with `field` | OpenStreetMap or Google | Mapbox |
 | [Missing coordinates](/guides/missing-coordinates) | OpenStreetMap | Mapbox, without the one-per-second limit |
 

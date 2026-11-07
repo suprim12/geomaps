@@ -1,5 +1,5 @@
 /**
- * Store locator behaviour for craft.geomaps.storeLocator() (Geo Maps Pro).
+ * Locator component behaviour for craft.geomaps.locator() (Geo Maps Pro).
  *
  * The locator is a plain GET form rendered on the server; this adds "use my location",
  * searching again when the distance changes, and opening a result's pin on the map.

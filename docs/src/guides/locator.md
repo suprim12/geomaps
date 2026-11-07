@@ -1,11 +1,11 @@
-# Store Locator <Badge type="tip" text="Pro" />
+# Locator Component <Badge type="tip" text="Pro" />
 
-A complete store locator from one Twig tag: an address box with suggestions, **Use my location**, a distance filter, a numbered list of the nearest locations and a map with matching pins.
+A complete “find the nearest” interface from one Twig tag, for stores, clinics, dealers, offices, events or any entries with a location: an address box with suggestions, **Use my location**, a distance filter, a numbered list of the nearest locations and a map with matching pins.
 
-![A store locator: an address search, distance filter and numbered list of stores beside a map with matching numbered pins and an open info window](/images/store-locator-component.jpg)
+![The locator component: an address search, distance filter and numbered list of stores beside a map with matching numbered pins and an open info window](/images/store-locator-component.jpg)
 
 ```twig
-{{ craft.geomaps.storeLocator({
+{{ craft.geomaps.locator({
   section: 'stores',
   field: 'storeLocation',
 }) }}
@@ -51,7 +51,7 @@ Before a search, it lists locations in the order of your query and shows them al
 | `number` | The result’s number, matching its pin |
 
 ```twig
-{{ craft.geomaps.storeLocator({
+{{ craft.geomaps.locator({
   section: 'stores',
   field: 'storeLocation',
   resultTemplate: '_partials/locator-result',
@@ -81,7 +81,7 @@ Pass a `query` to search only some entries, such as stores in a category chosen 
   {% set stores = stores.relatedTo(craft.categories.slug(service).one()) %}
 {% endif %}
 
-{{ craft.geomaps.storeLocator({ query: stores, field: 'storeLocation' }) }}
+{{ craft.geomaps.locator({ query: stores, field: 'storeLocation' }) }}
 ```
 
 ## Styling
@@ -104,7 +104,7 @@ Or style the classes: `.geomaps-locator__panel`, `__form`, `__results`, `__resul
 Pass `messages` to translate or reword any text:
 
 ```twig
-{{ craft.geomaps.storeLocator({
+{{ craft.geomaps.locator({
   section: 'stores',
   field: 'storeLocation',
   messages: {
@@ -124,4 +124,4 @@ Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser,
 
 ## Without Pro
 
-On the free edition, `storeLocator()` outputs nothing, so pages still load. In dev mode it leaves an HTML comment explaining why. To build a locator by hand on the free edition, see the [Store Locator example](/examples/store-locator).
+On the free edition, `locator()` outputs nothing, so pages still load. In dev mode it leaves an HTML comment explaining why. To build one by hand on the free edition, see the [Store Locator example](/examples/store-locator).

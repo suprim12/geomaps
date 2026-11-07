@@ -1,8 +1,8 @@
-# Store Locator with Filters <Badge type="tip" text="Pro" />
+# Locator with Filters <Badge type="tip" text="Pro" />
 
-Let visitors narrow the [store locator](/guides/store-locator) to stores that offer a service, such as “Click & collect” or “Parking”, while keeping their search.
+Let visitors narrow the [locator component](/guides/locator) to stores that offer a service, such as “Click & collect” or “Parking”, while keeping their search.
 
-`storeLocator()` takes any element query as `query`, so filtering is ordinary Craft: relate stores to categories, and pass a query filtered by the chosen category.
+`locator()` takes any element query as `query`, so filtering is ordinary Craft: relate stores to categories, and pass a query filtered by the chosen category.
 
 ## The content
 
@@ -30,7 +30,7 @@ Create a category group called **Services** (`services`) with categories such as
   {% endfor %}
 </nav>
 
-{{ craft.geomaps.storeLocator({
+{{ craft.geomaps.locator({
   query: stores,
   field: 'storeLocation',
 }) }}

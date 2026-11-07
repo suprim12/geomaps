@@ -9,6 +9,8 @@
 
 namespace suprim\geomaps\models;
 
+use Craft;
+
 use craft\base\Model;
 use craft\helpers\App;
 
@@ -18,7 +20,7 @@ class Settings extends Model
     public ?string $geoToken = null;
     /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL and used for Mapbox geocoding. */
     public ?string $mapboxToken = null;
-    /** Maps on the front end (`embed()`, the store locator): `auto` (Google with a browser key, otherwise the map tiles), `google` or `tiles`. */
+    /** Maps on the front end (`embed()`, the locator component): `auto` (Google with a browser key, otherwise the map tiles), `google` or `tiles`. */
     public string $mapProvider = 'auto';
     /** Maps in the control panel (the field): `auto`, `google` or `tiles`. */
     public string $cpMapProvider = 'auto';
@@ -50,6 +52,11 @@ class Settings extends Model
             ['geocodeMissing', 'boolean'],
             ['geocoder', 'in', 'range' => ['auto', 'nominatim', 'google', 'mapbox']],
             [['mapProvider', 'cpMapProvider'], 'in', 'range' => ['auto', 'google', 'tiles']],
+            ['geocoder', function(string $attribute) {
+                if ($this->geocoder === 'google' && $this->getMapProvider('site') !== 'google') {
+                    $this->addError($attribute, Craft::t('geomaps', 'Google’s terms only allow Google address lookups with Google maps. Set the front-end maps to Google Maps (with a browser key), or choose OpenStreetMap or Mapbox here.'));
+                }
+            }],
             ['mapboxPermanent', 'boolean'],
         ]);
     }
@@ -134,12 +141,13 @@ class Settings extends Model
     }
 
     /**
-     * Google's terms don't allow Geocoding or Places API results with a non-Google map.
+     * Google address lookups were chosen but can't be used, because front-end maps aren't Google maps.
      */
-    public function hasGoogleGeocodingWithOtherMaps(): bool
+    public function isGoogleGeocodingBlocked(): bool
     {
-        return $this->getGeocoder() === 'google'
-            && ($this->getMapProvider('site') !== 'google' || $this->getMapProvider('cp') !== 'google');
+        return in_array($this->geocoder, ['google', 'auto'], true)
+            && $this->getGeoToken()
+            && $this->getMapProvider('site') !== 'google';
     }
 
     /**
@@ -148,7 +156,9 @@ class Settings extends Model
      */
     public function getGeocoder(): string
     {
-        $google = $this->getGeoToken() ? 'google' : 'nominatim';
+        // Google's terms only allow Geocoding API results with Google maps, and lookups on the server
+        // are used for front-end searches, so Google is only used with Google maps on the front end.
+        $google = $this->getGeoToken() && $this->getMapProvider('site') === 'google' ? 'google' : 'nominatim';
 
         return match ($this->geocoder) {
             'mapbox' => $this->getMapboxToken() ? 'mapbox' : $google,

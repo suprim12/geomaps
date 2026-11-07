@@ -12,8 +12,8 @@ namespace suprim\geomaps\variables;
 
 use suprim\geomaps\models\AddressInput;
 use suprim\geomaps\models\EmbedMap;
+use suprim\geomaps\models\Locator;
 use suprim\geomaps\models\StaticMap;
-use suprim\geomaps\models\StoreLocator;
 
 class GeoVariable
 {
@@ -65,10 +65,10 @@ class GeoVariable
     }
 
     /**
-     * A ready-made store locator: address search, "use my location", results list and map (Pro).
+     * The locator component: address search, "use my location", a results list and a map (Pro).
      */
-    public function storeLocator(array $options = []): \Twig\Markup
+    public function locator(array $options = []): \Twig\Markup
     {
-        return (new StoreLocator())->render($options);
+        return (new Locator())->render($options);
     }
 }
