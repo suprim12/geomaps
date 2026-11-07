@@ -49,12 +49,12 @@
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.search|raw }}</span>
 			<span class="gm-status__label">{{ 'Address search'|t('geomaps') }}</span>
-			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Places' : 'Photon (OpenStreetMap)' }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleMaps ? 'Google Places' : 'Photon' }}</span>
 		</div>
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.pin|raw }}</span>
 			<span class="gm-status__label">{{ 'Location search'|t('geomaps') }}</span>
-			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleGeocoding ? 'Google Geocoding' : 'Nominatim (OpenStreetMap)' }}</span>
+			<span class="gm-status__value"><span class="status green"></span>{{ usesGoogleGeocoding ? 'Google Geocoding' : 'Nominatim' }}</span>
 		</div>
 		<div class="gm-status__item">
 			<span class="gm-status__icon">{{ icons.star|raw }}</span>
@@ -215,7 +215,7 @@
 </div>
 
 {% css %}
-.gm { --gm-accent: #4f46e5; --gm-accent-soft: #eef0fd; --gm-line: var(--hairline-color, rgba(51, 64, 77, 0.1)); max-width: 1100px; }
+.gm { --gm-accent: #4f46e5; --gm-accent-soft: #eef0fd; --gm-line: var(--hairline-color, rgba(51, 64, 77, 0.1)); }
 .gm h2 { margin: 0 0 4px; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .gm p { margin: 0; }
 
@@ -223,12 +223,13 @@
 .gm-notice svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
 
 .gm-status { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
-.gm-status__item { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 14px; border: 1px solid var(--gm-line); border-radius: 10px; background: var(--gray-050, #f8fafc); }
-.gm-status__icon { grid-row: span 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #fff; color: var(--gm-accent); box-shadow: 0 0 0 1px var(--gm-line); }
+.gm-status__item { display: grid; grid-template-columns: 36px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; row-gap: 3px; align-content: center; min-height: 64px; padding: 12px 14px; border: 1px solid var(--gm-line); border-radius: 10px; background: var(--gray-050, #f8fafc); }
+.gm-status__icon { grid-row: 1 / span 2; align-self: center; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: #fff; color: var(--gm-accent); box-shadow: 0 0 0 1px var(--gm-line); }
 .gm-status__icon svg { width: 18px; height: 18px; }
-.gm-status__label { font-size: 12px; color: var(--light-text-color, #64748b); text-transform: uppercase; letter-spacing: 0.04em; }
-.gm-status__value { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; min-width: 0; }
-.gm-status__value .status { flex: none; }
+.gm-status__label { align-self: end; font-size: 11px; line-height: 1.2; color: var(--light-text-color, #64748b); text-transform: uppercase; letter-spacing: 0.05em; }
+.gm-status__value { align-self: start; display: flex; align-items: center; gap: 7px; min-width: 0; font-weight: 600; font-size: 14px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gm-status__value .status { flex: none; margin: 0; }
+.gm-status__value .gm-badge { font-size: 12px; padding: 2px 10px; }
 
 .gm-card { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 8px 32px; padding: 24px 0; border-top: 1px solid var(--gm-line); }
 .gm-card__head { display: flex; gap: 12px; align-items: flex-start; }
