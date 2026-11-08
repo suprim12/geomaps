@@ -141,7 +141,8 @@ class GeoService extends Component
      */
     public static function reverseGeocode(float $lat, float $lng): ?array
     {
-        if (self::geocoder() === 'nominatim') {
+        // Only Google when it's the active geocoder (it needs Google maps); otherwise OpenStreetMap.
+        if (self::geocoder() !== 'google') {
             return self::reverseGeocodeWithNominatim($lat, $lng);
         }
 

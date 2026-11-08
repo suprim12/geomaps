@@ -17,7 +17,7 @@
 - Static map images from Mapbox, using your Mapbox style, when the front-end maps aren’t Google maps, or with `img({ provider: 'mapbox' })`.
 
 ### Changed
-- Google address lookups are only used with Google maps on the front end, as Google’s terms require. Sites with a Google server key but other maps now use OpenStreetMap or Mapbox for lookups, and the settings page explains why.
+- Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap (or Mapbox, if chosen), and the settings page explains why.
 
 ## 1.3.0 - 2026-11-08
 

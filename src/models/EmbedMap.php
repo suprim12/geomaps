@@ -155,10 +155,11 @@ class EmbedMap extends Model
                     if (content) {
                         m.bindPopup(content, { maxWidth: 320 });
                     }
-                    m.addTo(cluster || map);
+                    var inCluster = cluster && marker.cluster !== false;
+                    m.addTo(inCluster ? cluster : map);
                     made.push(m);
                     if (content && marker.open) {
-                        if (cluster) openLater.push(m); else m.openPopup();
+                        if (inCluster) openLater.push(m); else m.openPopup();
                     }
                 });
                 if (cluster) {
@@ -176,7 +177,7 @@ class EmbedMap extends Model
                     open: function(i) {
                         var m = made[i];
                         if (!m) return;
-                        if (cluster) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); return; }
+                        if (cluster && cluster.hasLayer(m)) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); return; }
                         map.panTo(m.getLatLng());
                         if (m.getPopup()) m.openPopup();
                     },
@@ -220,7 +221,7 @@ class EmbedMap extends Model
                     };
                     var m = new google.maps.Marker({
                         position: { lat: marker.lat, lng: marker.lng },
-                        map: clusterOn ? null : map,
+                        map: clusterOn && marker.cluster !== false ? null : map,
                         title: marker.label || null,
                         icon: icon,
                     });
@@ -239,12 +240,13 @@ class EmbedMap extends Model
                             }
                         }
                     }
-                    clustered.push(m);
+                    if (clusterOn && marker.cluster !== false) clustered.push(m);
                 });
+                var placedGoogle = made.filter(Boolean).map(function(item) { return item.marker; });
                 if (clusterOn) window.GeoMapsCluster.google(map, clustered, config.cluster);
-                if (config.fitMarkers && clustered.length > 1) {
+                if (config.fitMarkers && placedGoogle.length > 1) {
                     var markerBounds = new google.maps.LatLngBounds();
-                    clustered.forEach(function(m) { markerBounds.extend(m.getPosition()); });
+                    placedGoogle.forEach(function(m) { markerBounds.extend(m.getPosition()); });
                     map.fitBounds(markerBounds, 40);
                 }
                 el.geomaps = {
@@ -492,6 +494,8 @@ class EmbedMap extends Model
                 'icon' => array_key_exists('icon', $marker) ? $this->resolveIcon($marker['icon']) : $defaultIcon,
                 'html' => $html !== null && $html !== '' ? (string)$html : null,
                 'open' => !empty($marker['open']),
+                // `cluster: false` keeps a marker (e.g. "you are here") out of the clusters.
+                'cluster' => ($marker['cluster'] ?? true) !== false,
             ];
         }
 

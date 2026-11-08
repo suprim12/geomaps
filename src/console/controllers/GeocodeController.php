@@ -51,7 +51,7 @@ class GeocodeController extends Controller
         }
 
         $service = $plugin->missingCoordinates;
-        $counts = [MissingCoordinates::SAVED => 0, MissingCoordinates::NOT_FOUND => 0];
+        $counts = [MissingCoordinates::SAVED => 0, MissingCoordinates::NOT_FOUND => 0, MissingCoordinates::SKIPPED => 0];
         $done = 0;
 
         foreach ($service->find($this->field, $this->retry) as $item) {
@@ -60,7 +60,7 @@ class GeocodeController extends Controller
             }
             $done++;
 
-            $label = sprintf('%s #%d (site %d): %s', $item['element']::displayName(), $item['element']->id, $item['element']->siteId, $item['address']);
+            $label = sprintf('%s #%d (site %d): %s', $item['type']::displayName(), $item['id'], $item['siteId'], $item['address']);
 
             if ($this->dryRun) {
                 $this->stdout("Would look up $label\n");
@@ -77,7 +77,11 @@ class GeocodeController extends Controller
             }
 
             $counts[$status]++;
-            $this->stdout($status === MissingCoordinates::SAVED ? "saved\n" : "not found\n", $status === MissingCoordinates::SAVED ? Console::FG_GREEN : Console::FG_YELLOW);
+            $this->stdout(match ($status) {
+                MissingCoordinates::SAVED => "saved\n",
+                MissingCoordinates::SKIPPED => "skipped (changed since the scan)\n",
+                default => "not found\n",
+            }, $status === MissingCoordinates::SAVED ? Console::FG_GREEN : Console::FG_YELLOW);
         }
 
         if ($this->dryRun) {

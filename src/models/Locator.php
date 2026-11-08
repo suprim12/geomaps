@@ -57,8 +57,8 @@ class Locator extends Model
     public int|string $mapHeight = 520;
     /** Group nearby pins on the map. */
     public bool $cluster = true;
-    /** Directions link with `{lat}` and `{lng}` placeholders, or false to hide it. */
-    public string|false $directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination={lat},{lng}';
+    /** Directions link with `{lat}` and `{lng}` placeholders, or false (or null) to hide it. */
+    public string|false|null $directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination={lat},{lng}';
     /** Site template for each result's content. Gets `entry`, `location`, `distance`, `unit`, `number`. */
     public ?string $resultTemplate = null;
     /** Site template for each pin's info window. Gets the same variables. */
@@ -123,6 +123,8 @@ class Locator extends Model
             $radius = in_array($this->radius, $radii, true) ? $this->radius : $radii[0];
         }
         $searched = $lat !== null && $lng !== null;
+        // Only plain text: `?near[full_address][]=x` mustn't break the page.
+        $searchText = is_string($params['full_address'] ?? null) ? trim($params['full_address']) : '';
 
         $query = $this->query ? clone $this->query : Entry::find()->section($this->section ?? '*');
         $handle = $field->handle;
@@ -175,8 +177,9 @@ class Locator extends Model
         if ($searched) {
             $markers[] = [
                 'location' => ['lat' => $lat, 'lng' => $lng],
-                'label' => trim((string)($params['full_address'] ?? '')) ?: $messages['yourLocation'],
+                'label' => $searchText ?: $messages['yourLocation'],
                 'color' => '#111827',
+                'cluster' => false,
             ];
         }
 
@@ -200,7 +203,7 @@ class Locator extends Model
             'value' => $searched ? [
                 'lat' => $lat,
                 'lng' => $lng,
-                'full_address' => (string)($params['full_address'] ?? $messages['yourLocation']),
+                'full_address' => $searchText ?: $messages['yourLocation'],
             ] : null,
             'placeholder' => $this->placeholder ?? $messages['address'],
             'countries' => $countries,

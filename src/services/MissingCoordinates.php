@@ -13,6 +13,8 @@ namespace suprim\geomaps\services;
 use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\base\Field;
+use craft\helpers\Queue as QueueHelper;
 use Generator;
 use suprim\geomaps\fields\GeoField;
 use suprim\geomaps\jobs\GeocodeMissing;
@@ -30,6 +32,7 @@ class MissingCoordinates extends Component
     public const SAVED = 'saved';
     public const NOT_FOUND = 'notFound';
     public const UNAVAILABLE = 'unavailable';
+    public const SKIPPED = 'skipped';
 
     private const NOT_FOUND_CACHE = 'geomaps:geocode-not-found:';
     private const QUEUED_KEY = 'geomaps:geocode-queued';
@@ -37,75 +40,96 @@ class MissingCoordinates extends Component
     /**
      * Values with an address but no coordinates.
      *
-     * @return Generator<array{element: ElementInterface, handle: string, field: GeoField, address: string, country: ?string}>
+     * Only elements whose field layout has a Geo Maps field are loaded, and each element only once
+     * when the field isn't translated. Items carry ids rather than elements, so `fill()` works on a
+     * fresh copy.
+     *
+     * @return Generator<array{type: class-string<ElementInterface>, id: int, siteId: int, handle: string, fieldId: int, address: string, country: ?string}>
      */
     public function find(?string $fieldHandle = null, bool $retry = false): Generator
     {
         $fieldsService = Craft::$app->getFields();
-        $geoFields = [];
-        /** @var array<class-string<ElementInterface>, true> $types */
-        $types = [];
 
         foreach ($fieldsService->getAllFields() as $field) {
             if (!$field instanceof GeoField || ($fieldHandle && $field->handle !== $fieldHandle)) {
                 continue;
             }
 
-            $geoFields[$field->id] = $field;
+            // Layout ids per element type, so other sections and entry types aren't loaded.
+            $layoutIds = [];
             foreach ($fieldsService->findFieldUsages($field) as $layout) {
-                if ($layout->type && class_exists($layout->type)) {
-                    $types[$layout->type] = true;
+                if ($layout->id && $layout->type && class_exists($layout->type)) {
+                    $layoutIds[$layout->type][] = $layout->id;
                 }
             }
-        }
 
-        foreach (array_keys($types) as $type) {
-            foreach ($type::find()->site('*')->status(null)->each(50) as $element) {
-                // Only the Geo Maps fields in this element's own layout (handles can differ per layout).
-                foreach ($element->getFieldLayout()?->getCustomFields() ?? [] as $layoutField) {
-                    $field = $geoFields[$layoutField->id] ?? null;
-                    if (!$field) {
-                        continue;
+            foreach ($layoutIds as $type => $ids) {
+                /** @var class-string<ElementInterface> $type */
+                $query = $type::find()
+                    ->site('*')
+                    ->status(null)
+                    ->andWhere(['elements.fieldLayoutId' => $ids]);
+
+                // An untranslated value is the same on every site: look it up once.
+                if ($field->translationMethod === Field::TRANSLATION_METHOD_NONE) {
+                    $query->unique();
+                }
+
+                foreach ($query->each(50) as $element) {
+                    foreach ($element->getFieldLayout()?->getCustomFields() ?? [] as $layoutField) {
+                        if ($layoutField->id !== $field->id) {
+                            continue;
+                        }
+
+                        $value = $element->getFieldValue($layoutField->handle);
+                        $address = $value instanceof GeoValue ? $this->addressText($value) : null;
+
+                        if ($address === null || $value->hasCoordinates()) {
+                            continue;
+                        }
+
+                        $country = $this->countryFor($value, $field);
+
+                        if (!$retry && $this->isKnownNotFound($address, $country)) {
+                            continue;
+                        }
+
+                        yield [
+                            'type' => $type,
+                            'id' => (int)$element->id,
+                            'siteId' => (int)$element->siteId,
+                            'handle' => $layoutField->handle,
+                            'fieldId' => (int)$field->id,
+                            'address' => $address,
+                            'country' => $country,
+                        ];
                     }
-
-                    $value = $element->getFieldValue($layoutField->handle);
-                    $address = $value instanceof GeoValue ? $this->addressText($value) : null;
-
-                    if ($address === null || $value->hasCoordinates()) {
-                        continue;
-                    }
-
-                    $country = $this->countryFor($value, $field);
-
-                    if (!$retry && $this->isKnownNotFound($address, $country)) {
-                        continue;
-                    }
-
-                    yield [
-                        'element' => $element,
-                        'handle' => $layoutField->handle,
-                        'field' => $field,
-                        'address' => $address,
-                        'country' => $country,
-                    ];
                 }
             }
         }
     }
 
     /**
-     * Looks up one value's address and saves its coordinates.
+     * Looks up one value's address and saves its coordinates on a freshly loaded copy of the element,
+     * so changes made since the scan (titles, a pin placed by hand) aren't overwritten.
      *
-     * @param array{element: ElementInterface, handle: string, field: GeoField, address: string, country: ?string} $item
+     * @param array{type: class-string<ElementInterface>, id: int, siteId: int, handle: string, fieldId: int, address: string, country: ?string} $item
      * @return string One of the class constants.
      */
     public function fill(array $item): string
     {
+        $element = $item['type']::find()->id($item['id'])->siteId($item['siteId'])->status(null)->one();
+        $value = $element?->getFieldValue($item['handle']);
+
+        // Deleted, given coordinates, or its address edited since the scan: nothing to do.
+        if (!$value instanceof GeoValue || $value->hasCoordinates() || $this->addressText($value) !== $item['address']) {
+            return self::SKIPPED;
+        }
+
         $result = GeoService::geocodeForSaving($item['address'], $item['country']);
 
         // The field's search country is only a hint; the address may be elsewhere.
-        $value = $item['element']->getFieldValue($item['handle']);
-        if ($result === null && $item['country'] && $value instanceof GeoValue && !$value->countryCode) {
+        if ($result === null && $item['country'] && !$value->countryCode) {
             $result = GeoService::geocodeForSaving($item['address']);
         }
 
@@ -118,14 +142,11 @@ class MissingCoordinates extends Component
             return self::NOT_FOUND;
         }
 
-        $element = $item['element'];
-        if (!$value instanceof GeoValue) {
-            return self::NOT_FOUND;
-        }
-
         $value->lat = round($result['lat'], 6);
         $value->lng = round($result['lng'], 6);
         $element->setFieldValue($item['handle'], $value);
+        // A background update, like `resave/entries`: no new entry revision for each location.
+        $element->resaving = true;
 
         return Craft::$app->getElements()->saveElement($element, false) ? self::SAVED : self::NOT_FOUND;
     }
@@ -140,8 +161,16 @@ class MissingCoordinates extends Component
             return;
         }
 
-        $cache->set(self::QUEUED_KEY, true, 3600);
-        Craft::$app->getQueue()->push(new GeocodeMissing());
+        $this->keepQueued();
+        QueueHelper::push(new GeocodeMissing(), null, null, GeocodeMissing::TTR);
+    }
+
+    /**
+     * Marks a job as waiting or running, so saves don't queue another one. Refreshed as a job runs.
+     */
+    public function keepQueued(): void
+    {
+        Craft::$app->getCache()->set(self::QUEUED_KEY, true, 3600);
     }
 
     /**

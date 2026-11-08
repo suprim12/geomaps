@@ -434,9 +434,11 @@ class GeoField extends Field implements PreviewableFieldInterface
         $view = Craft::$app->getView();
         $view->registerAssetBundle(GeoAsset::class);
 
-        $mapToken = Plugin::getInstance()->getSettings()->getMapToken();
+        $settings = Plugin::getInstance()->getSettings();
+        $mapToken = $settings->getMapToken();
 
-        if ($mapToken) {
+        // Only needed when the control panel shows Google maps (Places suggestions follow the map).
+        if ($mapToken && $settings->getMapProvider('cp') === 'google') {
             $view->registerJsFile(
                 'https://maps.googleapis.com/maps/api/js?' . http_build_query([
                     'key' => $mapToken,
