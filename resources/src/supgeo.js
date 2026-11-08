@@ -37,7 +37,18 @@ L.Icon.Default.mergeOptions({
  * (no key, blocked key, ad blocker, offline).
  */
 async function loadGoogleLibrary(name) {
-  if (typeof google === "undefined" || !google.maps) return null;
+  // The Maps API script loads asynchronously: `google.maps` can exist before its loader and
+  // libraries are ready, so wait (up to 10 seconds) until this library can actually be used.
+  const ready = () =>
+    typeof google !== "undefined" &&
+    google.maps &&
+    (typeof google.maps.importLibrary === "function" ||
+      (name === "places" ? !!google.maps.places : !!google.maps.Map));
+  for (let waited = 0; !ready() && waited < 10000; waited += 100) {
+    if (window.__supgeoGoogleFailed) return null;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  if (!ready()) return null;
   try {
     if (typeof google.maps.importLibrary === "function") {
       return await google.maps.importLibrary(name);
@@ -368,11 +379,17 @@ document.addEventListener("alpine:init", () => {
       if (this.provider !== "google") return;
       // The Maps API loads with `loading=async`, so classes must be imported before use.
       if (!(await loadGoogleLibrary("places"))) return;
-      this._autocompleteService = new google.maps.places.AutocompleteService();
-      this._placesService = new google.maps.places.PlacesService(
-        this.$refs["supgeo-places-attr"],
-      );
-      this._sessionToken = new google.maps.places.AutocompleteSessionToken();
+      try {
+        this._autocompleteService = new google.maps.places.AutocompleteService();
+        // PlacesService needs an element for attributions; the ref may not exist yet while starting up.
+        this._placesService = new google.maps.places.PlacesService(
+          this.$refs["supgeo-places-attr"] || document.createElement("div"),
+        );
+        this._sessionToken = new google.maps.places.AutocompleteSessionToken();
+      } catch (e) {
+        console.warn("Geo Maps: Google Places isn't available, so OpenStreetMap search is used", e);
+        this._autocompleteService = null;
+      }
     },
     onSearchKeydown(e) {
       // Enter picks a suggestion; it must never submit (save) the entry form.
@@ -416,8 +433,7 @@ document.addEventListener("alpine:init", () => {
     },
     _fetchSuggestions(query) {
       if (this.searchProvider === "mapbox") return this._fetchMapboxSuggestions(query);
-      if (this.provider === "osm") return this._fetchOsmSuggestions(query);
-      if (!this._autocompleteService) return;
+      if (this.provider === "osm" || !this._autocompleteService) return this._fetchOsmSuggestions(query);
 
       this.loadingSuggestions = true;
 

@@ -19,6 +19,9 @@
 ### Changed
 - Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap (or Mapbox, if chosen), and the settings page explains why.
 
+### Fixed
+- Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.
+
 ## 1.3.0 - 2026-11-08
 
 ### Added
