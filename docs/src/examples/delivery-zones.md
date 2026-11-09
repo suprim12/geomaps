@@ -2,7 +2,7 @@
 
 Charge for delivery by where the customer lives. Draw your delivery areas on a map, then use them in Craft Commerce shipping rules, shipping methods and discounts. No templates or code: Geo Maps adds two conditions to Commerce's condition builder.
 
-![A Commerce shipping rule with two conditions: “Delivery address is in zone”, “is one of”, “Locations: Adelaide CBD Store”, and “Delivery distance (km)”, “is less than or equals”, 5](/examples/delivery-zones.jpg)
+![The Conditions tab of a Commerce shipping rule, with two order rules: “Delivery address is in zone”, “is one of”, “Locations: Adelaide CBD Store”, and “Delivery distance (km)”, “is less than or equals”, 5](/examples/delivery-zones.jpg)
 
 | Condition | Matches orders when |
 |---|---|

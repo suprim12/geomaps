@@ -19,6 +19,21 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 - **GraphQL and Feed Me.** Query, search and save locations in headless projects, and import locations from feeds.
 - **One-click import.** Already using another map plugin? Convert its fields in place. Handles, layouts, content and most templates carry over.
 
+## Geo Maps Pro
+
+Everything above is free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds features that save time on bigger builds:
+
+- **[Locator component](https://plugins.geomaps.suprim.com.au/guides/locator).** `craft.geomaps.locator()` outputs an address search, “Use my location”, a distance filter, a numbered results list and a map for any element query.
+- **[Marker clustering](https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering).** Groups nearby pins on maps with hundreds of locations.
+- **[Missing coordinates](https://plugins.geomaps.suprim.com.au/guides/missing-coordinates).** Looks up coordinates for imported locations that only have an address.
+- **[Search within an area](https://plugins.geomaps.suprim.com.au/guides/search#search-within-an-area).** Finds entries inside the visible map or a drawn shape, for “search as the map moves”.
+- **[Search endpoint](https://plugins.geomaps.suprim.com.au/guides/search-endpoint).** JSON search for headless sites and apps, set up in the config file.
+- **[Import and export](https://plugins.geomaps.suprim.com.au/guides/import-export).** Locations, zones and trails as CSV, GeoJSON, KML or GPX.
+- **[Structured data](https://plugins.geomaps.suprim.com.au/examples/location-page#structured-data-for-search-engines).** schema.org local business data for location pages.
+- **[Delivery zones for Craft Commerce](https://plugins.geomaps.suprim.com.au/examples/delivery-zones).** Shipping and discount conditions for drawn zones and distance from the store.
+
+Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
+
 ## Requirements
 
 Craft CMS 5.10.0 or later, and PHP 8.2 or later.
@@ -136,7 +151,7 @@ Common template patterns (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()
 
 ## Roadmap
 
-Geo Maps is free, and everything in the free edition stays free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds marker clustering, the locator component and missing coordinates. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
+Everything in the free edition stays free. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
 
 ## License
 
