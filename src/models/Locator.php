@@ -237,6 +237,7 @@ class Locator extends Model
             'summary' => $summary,
             'none' => $none,
             'height' => $height,
+            'keep' => $request->getIsConsoleRequest() ? [] : self::hiddenParams($request->getQueryParams(), $this->name),
         ], View::TEMPLATE_MODE_CP);
 
         return new Markup($html, 'UTF-8');
@@ -283,6 +284,30 @@ class Locator extends Model
             . '</svg>';
 
         return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode($svg);
+    }
+
+    /**
+     * The page's other query string parameters, such as filters, as `name => value` pairs for hidden
+     * inputs, so searching again keeps them.
+     *
+     * @return array<string, string>
+     */
+    private static function hiddenParams(array $params, string $exclude, string $prefix = ''): array
+    {
+        $pairs = [];
+        foreach ($params as $key => $value) {
+            $name = $prefix === '' ? (string)$key : "{$prefix}[{$key}]";
+            if ($prefix === '' && in_array($name, [$exclude, Craft::$app->getConfig()->getGeneral()->pathParam], true)) {
+                continue;
+            }
+            if (is_array($value)) {
+                $pairs += self::hiddenParams($value, $exclude, $name);
+            } elseif (is_scalar($value)) {
+                $pairs[$name] = (string)$value;
+            }
+        }
+
+        return $pairs;
     }
 
     private static function coordinate(mixed $value, int $max): ?float

@@ -4,6 +4,10 @@ Show different content to visitors in different areas: delivery messages, region
 
 Works on the free edition.
 
+![An address form with “175 The Parade, Norwood SA 5067” entered, and below it a box for Bin Zone A Norwood showing Monday as the collection day](/examples/content-by-area.jpg)
+
+This demo uses bin collection zones; swap in delivery messages, phone numbers or anything else you store on the region.
+
 ## The content
 
 Draw your areas on entries in a **Regions** section with a Geo Maps field called `regionArea` (turn off **Show Location Pin** in the field’s settings so it only holds shapes), and add the fields you want to vary by region, such as `deliveryMessage` and `phone`.

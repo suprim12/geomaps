@@ -4,6 +4,8 @@ Show whether a location is open right now (“Open now · closes 5:00 pm”, “
 
 The opening hours themselves are ordinary Craft content, so this works with any field you like. This example uses a **Table** field.
 
+![Locator results near Adelaide, each showing “Open now · closes 11:59 pm” under the store's address](/examples/opening-hours.jpg)
+
 ## The field
 
 Add a Table field called **Opening Hours** (`openingHours`) to your stores, with three columns:

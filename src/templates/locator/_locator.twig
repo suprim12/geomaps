@@ -16,6 +16,9 @@
 
 	<div class="geomaps-locator__panel">
 		<form class="geomaps-locator__form" method="get" role="search" data-locator-form>
+			{% for paramName, paramValue in keep %}
+				<input type="hidden" name="{{ paramName }}" value="{{ paramValue }}">
+			{% endfor %}
 			{{ search }}
 			<div class="geomaps-locator__row">
 				<select name="{{ name }}[radius]" aria-label="{{ messages.distance }}" data-locator-radius>

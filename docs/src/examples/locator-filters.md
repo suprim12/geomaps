@@ -4,6 +4,8 @@ Let visitors narrow the [locator component](/guides/locator) to stores that offe
 
 `locator()` takes any element query as `query`, so filtering is ordinary Craft: relate stores to categories, and pass a query filtered by the chosen category.
 
+![The locator component with filter buttons for All stores, Click & collect, Parking and Open Sundays above it; Parking is selected and two stores with parking are listed near Adelaide](/examples/locator-filters.jpg)
+
 ## The content
 
 Create a category group called **Services** (`services`) with categories such as *Click & collect*, *Parking* and *Open Sundays*, and add a Categories field called **Services** (`services`) to your stores.
@@ -42,7 +44,7 @@ Create a category group called **Services** (`services`) with categories such as
 .filters a[aria-current] { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 ```
 
-The locator’s own search form keeps the filter too: the chosen `service` stays in the page URL when visitors search again, because the form submits to the current page.
+The locator’s own search form keeps the filter too: the chosen `service` stays in the page URL when visitors search again, because the locator copies the page’s other URL parameters into its search form.
 
 ## Several filters at once
 

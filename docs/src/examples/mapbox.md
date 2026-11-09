@@ -4,6 +4,27 @@ Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite
 
 Mapbox tiles are used when there’s no Google browser key, or for maps set to `'tiles'` in [`config/geomaps.php`](/getting-started/configuration#map-providers), so you can use Google in the control panel and Mapbox on your site, or the other way round. Mapbox can also look up addresses (see [Address search with Mapbox](#address-search-with-mapbox)) and make [static map images](/guides/maps#static-map-images).
 
+![Left: an interactive map of Adelaide stores on Mapbox Streets tiles. Right: a static Mapbox image of central Adelaide with a red pin](/examples/mapbox.jpg)
+
+```twig
+{# Interactive map on Mapbox tiles, even when a Google key is set #}
+{{ craft.geomaps.embed({
+  provider: 'tiles',
+  markers: stores|map(s => { location: { lat: s.storeLocation.lat, lng: s.storeLocation.lng }, label: s.title }),
+  fitMarkers: true,
+  height: 380,
+}) }}
+
+{# Static image from Mapbox #}
+<img alt="Map of Adelaide" src="{{ craft.geomaps.img({
+  provider: 'mapbox',
+  center: { lat: -34.9285, lng: 138.6007 },
+  zoom: 13,
+  width: 640,
+  height: 380,
+}) }}">
+```
+
 ## 1. Create an access token
 
 1. Sign in at [account.mapbox.com](https://account.mapbox.com) and open **Tokens**.
@@ -22,7 +43,7 @@ Go to **Settings → Plugins → Geo Maps** and, under **Map tiles**:
 
 1. Click a **Quick setup** button: **Mapbox Streets**, **Light**, **Dark** or **Satellite**. It fills in the tiles URL and the credit Mapbox requires.
 2. Enter `$MAPBOX_TOKEN` in **Mapbox access token**, so the token stays in `.env` rather than your project config.
-3. Save. The **Maps** status at the top of the page shows **Mapbox**, and the preview shows the new tiles.
+3. Save. The preview shows the new tiles.
 
 The tiles URL has a `{mapboxToken}` placeholder that Geo Maps fills in with the token:
 
@@ -97,4 +118,4 @@ If Mapbox refuses a request, for example because the token is restricted to othe
 - **Privacy:** visitors’ browsers load the tiles from Mapbox, which receives their IP address. Mention Mapbox in your privacy policy; see [Privacy and Data](/getting-started/privacy-and-data).
 - **With a Google key too:** set `mapProvider` (front end) or `cpMapProvider` (control panel) to `'tiles'` in `config/geomaps.php` where you want Mapbox. Without it, Google is used when a browser key is set.
 - **Check the preview:** after saving, the **Map tiles** preview on the settings page shows the Mapbox tiles. A grey preview saying the tiles didn’t load usually means the token is missing, mistyped, or restricted to other domains.
-- **Later, Mapbox address search:** the same token will be used by future Mapbox features, so set it in **Mapbox access token** rather than writing it into the URL.
+- **One token:** map tiles, address search and static images all use the token in **Mapbox access token**, so set it there rather than writing it into the URL.
