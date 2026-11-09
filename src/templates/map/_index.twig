@@ -1,0 +1,97 @@
+{#
+	* Geo Maps plugin for Craft CMS
+	*
+	* The Map page in the control panel (Pro).
+	*
+	* @link      https://suprim.com.au
+	* @author suprim <support@suprim.com.au> <https://suprim.com.au>
+	* @copyright Copyright (c) 2026 suprim
+#}
+
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Map'|t('geomaps') %}
+{% set fullPageForm = false %}
+
+{% block content %}
+	{% if not isPro %}
+		<div class="readable">
+			<p>{{ 'The map of entries is part of Geo Maps Pro. Try it free on local and staging sites by switching Geo Maps to Pro under {link}.'|t('geomaps', { link: '<a href="' ~ cpUrl('settings/plugins') ~ '">' ~ 'Settings → Plugins'|t('geomaps') ~ '</a>' })|raw }}</p>
+		</div>
+	{% elseif not sources %}
+		<div class="zilch">
+			<p>{{ 'Add a Geo Maps field to a section’s entry types to see its entries here.'|t('geomaps') }}</p>
+		</div>
+	{% else %}
+		<form method="get" class="gm-map-bar" data-gm-map-filters>
+			{% if sources|length > 1 %}
+				{{ forms.select({
+					name: 'section',
+					value: source.section.handle,
+					options: sources|map(s => { label: s.section.name, value: s.section.handle })|values,
+					inputAttributes: { 'aria-label': 'Section'|t('app') },
+				}) }}
+			{% endif %}
+			{% if source.fields|length > 1 %}
+				{{ forms.select({
+					name: 'field',
+					value: field.handle,
+					options: source.fields|map(f => { label: f.name, value: f.handle }),
+					inputAttributes: { 'aria-label': 'Field'|t('app') },
+				}) }}
+			{% endif %}
+			{{ forms.select({
+				name: 'status',
+				value: liveOnly ? 'live' : 'all',
+				options: [
+					{ label: 'All entries'|t('geomaps'), value: 'all' },
+					{ label: 'Live entries'|t('geomaps'), value: 'live' },
+				],
+				inputAttributes: { 'aria-label': 'Status'|t('app') },
+			}) }}
+			<div class="texticon search icon">
+				<input type="search" class="text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search'|t('app') }}" aria-label="{{ 'Search'|t('app') }}">
+			</div>
+			<button type="submit" class="btn">{{ 'Filter'|t('geomaps') }}</button>
+			<span class="gm-map-bar__count">
+				{{ '{count, plural, =1{# location} other{# locations}}'|t('geomaps', { count: total }) }}{% if total > limit %} · {{ 'showing the first {limit}'|t('geomaps', { limit: limit|number }) }}{% endif %}
+			</span>
+		</form>
+
+		{% if markers %}
+			{{ craft.geomaps.embed({
+				markers: markers,
+				marker: false,
+				fitMarkers: true,
+				cluster: true,
+				provider: provider,
+				width: '100%',
+				height: '68vh',
+				zoom: 12,
+			}) }}
+		{% else %}
+			<div class="zilch">
+				<p>{{ search ? 'No entries with a location match your search.'|t('geomaps') : 'No entries in this section have a location yet.'|t('geomaps') }}</p>
+			</div>
+		{% endif %}
+	{% endif %}
+{% endblock %}
+
+{% css %}
+.gm-map-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+.gm-map-bar .texticon { flex: 0 1 240px; }
+.gm-map-bar__count { margin-left: auto; color: var(--light-text-color, #64748b); font-size: 13px; }
+.gm-map-bar .select { margin: 0; }
+[data-geo-embed] { min-height: 360px; border-radius: var(--large-border-radius, 8px); overflow: hidden; box-shadow: 0 0 0 1px var(--hairline-color, rgba(51, 64, 77, .1)); }
+.gm-pop { display: flex; flex-direction: column; gap: 4px; min-width: 180px; max-width: 260px; font-size: 13px; line-height: 1.4; }
+.gm-pop strong { font-size: 14px; }
+.gm-pop__address { color: var(--medium-text-color, #475569); }
+.gm-pop__status { display: inline-flex; align-items: center; gap: 6px; color: var(--light-text-color, #64748b); font-size: 12px; }
+.gm-pop .btn.small { align-self: flex-start; margin-top: 4px; }
+{% endcss %}
+
+{% js %}
+// Filter as soon as a dropdown changes.
+document.querySelectorAll('[data-gm-map-filters] select').forEach((select) => select.addEventListener('change', () => select.form.submit()));
+{% endjs %}

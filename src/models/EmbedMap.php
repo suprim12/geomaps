@@ -71,6 +71,16 @@ class EmbedMap extends Model
         $markers = $this->resolveMarkers($center);
         $cluster = $this->resolveCluster();
 
+        // Without a centre, start on the first marker rather than in the ocean at 0, 0.
+        if ($center === ['lat' => 0.0, 'lng' => 0.0] && $this->center === null && $this->centerFallback === null) {
+            foreach ($markers as $marker) {
+                if (isset($marker['lat'], $marker['lng'])) {
+                    $center = ['lat' => (float)$marker['lat'], 'lng' => (float)$marker['lng']];
+                    break;
+                }
+            }
+        }
+
         $config = Json::encode([
             'id' => $id,
             'center' => $center,

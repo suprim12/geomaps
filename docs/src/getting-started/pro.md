@@ -13,6 +13,7 @@ Geo Maps is free, and everything in the free edition stays free. **Geo Maps Pro*
 | [Search endpoint](/guides/search-endpoint) | JSON search URLs for headless and app front ends, set up in the config file, with distances, paging and CORS. |
 | [Import and export](/guides/import-export) | Loads locations, zones and trails from CSV, GeoJSON, KML or GPX into a section, and exports them again, with `php craft geomaps/locations/import` and `export`. |
 | [Structured data](/examples/location-page#structured-data-for-search-engines) | `entry.storeLocation.schema()` outputs schema.org local business data, with the address, map position and opening hours, for search engines. |
+| [Control panel map](/guides/cp-map) | A **Map** page and Dashboard widget showing a section's entries on one map, with clustering, search and a link to edit each entry. |
 
 See the [roadmap](https://github.com/suprim12/geomaps/blob/main/ROADMAP.md) for what’s planned.
 

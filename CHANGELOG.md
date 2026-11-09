@@ -13,6 +13,7 @@
 - Pro: JSON search endpoints for headless sites and apps, set up in `config/geomaps.php` under `searchEndpoints`. They return the nearest entries with distances, locations and chosen fields, with paging, map-area search and CORS.
 - Pro: `php craft geomaps/locations/import` and `export` load locations, zones and trails from CSV, GeoJSON, KML or GPX into a section, and export them as CSV, GeoJSON or KML. Re-running an import updates entries rather than creating copies.
 - Pro: `entry.myField.schema()` outputs schema.org local business structured data with the address, coordinates and opening hours, and `schemaData()` returns it as an array.
+- Pro: a **Map** page in the control panel and a **Locations Map** Dashboard widget show a section’s entries on one map, with clustering, status and search filters, and a link to edit each entry. People only see sections they can view.
 - `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
 - A simpler settings page: choose one **Map service** (OpenStreetMap, Mapbox or Google Maps) for maps, address search, location lookups and static images, and see which services the site is using.
 - Mapbox as a map service: add an access token and pick a style (Streets, Light, Dark, Satellite or your own from Mapbox Studio), with a live preview. Maps, address suggestions in the field and forms, location searches, missing coordinates and static images then use Mapbox.
@@ -30,6 +31,7 @@
 - With Google maps in the field, the map tiles from the plugin settings (such as Mapbox) were also loaded underneath, using up tile requests. They're now only loaded if Google fails.
 - Address search with OpenStreetMap, in the field and `addressInput()`, filled in the city rather than the suburb (“Adelaide” instead of “Ashford”), and dropped the house number when OpenStreetMap only knows the street. The suburb is now used, and the house number you typed is kept.
 - Picking an address the field’s map was already showing logged errors in the browser console.
+- `embed()` maps with markers but no `center` started at 0, 0 in the ocean, so a map with a single marker didn’t show it. They now start on the first marker.
 - Opening an entry could mark it as edited and save a draft without any change, when the field’s map zoomed on its own while loading, such as with **Hide Map** turned on.
 - The shape panel didn’t show the default blue as the chosen colour for shapes without a colour.
 

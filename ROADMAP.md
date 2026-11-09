@@ -17,6 +17,7 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 - **Search endpoint** (1.4, Pro). Ready-made JSON search for headless sites and apps.
 - **Import and export** (1.4, Pro). Locations, zones and trails as CSV, GeoJSON, KML or GPX.
 - **Structured data** (1.4, Pro). schema.org local business data for location pages.
+- **Control panel map** (1.4, Pro). A Map page and Dashboard widget with every entry on one map.
 
 ## Next
 
@@ -27,7 +28,6 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 - **Multiple locations per entry.** One field holding several addresses, such as a business with many branches, with search matching the nearest.
 - **Large datasets.** Native database spatial indexes for sites with tens of thousands of locations.
 - **Route corridor search.** Find entries within a distance of a route or line.
-- **A map of your entries in the control panel.** See every location in a section on one map, and jump to an entry from its pin.
 
 ## Considering
 

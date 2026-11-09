@@ -1,0 +1,42 @@
+{% import '_includes/forms.twig' as forms %}
+
+{% if sources %}
+	{{ forms.selectField({
+		label: 'Section'|t('app'),
+		id: 'section',
+		name: 'section',
+		value: widget.section,
+		options: sources|map(s => { label: s.section.name, value: s.section.handle })|values,
+	}) }}
+
+	{# Every Geo Maps field across the sections, by handle. #}
+	{% set fieldOptions = {} %}
+	{% for s in sources %}
+		{% for f in s.fields %}
+			{% set fieldOptions = fieldOptions|merge({ (f.handle): f.name }) %}
+		{% endfor %}
+	{% endfor %}
+	{% if fieldOptions|length > 1 %}
+		{{ forms.selectField({
+			label: 'Field'|t('app'),
+			instructions: 'The Geo Maps field to show, if the section has more than one.'|t('geomaps'),
+			id: 'field',
+			name: 'field',
+			value: widget.field,
+			options: { '': 'The section’s first'|t('geomaps') }|merge(fieldOptions),
+		}) }}
+	{% endif %}
+
+	{{ forms.textField({
+		label: 'Height'|t('geomaps'),
+		instructions: 'In pixels.'|t('geomaps'),
+		id: 'height',
+		name: 'height',
+		type: 'number',
+		size: 6,
+		value: widget.height,
+		errors: widget.getErrors('height'),
+	}) }}
+{% else %}
+	<p>{{ 'Add a Geo Maps field to a section’s entry types first.'|t('geomaps') }}</p>
+{% endif %}

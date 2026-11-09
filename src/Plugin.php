@@ -18,10 +18,13 @@ use craft\db\Query;
 use craft\events\FieldEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\services\Dashboard;
 use craft\services\Fields;
 use craft\services\Gql;
 use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
+use craft\web\UrlManager;
 use suprim\geomaps\fields\GeoField;
 use suprim\geomaps\integrations\feedme\fields\GeoFeedMeField as FieldsGeoFeedMeField;
 use suprim\geomaps\integrations\graphql\types\GeoCoordsInput;
@@ -32,11 +35,13 @@ use suprim\geomaps\models\Settings;
 use suprim\geomaps\records\GeoRecord;
 use suprim\geomaps\services\GeoService;
 use suprim\geomaps\services\ImportService;
+use suprim\geomaps\services\LocationsMap;
 use suprim\geomaps\services\MapService;
 use suprim\geomaps\services\MissingCoordinates;
 use suprim\geomaps\services\ZoneService;
 use suprim\geomaps\utilities\ImportUtility;
 use suprim\geomaps\variables\GeoVariable;
+use suprim\geomaps\widgets\LocationsMapWidget;
 use yii\base\Event;
 
 /**
@@ -44,6 +49,7 @@ use yii\base\Event;
  * @property-read MapService $maps
  * @property-read ImportService $import
  * @property-read ZoneService $zones
+ * @property-read LocationsMap $locationsMap
  * @property-read MissingCoordinates $missingCoordinates
  * @method Settings getSettings()
  */
@@ -56,6 +62,7 @@ class Plugin extends BasePlugin
 
     public string $schemaVersion = '1.0.2';
     public bool $hasCpSettings = true;
+    public bool $hasCpSection = true;
 
     public static function editions(): array
     {
@@ -73,6 +80,22 @@ class Plugin extends BasePlugin
         return $this->is(self::EDITION_PRO);
     }
 
+    /**
+     * The Map page in the control panel nav, with Pro only.
+     */
+    public function getCpNavItem(): ?array
+    {
+        if (!$this->isPro()) {
+            return null;
+        }
+
+        $item = parent::getCpNavItem();
+        $item['label'] = Craft::t('geomaps', 'Map');
+        $item['icon'] = 'map-location-dot';
+
+        return $item;
+    }
+
     public static function config(): array
     {
         return [
@@ -82,6 +105,7 @@ class Plugin extends BasePlugin
                 'import' => ImportService::class,
                 'zones' => ZoneService::class,
                 'missingCoordinates' => MissingCoordinates::class,
+                'locationsMap' => LocationsMap::class,
             ],
         ];
     }
@@ -155,6 +179,14 @@ class Plugin extends BasePlugin
 
         Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITIES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = ImportUtility::class;
+        });
+
+        // Pro: the Map page and Dashboard widget.
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules['geomaps'] = 'geomaps/map/index';
+        });
+        Event::on(Dashboard::class, Dashboard::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = LocationsMapWidget::class;
         });
 
         // When an existing field becomes a Geo Maps field (e.g. a Maps import arriving via project config),

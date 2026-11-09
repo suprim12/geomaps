@@ -1,0 +1,27 @@
+{% if not source %}
+	<p class="light">{{ 'Add a Geo Maps field to a section’s entry types to see its entries here.'|t('geomaps') }}</p>
+{% elseif not markers %}
+	<p class="light">{{ 'No entries in {section} have a location yet.'|t('geomaps', { section: source.section.name }) }}</p>
+{% else %}
+	{{ craft.geomaps.embed({
+		markers: markers,
+		marker: false,
+		fitMarkers: true,
+		cluster: true,
+		provider: provider,
+		width: '100%',
+		height: widget.height,
+		zoom: 12,
+	}) }}
+	<p class="light" style="margin-top: 8px; display: flex; justify-content: space-between; gap: 8px;">
+		<span>{{ '{count, plural, =1{# location} other{# locations}}'|t('geomaps', { count: total }) }}</span>
+		<a href="{{ cpUrl('geomaps', { section: source.section.handle, field: field.handle }) }}">{{ 'Open the map'|t('geomaps') }}</a>
+	</p>
+	{% css %}
+	.gm-pop { display: flex; flex-direction: column; gap: 4px; min-width: 180px; max-width: 260px; font-size: 13px; line-height: 1.4; }
+	.gm-pop strong { font-size: 14px; }
+	.gm-pop__address { color: var(--medium-text-color, #475569); }
+	.gm-pop__status { display: inline-flex; align-items: center; gap: 6px; color: var(--light-text-color, #64748b); font-size: 12px; }
+	.gm-pop .btn.small { align-self: flex-start; margin-top: 4px; }
+	{% endcss %}
+{% endif %}
