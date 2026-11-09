@@ -18,6 +18,7 @@
 ### Changed
 - Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap instead.
 - Existing sites keep their maps: Geo Maps uses Google Maps when a Google browser key is set, Mapbox when the tiles URL is a Mapbox style, and OpenStreetMap or your tiles URL otherwise.
+- Address search in the field now starts after 3 characters and a short pause, like `addressInput()`, so typing an address sends fewer requests to Google, Mapbox or OpenStreetMap.
 
 ### Fixed
 - Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.

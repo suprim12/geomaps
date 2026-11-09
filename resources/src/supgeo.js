@@ -432,7 +432,8 @@ document.addEventListener("alpine:init", () => {
       const q = this.searchQuery.trim();
       this.activeSuggestion = -1;
 
-      if (!q) {
+      // Wait for 3 characters and a short pause, like addressInput(), so typing sends fewer requests.
+      if (q.length < 3) {
         this.suggestions = [];
         this.suggestionsOpen = false;
         clearTimeout(this._suggestDebounce);
@@ -440,7 +441,7 @@ document.addEventListener("alpine:init", () => {
       }
 
       clearTimeout(this._suggestDebounce);
-      this._suggestDebounce = setTimeout(() => this._fetchSuggestions(q), 220);
+      this._suggestDebounce = setTimeout(() => this._fetchSuggestions(q), 300);
     },
     _fetchSuggestions(query) {
       if (this.searchProvider === "mapbox") return this._fetchMapboxSuggestions(query);

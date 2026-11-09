@@ -240,7 +240,7 @@ function init(root) {
       close();
       return;
     }
-    timer = setTimeout(() => search(query), 250);
+    timer = setTimeout(() => search(query), 300);
   });
 
   input.addEventListener("keydown", (e) => {
