@@ -16,23 +16,38 @@ use craft\helpers\App;
 
 class Settings extends Model
 {
-    public ?string $mapToken = null;
-    public ?string $geoToken = null;
-    /** Mapbox access token, filled into `{mapboxToken}` in the tiles URL and used for Mapbox geocoding. */
-    public ?string $mapboxToken = null;
-    /** Maps on the front end (`embed()`, the locator component): `auto` (Google with a browser key, otherwise the map tiles), `google` or `tiles`. */
-    public string $mapProvider = 'auto';
-    /** Maps in the control panel (the field): `auto`, `google` or `tiles`. */
-    public string $cpMapProvider = 'auto';
-    /** Address lookups: `auto` (Google with a server key, otherwise OpenStreetMap), `nominatim`, `google` or `mapbox`. */
-    public string $geocoder = 'auto';
-    /**
-     * Use Mapbox permanent geocoding. Mapbox only allows storing (and caching) results from permanent
-     * requests, so Mapbox is used where coordinates are saved only when this is on.
-     */
-    public bool $mapboxPermanent = false;
+    public const SERVICE_OSM = 'openstreetmap';
+    public const SERVICE_MAPBOX = 'mapbox';
+    public const SERVICE_GOOGLE = 'google';
 
-    /** Raster tile URL template used when no Google key is set. */
+    /**
+     * The map service for maps, address search, lookups and static images: `openstreetmap`, `mapbox` or
+     * `google`. Null on sites set up before 1.4, where it's worked out from the keys and tiles URL.
+     */
+    public ?string $service = null;
+
+    /** Google browser key. */
+    public ?string $mapToken = null;
+    /** Google server key. */
+    public ?string $geoToken = null;
+    /** Mapbox access token. */
+    public ?string $mapboxToken = null;
+    /** Mapbox style as `owner/style-id`, such as `mapbox/streets-v12`, or a `mapbox://styles/…` URL. */
+    public string $mapboxStyle = 'mapbox/streets-v12';
+    /**
+     * Use Mapbox permanent geocoding for addresses that are saved. Mapbox only allows storing results from
+     * permanent requests, so with this off, saved addresses come from OpenStreetMap instead. Config file only.
+     */
+    public bool $mapboxPermanent = true;
+
+    /**
+     * Config file only. With the Google service: `tiles` shows the map tiles (Mapbox, with a Mapbox token,
+     * or the tiles URL) instead of Google maps on the front end (`mapProvider`) or in the field (`cpMapProvider`).
+     */
+    public string $mapProvider = 'auto';
+    public string $cpMapProvider = 'auto';
+
+    /** Tiles URL for the OpenStreetMap service: the OpenStreetMap tiles, or another tile provider. */
     public string $tileUrl = self::OSM_TILE_URL;
     public string $tileAttribution = self::OSM_ATTRIBUTION;
     /** Pro: find coordinates in the background for saved locations that only have an address. */
@@ -40,48 +55,66 @@ class Settings extends Model
 
     public const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     public const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    public const MAPBOX_ATTRIBUTION = '© <a href="https://www.mapbox.com/about/maps">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://apps.mapbox.com/feedback/">Improve this map</a></strong>';
+    public const MAPBOX_STYLES = [
+        'mapbox/streets-v12' => 'Streets',
+        'mapbox/light-v11' => 'Light',
+        'mapbox/dark-v11' => 'Dark',
+        'mapbox/satellite-streets-v12' => 'Satellite',
+    ];
 
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
             [['mapToken', 'geoToken', 'mapboxToken'], 'string'],
             [['mapToken', 'geoToken', 'mapboxToken'], 'default', 'value' => null],
-            [['tileUrl', 'tileAttribution'], 'string'],
+            [['tileUrl', 'tileAttribution', 'mapboxStyle'], 'string'],
             ['tileUrl', 'default', 'value' => self::OSM_TILE_URL],
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
+            ['mapboxStyle', 'default', 'value' => 'mapbox/streets-v12'],
+            ['mapboxStyle', fn($attribute) => $this->getMapboxStyle() ? null : $this->addError($attribute, Craft::t('geomaps', 'Enter a Mapbox style URL such as {example}.', ['example' => 'mapbox://styles/your-name/style-id']))],
+            ['service', 'in', 'range' => [self::SERVICE_OSM, self::SERVICE_MAPBOX, self::SERVICE_GOOGLE]],
+            ['mapboxToken', 'required', 'when' => fn() => $this->service === self::SERVICE_MAPBOX, 'message' => Craft::t('geomaps', 'Add a Mapbox access token to use Mapbox.')],
+            ['mapToken', 'required', 'when' => fn() => $this->service === self::SERVICE_GOOGLE, 'message' => Craft::t('geomaps', 'Add a browser key to use Google Maps.')],
             ['geocodeMissing', 'boolean'],
-            ['geocoder', 'in', 'range' => ['auto', 'nominatim', 'google', 'mapbox']],
-            [['mapProvider', 'cpMapProvider'], 'in', 'range' => ['auto', 'google', 'tiles']],
-            ['geocoder', function(string $attribute) {
-                if ($this->geocoder === 'google' && $this->getMapProvider('site') !== 'google') {
-                    $this->addError($attribute, Craft::t('geomaps', 'Google’s terms only allow Google address lookups with Google maps. Set the front-end maps to Google Maps (with a browser key), or choose OpenStreetMap or Mapbox here.'));
-                }
-            }],
             ['mapboxPermanent', 'boolean'],
+            [['mapProvider', 'cpMapProvider'], 'in', 'range' => ['auto', 'google', 'tiles']],
         ]);
     }
+
+    /**
+     * The chosen map service. Sites set up before there was a choice keep what they had: Google with a
+     * browser key, Mapbox with a Mapbox tiles URL, otherwise OpenStreetMap.
+     */
+    public function getService(): string
+    {
+        if (in_array($this->service, [self::SERVICE_OSM, self::SERVICE_MAPBOX, self::SERVICE_GOOGLE], true)) {
+            return $this->service;
+        }
+
+        if ($this->mapToken) {
+            return self::SERVICE_GOOGLE;
+        }
+
+        if ($this->mapboxToken && str_contains($this->tileUrl, 'api.mapbox.com/styles/')) {
+            return self::SERVICE_MAPBOX;
+        }
+
+        return self::SERVICE_OSM;
+    }
+
     public function getMapToken(): ?string
     {
         return $this->mapToken
-            ? $this->_parseEnv($this->mapToken)
+            ? ($this->_parseEnv($this->mapToken) ?: null)
             : null;
     }
 
     public function getGeoToken(): ?string
     {
         return $this->geoToken
-            ? $this->_parseEnv($this->geoToken)
+            ? ($this->_parseEnv($this->geoToken) ?: null)
             : null;
-    }
-
-    /**
-     * Map tiles and address search use Google when a map token is set, otherwise OpenStreetMap.
-     */
-    public function getTileUrl(): string
-    {
-        $url = $this->_parseEnv($this->tileUrl) ?: self::OSM_TILE_URL;
-
-        return str_replace('{mapboxToken}', rawurlencode((string)$this->getMapboxToken()), $url);
     }
 
     public function getMapboxToken(): ?string
@@ -89,6 +122,70 @@ class Settings extends Model
         return $this->mapboxToken
             ? ($this->_parseEnv($this->mapboxToken) ?: null)
             : null;
+    }
+
+    /**
+     * The Mapbox style as `owner/style-id`, from the style setting or, on sites that set a Mapbox tiles URL
+     * before 1.4, from that URL. Null if the setting isn't a Mapbox style.
+     */
+    public function getMapboxStyle(): ?string
+    {
+        if ($this->service === null && preg_match('#api\.mapbox\.com/styles/v1/([\w.-]+/[\w.-]+)/tiles#', $this->tileUrl, $m)) {
+            return $m[1];
+        }
+
+        $style = trim($this->mapboxStyle);
+        if (preg_match('#^(?:mapbox://styles/|https://api\.mapbox\.com/styles/v1/)?([\w.-]+/[\w.-]+)/?$#', $style, $m)) {
+            return $m[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether maps that aren't Google maps use Mapbox: with the Mapbox service, or with Google and a Mapbox
+     * token where the config file chooses `tiles`.
+     */
+    public function usesMapboxTiles(): bool
+    {
+        $service = $this->getService();
+
+        return $this->getMapboxToken() && $this->getMapboxStyle()
+            && ($service === self::SERVICE_MAPBOX || $service === self::SERVICE_GOOGLE);
+    }
+
+    /**
+     * The tiles URL for maps that aren't Google maps.
+     */
+    public function getTileUrl(): string
+    {
+        if ($this->usesMapboxTiles()) {
+            return 'https://api.mapbox.com/styles/v1/' . $this->getMapboxStyle() . '/tiles/256/{z}/{x}/{y}@2x?access_token=' . rawurlencode((string)$this->getMapboxToken());
+        }
+
+        if ($this->hasOldMapboxTileUrl()) {
+            return self::OSM_TILE_URL;
+        }
+
+        return $this->_parseEnv($this->tileUrl) ?: self::OSM_TILE_URL;
+    }
+
+    public function getTileAttribution(): string
+    {
+        if ($this->usesMapboxTiles()) {
+            return self::MAPBOX_ATTRIBUTION;
+        }
+
+        return $this->hasOldMapboxTileUrl() ? self::OSM_ATTRIBUTION : ($this->tileAttribution ?: self::OSM_ATTRIBUTION);
+    }
+
+    /**
+     * A Mapbox tiles URL saved before the Mapbox service existed. Mapbox now has its own setting, so with
+     * another service these tiles aren't used.
+     */
+    public function hasOldMapboxTileUrl(): bool
+    {
+        return str_contains($this->tileUrl, 'api.mapbox.com/styles/');
     }
 
     /**
@@ -109,66 +206,48 @@ class Settings extends Model
     }
 
     /**
-     * The map shown on the front end (`site`) or in the control panel (`cp`): `google`, or `osm` for the
-     * map tiles URL (OpenStreetMap, Mapbox or another tile provider). Google needs the browser key.
+     * The map shown on the front end (`site`) or in the control panel (`cp`): `google`, or `osm` for a
+     * Leaflet map with the tiles (OpenStreetMap, Mapbox or another tile provider).
      */
     public function getMapProvider(string $context = 'site'): string
     {
-        $choice = $context === 'cp' ? $this->cpMapProvider : $this->mapProvider;
-
-        if ($choice === 'tiles' || !$this->getMapToken()) {
+        if ($this->getService() !== self::SERVICE_GOOGLE || !$this->getMapToken()) {
             return 'osm';
         }
 
-        return 'google';
+        $choice = $context === 'cp' ? $this->cpMapProvider : $this->mapProvider;
+
+        return $choice === 'tiles' ? 'osm' : 'google';
     }
 
     /**
-     * The service for static map images (`img()`): Google with a Google map and a browser key,
-     * otherwise Mapbox when there's a Mapbox token, otherwise Google if there's a key.
+     * The service for static map images (`img()`): `google`, `mapbox`, or null when there's neither.
      */
     public function getStaticMapProvider(): ?string
     {
-        if ($this->getMapProvider('site') === 'google') {
-            return 'google';
-        }
-
-        if ($this->getMapboxToken()) {
-            return 'mapbox';
-        }
-
-        return $this->getMapToken() ? 'google' : null;
-    }
-
-    /**
-     * Google address lookups were chosen but can't be used, because front-end maps aren't Google maps.
-     */
-    public function isGoogleGeocodingBlocked(): bool
-    {
-        return in_array($this->geocoder, ['google', 'auto'], true)
-            && $this->getGeoToken()
-            && $this->getMapProvider('site') !== 'google';
-    }
-
-    /**
-     * The service used for address lookups on the server: `google`, `mapbox` or `nominatim`.
-     * A chosen service without its key falls back to the next available one.
-     */
-    public function getGeocoder(): string
-    {
-        // Google's terms only allow Geocoding API results with Google maps, and lookups on the server
-        // are used for front-end searches, so Google is only used with Google maps on the front end.
-        $google = $this->getGeoToken() && $this->getMapProvider('site') === 'google' ? 'google' : 'nominatim';
-
-        return match ($this->geocoder) {
-            'mapbox' => $this->getMapboxToken() ? 'mapbox' : $google,
-            'nominatim' => 'nominatim',
-            default => $google,
+        return match (true) {
+            $this->getMapProvider('site') === 'google' => 'google',
+            $this->usesMapboxTiles() => 'mapbox',
+            default => null,
         };
     }
 
     /**
-     * Whether Mapbox may be used where coordinates are saved (the field, entry forms, missing coordinates).
+     * The service used for address lookups on the server: `google`, `mapbox` or `nominatim`.
+     */
+    public function getGeocoder(): string
+    {
+        return match ($this->getService()) {
+            // Google's terms only allow Geocoding API results with Google maps, and lookups on the server
+            // are used for front-end searches, so Google is only used with Google maps on the front end.
+            self::SERVICE_GOOGLE => $this->getGeoToken() && $this->getMapProvider('site') === 'google' ? 'google' : 'nominatim',
+            self::SERVICE_MAPBOX => $this->getMapboxToken() ? 'mapbox' : 'nominatim',
+            default => 'nominatim',
+        };
+    }
+
+    /**
+     * Whether Mapbox is used where coordinates are saved (the field, entry forms, missing coordinates).
      */
     public function usesMapboxForSaving(): bool
     {

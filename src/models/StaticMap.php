@@ -112,8 +112,7 @@ class StaticMap extends Model
     }
 
     /**
-     * A Mapbox Static Images API URL. Uses the Mapbox style from the map tiles URL when it's a Mapbox
-     * style, otherwise Mapbox Streets. Mapbox adds its logo and credit to the image.
+     * A Mapbox Static Images API URL. Uses the Mapbox style from the settings. Mapbox adds its logo and credit to the image.
      */
     private function buildMapboxUrl(int $scale = 1): ?string
     {
@@ -125,9 +124,7 @@ class StaticMap extends Model
             return null;
         }
 
-        $style = preg_match('#api\.mapbox\.com/styles/v1/([\w.-]+)/([\w.-]+)/tiles#', $settings->getTileUrl(), $m)
-            ? "{$m[1]}/{$m[2]}"
-            : 'mapbox/streets-v12';
+        $style = $settings->getMapboxStyle() ?? 'mapbox/streets-v12';
 
         $center = self::lngLat($this->_resolvedCenter ?? $this->resolveCenter());
         $overlays = [];

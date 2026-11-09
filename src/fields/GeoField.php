@@ -424,7 +424,7 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'isInput' => $isInput,
                 'provider' => Plugin::getInstance()->getSettings()->getMapProvider('cp'),
                 'tileUrl' => Plugin::getInstance()->getSettings()->getTileUrl(),
-                'tileAttribution' => Plugin::getInstance()->getSettings()->tileAttribution,
+                'tileAttribution' => Plugin::getInstance()->getSettings()->getTileAttribution(),
             ],
         ]);
     }
@@ -531,7 +531,7 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'zoom' => $this->zoom,
                 'provider' => $settings->getMapProvider('cp'),
                 'tileUrl' => $settings->getTileUrl(),
-                'tileAttribution' => $settings->tileAttribution,
+                'tileAttribution' => $settings->getTileAttribution(),
                 'restrictCountries' => $this->getSearchCountries(),
                 'language' => Craft::$app->language,
                 // The field saves what's found, so Mapbox is only used with permanent geocoding.
