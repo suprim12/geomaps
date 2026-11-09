@@ -72,7 +72,7 @@ class Settings extends Model
             ['tileUrl', 'default', 'value' => self::OSM_TILE_URL],
             ['tileAttribution', 'default', 'value' => self::OSM_ATTRIBUTION],
             ['mapboxStyle', 'default', 'value' => 'mapbox/streets-v12'],
-            ['mapboxStyle', fn($attribute) => $this->getMapboxStyle() ? null : $this->addError($attribute, Craft::t('geomaps', 'Enter a Mapbox style URL such as {example}.', ['example' => 'mapbox://styles/your-name/style-id']))],
+            ['mapboxStyle', fn($attribute) => $this->getService() !== self::SERVICE_MAPBOX || $this->getMapboxStyle() ? null : $this->addError($attribute, Craft::t('geomaps', 'Enter a Mapbox style URL such as {example}.', ['example' => 'mapbox://styles/your-name/style-id']))],
             ['service', 'in', 'range' => [self::SERVICE_OSM, self::SERVICE_MAPBOX, self::SERVICE_GOOGLE]],
             ['mapboxToken', 'required', 'when' => fn() => $this->service === self::SERVICE_MAPBOX, 'message' => Craft::t('geomaps', 'Add a Mapbox access token to use Mapbox.')],
             ['mapToken', 'required', 'when' => fn() => $this->service === self::SERVICE_GOOGLE, 'message' => Craft::t('geomaps', 'Add a browser key to use Google Maps.')],
@@ -96,7 +96,7 @@ class Settings extends Model
             return self::SERVICE_GOOGLE;
         }
 
-        if ($this->mapboxToken && str_contains($this->tileUrl, 'api.mapbox.com/styles/')) {
+        if ($this->getMapboxToken() && $this->_mapboxTileUrl()) {
             return self::SERVICE_MAPBOX;
         }
 
@@ -119,9 +119,25 @@ class Settings extends Model
 
     public function getMapboxToken(): ?string
     {
-        return $this->mapboxToken
-            ? ($this->_parseEnv($this->mapboxToken) ?: null)
-            : null;
+        if ($this->mapboxToken) {
+            return $this->_parseEnv($this->mapboxToken) ?: null;
+        }
+
+        // Before 1.4, Mapbox tiles URLs had the token in them.
+        return $this->service === null ? $this->getOldMapboxToken() : null;
+    }
+
+    /**
+     * The token in a Mapbox tiles URL saved before 1.4, if it has one.
+     */
+    public function getOldMapboxToken(): ?string
+    {
+        $url = $this->_mapboxTileUrl();
+        if ($url && preg_match('#[?&]access_token=(pk\.[\w.-]+)#', $url, $m)) {
+            return $m[1];
+        }
+
+        return null;
     }
 
     /**
@@ -130,11 +146,11 @@ class Settings extends Model
      */
     public function getMapboxStyle(): ?string
     {
-        if ($this->service === null && preg_match('#api\.mapbox\.com/styles/v1/([\w.-]+/[\w.-]+)/tiles#', $this->tileUrl, $m)) {
+        if ($this->service === null && preg_match('#api\.mapbox\.com/styles/v1/([\w.-]+/[\w.-]+)/tiles#', (string)$this->_mapboxTileUrl(), $m)) {
             return $m[1];
         }
 
-        $style = trim($this->mapboxStyle);
+        $style = trim((string)$this->_parseEnv($this->mapboxStyle));
         if (preg_match('#^(?:mapbox://styles/|https://api\.mapbox\.com/styles/v1/)?([\w.-]+/[\w.-]+)/?$#', $style, $m)) {
             return $m[1];
         }
@@ -185,7 +201,18 @@ class Settings extends Model
      */
     public function hasOldMapboxTileUrl(): bool
     {
-        return str_contains($this->tileUrl, 'api.mapbox.com/styles/');
+        // Sites that haven't chosen a service yet keep their Mapbox tiles (see getService()).
+        return $this->service !== null && $this->_mapboxTileUrl() !== null;
+    }
+
+    /**
+     * The tiles URL, if it's a Mapbox style URL.
+     */
+    private function _mapboxTileUrl(): ?string
+    {
+        $url = (string)$this->_parseEnv($this->tileUrl);
+
+        return str_contains($url, 'api.mapbox.com/styles/') ? $url : null;
     }
 
     /**

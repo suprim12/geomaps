@@ -97,7 +97,8 @@
 					maptiler: '<a href="https://www.maptiler.com" target="_blank" rel="noopener">MapTiler</a>',
 					thunderforest: '<a href="https://www.thunderforest.com" target="_blank" rel="noopener">Thunderforest</a>',
 				})|raw }}</p>
-				{% set customTiles = not settings.hasOldMapboxTileUrl() and settings.tileUrl != constant('suprim\\geomaps\\models\\Settings::OSM_TILE_URL') %}
+				{# A Mapbox tiles URL from before 1.4 now belongs to the Mapbox option, so it isn't shown here. #}
+				{% set customTiles = 'api.mapbox.com/styles/' not in settings.tileUrl and (settings.tileUrl != constant('suprim\\geomaps\\models\\Settings::OSM_TILE_URL') or settings.tileAttribution != constant('suprim\\geomaps\\models\\Settings::OSM_ATTRIBUTION')) %}
 				<details class="gm-help"{{ customTiles ? ' open' }}>
 					<summary>{{ 'Use another tile provider'|t('geomaps') }}</summary>
 					{{ forms.autosuggestField({
@@ -131,7 +132,7 @@
 					id: 'mapboxToken',
 					name: 'mapboxToken',
 					suggestEnvVars: true,
-					value: settings.mapboxToken,
+					value: settings.mapboxToken ?: settings.getOldMapboxToken(),
 					placeholder: '$MAPBOX_TOKEN',
 					disabled: configFileExists and config.mapboxToken is defined,
 					errors: settings.getErrors('mapboxToken'),

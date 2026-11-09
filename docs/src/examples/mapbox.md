@@ -92,9 +92,9 @@ This covers every `embed()` map, including the locator component’s.
 
 With the Mapbox service, Mapbox also finds addresses, using the same access token: suggestions in the field, [`addressInput()`](/examples/address-autocomplete) and the [locator component](/guides/locator), the address when the pin is dragged, location searches such as `location: 'Glenelg SA'`, and [missing coordinates](/guides/missing-coordinates).
 
-Mapbox’s terms only allow storing results from its **permanent** geocoding, so Geo Maps uses permanent geocoding where results are saved or cached: the field, `addressInput()` with `field`, missing coordinates and location searches (cached for 30 days). It needs a card on your Mapbox account and is billed at Mapbox’s permanent rate. Search-only boxes, such as the locator and `addressInput()` with `name`, use Mapbox’s cheaper temporary geocoding.
+Mapbox’s terms only allow storing results from its **permanent** geocoding, so Geo Maps uses permanent geocoding where results are saved or cached: the field, `addressInput()` with `field` (or a `name` starting with `fields[`), missing coordinates and location searches (cached for 30 days). It needs a card on your Mapbox account and is billed at Mapbox’s permanent rate. Search-only boxes, such as the locator and `addressInput()` with `name`, use Mapbox’s cheaper temporary geocoding.
 
-To avoid permanent geocoding, set `mapboxPermanent` to `false` in `config/geomaps.php`. Addresses that are saved (the field, `addressInput()` with `field`, missing coordinates) then come from OpenStreetMap, and search boxes and location searches use Mapbox’s temporary geocoding, which isn’t cached.
+To avoid permanent geocoding, set `mapboxPermanent` to `false` in `config/geomaps.php`. Addresses that are saved (the field, `addressInput()` with `field` (or a `name` starting with `fields[`), missing coordinates) then come from OpenStreetMap, and search boxes and location searches use Mapbox’s temporary geocoding, which isn’t cached.
 
 If Mapbox refuses a request (Geo Maps logs a warning), or a search finds nothing, OpenStreetMap is used instead.
 

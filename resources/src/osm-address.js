@@ -11,10 +11,14 @@ const HOUSE_NUMBER = /^\s*(\d+[a-z]?(?:\s*[/-]\s*\d+[a-z]?)?)\s+\S/i;
  * keeps "19c Marleston Avenue" rather than just "Marleston Avenue". The point stays on the street.
  */
 export function withTypedHouseNumber(p, query) {
-  if (!p || p.housenumber || p.osm_key !== "highway" || !p.name) return p;
+  // Only streets: Photon also returns bus stops and crossings under "highway".
+  if (!p || p.housenumber || p.type !== "street" || p.osm_key !== "highway" || !p.name) return p;
   const match = HOUSE_NUMBER.exec(query || "");
   if (!match) return p;
-  return { ...p, housenumber: match[1].replace(/\s+/g, ""), street: p.name, name: null };
+  const number = match[1].replace(/\s+/g, "");
+  // A postcode typed first ("5000 King William St") isn't a house number.
+  if (p.postcode && number === String(p.postcode).replace(/\s+/g, "")) return p;
+  return { ...p, housenumber: number, street: p.name, name: null };
 }
 
 /** The suburb, town or city: Photon calls a suburb a "district". */

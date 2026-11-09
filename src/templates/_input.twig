@@ -173,7 +173,7 @@
 							<div class="supgeo__fe-label">{{ 'Colour'|t('geomaps') }}</div>
 							<div class="supgeo__fe-colors">
 								<template x-for="c in shapeColors" :key="c">
-									<button type="button" class="supgeo__fe-color" :style="'--c:' + c" :class="{ '--active': featureColor.toLowerCase() === c }" @click="setFeatureColor(c)" :aria-label="c" :title="c"></button>
+									<button type="button" class="supgeo__fe-color" :style="'--c:' + c" :class="{ '--active': (featureColor || '#2563eb').toLowerCase() === c }" @click="setFeatureColor(c)" :aria-label="c" :title="c"></button>
 								</template>
 								<label class="supgeo__fe-color --custom" title="{{ 'Custom colour'|t('geomaps') }}">
 									<input type="color" :value="featureColor || '#2563eb'" @change="setFeatureColor($event.target.value)" aria-label="{{ 'Custom colour'|t('geomaps') }}">

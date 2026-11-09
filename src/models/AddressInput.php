@@ -88,8 +88,10 @@ class AddressInput extends Model
 
         // Mapbox suggestions: always for search boxes, but for boxes that save into a field only with
         // permanent geocoding, because Mapbox only allows storing results from permanent requests.
+        // Boxes that save into an element's field: `field`, or a `name` such as `fields[…]` (Matrix and nested forms).
+        $saves = $this->field !== null || str_starts_with($name, 'fields[');
         $settings = Plugin::getInstance()->getSettings();
-        $useMapbox = $settings->getGeocoder() === 'mapbox' && ($this->field === null || $settings->mapboxPermanent);
+        $useMapbox = $settings->getGeocoder() === 'mapbox' && (!$saves || $settings->mapboxPermanent);
 
         $hidden = '';
         foreach (self::VALUE_KEYS as $key) {
@@ -147,7 +149,7 @@ class AddressInput extends Model
             'data-provider' => $useMapbox ? 'mapbox' : null,
             'data-mapbox-token' => $useMapbox ? $settings->getMapboxToken() : null,
             // Only boxes that save need permanent geocoding; searches use Mapbox's cheaper temporary geocoding.
-            'data-permanent' => $useMapbox && $this->field !== null && $settings->mapboxPermanent ? '1' : null,
+            'data-permanent' => $useMapbox && $saves ? '1' : null,
         ]);
 
         return new Markup($html, 'UTF-8');

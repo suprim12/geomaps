@@ -237,7 +237,7 @@ class Locator extends Model
             'summary' => $summary,
             'none' => $none,
             'height' => $height,
-            'keep' => $request->getIsConsoleRequest() ? [] : self::hiddenParams($request->getQueryParams(), $this->name),
+            'keep' => $request->getIsConsoleRequest() ? [] : self::hiddenParams($request->getQueryParams(), $this->name, self::pathInQuery($request)),
         ], View::TEMPLATE_MODE_CP);
 
         return new Markup($html, 'UTF-8');
@@ -292,22 +292,40 @@ class Locator extends Model
      *
      * @return array<string, string>
      */
-    private static function hiddenParams(array $params, string $exclude, string $prefix = ''): array
+    private static function hiddenParams(array $params, string $exclude, bool $keepPath, string $prefix = ''): array
     {
+        $pathParam = Craft::$app->getConfig()->getGeneral()->pathParam;
         $pairs = [];
         foreach ($params as $key => $value) {
             $name = $prefix === '' ? (string)$key : "{$prefix}[{$key}]";
-            if ($prefix === '' && in_array($name, [$exclude, Craft::$app->getConfig()->getGeneral()->pathParam], true)) {
+            if ($prefix === '' && ($name === $exclude || ($name === $pathParam && !$keepPath))) {
                 continue;
             }
             if (is_array($value)) {
-                $pairs += self::hiddenParams($value, $exclude, $name);
+                $pairs += self::hiddenParams($value, $exclude, $keepPath, $name);
             } elseif (is_scalar($value)) {
                 $pairs[$name] = (string)$value;
             }
         }
 
         return $pairs;
+    }
+
+    /**
+     * Whether the page's path is in its query string (`index.php?p=stores`, without pretty URLs), so the
+     * search form has to send it. With pretty URLs, the server adds it and the form mustn't.
+     */
+    private static function pathInQuery(mixed $request): bool
+    {
+        if (!$request instanceof \craft\web\Request) {
+            return false;
+        }
+
+        $pathParam = Craft::$app->getConfig()->getGeneral()->pathParam;
+        $query = (string)parse_url($request->getUrl(), PHP_URL_QUERY);
+        parse_str($query, $params);
+
+        return $pathParam !== null && array_key_exists($pathParam, $params);
     }
 
     private static function coordinate(mixed $value, int $max): ?float

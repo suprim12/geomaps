@@ -193,7 +193,15 @@ document.addEventListener("alpine:init", () => {
 
       // Saved with the value (and as the field's initial zoom in field settings).
       this.zoom = map.getZoom();
-      map.on("zoomend", () => (this.zoom = map.getZoom()));
+      // Only zooms the editor makes are saved: zooms that happen on their own while the page loads
+      // (fitting shapes, a hidden map getting its size) would otherwise mark the entry as edited.
+      this._zoomTouched = false;
+      ["pointerdown", "wheel", "keydown", "touchstart"].forEach((type) =>
+        this.$refs["appgeo-map"].addEventListener(type, () => (this._zoomTouched = true), { passive: true }),
+      );
+      map.on("zoomend", () => {
+        if (this._zoomTouched) this.zoom = map.getZoom();
+      });
 
       // Re-measure when the container changes size (field settings, tabs, slideouts, collapsed Matrix blocks).
       if (typeof ResizeObserver !== "undefined") {
@@ -637,6 +645,7 @@ document.addEventListener("alpine:init", () => {
     },
     // Centre on a point, keeping it clear of the search/address panel that overlays the map's left side.
     focusOn(lat, lng, zoom = 16) {
+      this._zoomTouched = true;
       const target = L.latLng(lat, lng);
       const targetZoom = Math.max(zoom, this.map.getZoom());
       const size = this.map.getSize();
@@ -1186,6 +1195,7 @@ document.addEventListener("alpine:init", () => {
     zoomToFeature() {
       const layer = this.selectedLayer;
       if (!layer || !this.map) return;
+      this._zoomTouched = true;
       if (layer.getBounds) {
         this.map.fitBounds(layer.getBounds(), { padding: [40, 40], maxZoom: 17 });
       } else if (layer.getLatLng) {

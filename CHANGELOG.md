@@ -17,7 +17,7 @@
 
 ### Changed
 - Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap instead.
-- Existing sites keep their maps: Geo Maps uses Google Maps when a Google browser key is set, and OpenStreetMap or your tiles URL otherwise.
+- Existing sites keep their maps: Geo Maps uses Google Maps when a Google browser key is set, Mapbox when the tiles URL is a Mapbox style, and OpenStreetMap or your tiles URL otherwise.
 
 ### Fixed
 - Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.
@@ -25,6 +25,8 @@
 - With Google maps in the field, the map tiles from the plugin settings (such as Mapbox) were also loaded underneath, using up tile requests. They're now only loaded if Google fails.
 - Address search with OpenStreetMap, in the field and `addressInput()`, filled in the city rather than the suburb (“Adelaide” instead of “Ashford”), and dropped the house number when OpenStreetMap only knows the street. The suburb is now used, and the house number you typed is kept.
 - Picking an address the field’s map was already showing logged errors in the browser console.
+- Opening an entry could mark it as edited and save a draft without any change, when the field’s map zoomed on its own while loading, such as with **Hide Map** turned on.
+- The shape panel didn’t show the default blue as the chosen colour for shapes without a colour.
 
 ## 1.3.0 - 2026-11-08
 

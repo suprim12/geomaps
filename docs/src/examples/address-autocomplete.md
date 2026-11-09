@@ -4,7 +4,7 @@ Add an address box with suggestions to your own forms. Visitors start typing, pi
 
 ![A "Find your nearest store" form with suggestions for The Parade, Norwood listed under the address box, beside a map of Adelaide](/examples/address-autocomplete.jpg)
 
-Suggestions come from [Photon](https://photon.komoot.io), an OpenStreetMap search service built for search-as-you-type, with the OpenStreetMap or Google Maps service. No API key is needed. With the Mapbox service, suggestions come from [Mapbox](/examples/mapbox#address-search-with-mapbox) instead (with `field`, only while `mapboxPermanent` is on, the default).
+Suggestions come from [Photon](https://photon.komoot.io), an OpenStreetMap search service built for search-as-you-type, with the OpenStreetMap or Google Maps service. No API key is needed. With the Mapbox service, suggestions come from [Mapbox](/examples/mapbox#address-search-with-mapbox) instead (for boxes that save, with `field` or a `name` starting with `fields[`, only while `mapboxPermanent` is on, the default).
 
 ## Save into a Geo Maps field
 
