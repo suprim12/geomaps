@@ -1379,7 +1379,10 @@ document.addEventListener("alpine:init", () => {
         }
 
         const lib = await loadGoogleLibrary("geocoding");
-        if (!lib?.Geocoder) return;
+        if (!lib?.Geocoder) {
+          await this.reverseGeocodeOsm(lat, lng);
+          return;
+        }
         const geocoder = new lib.Geocoder();
 
         geocoder.geocode({ location: { lat, lng } }, (results, status) => {
@@ -1389,8 +1392,10 @@ document.addEventListener("alpine:init", () => {
               address_components: results[0].address_components,
             };
             this.fillAddressFields(place, lat, lng);
-          } else {
-            console.warn("Geocoder failed:", status);
+          } else if (status !== "ZERO_RESULTS") {
+            // Usually a browser key without the Geocoding API: use OpenStreetMap rather than leave the old address.
+            console.warn("Geo Maps: Google reverse geocoding failed, using OpenStreetMap:", status);
+            this.reverseGeocodeOsm(lat, lng);
           }
         });
     },

@@ -2,9 +2,9 @@
 
 ## “Google Maps rejected the API key”
 
-The field shows this notice, and switches to OpenStreetMap, when Google refuses your **Google Maps API Key (browser)**. Your front-end maps switch too, so nothing breaks while you fix it. In the [Google Cloud console](https://console.cloud.google.com/google/maps-apis/credentials):
+The field shows this notice, and switches to OpenStreetMap, when Google refuses the **Browser key** in the **Google Maps** section of **Settings → Plugins → Geo Maps**. Your front-end maps switch too, so nothing breaks while you fix it. In the [Google Cloud console](https://console.cloud.google.com/google/maps-apis/credentials):
 
-1. Enable the **Maps JavaScript API** and **Places API** for the key’s project, and the **Maps Static API** if you use `img()`.
+1. Enable the **Maps JavaScript API**, **Places API** and **Geocoding API** for the key’s project, and the **Maps Static API** if you use `img()`. Without the Geocoding API, Geo Maps uses OpenStreetMap to find the address when the pin is dragged.
 2. Under the key’s **Application restrictions → Website restrictions**, add every domain the control panel and site run on, including local ones such as `*.ddev.site/*` or `localhost:*`.
 3. Make sure billing is enabled on the project. Google refuses keys on projects without it.
 
@@ -22,7 +22,7 @@ Work through these in order:
 php craft geomaps/lookup/rebuild
 ```
 
-- **Do the entries have coordinates?** An entry with only an address (for example from a feed without coordinates) can’t be found by distance. Open it and pick the address from the search, or import coordinates.
+- **Do the entries have coordinates?** An entry with only an address (for example from a feed without coordinates) can’t be found by distance. Open it and pick the address from the search, or import coordinates. With [Geo Maps Pro](/getting-started/pro), [missing coordinates](/guides/missing-coordinates) are looked up automatically, or with `php craft geomaps/geocode`.
 
 Check which entries have no location:
 
@@ -44,11 +44,11 @@ Check which entries have no location:
 
 ## The map tiles are grey or say “Access blocked”
 
-The free `tile.openstreetmap.org` tiles are for light use. Busy public sites can be blocked under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/). Set **Map Tiles URL** to a tile provider such as Stadia Maps, MapTiler or Thunderforest — see [Configuration](/getting-started/configuration#map-providers).
+The free `tile.openstreetmap.org` tiles are for light use. Busy public sites can be blocked under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/). Set **Map tiles URL** to a tile provider such as Stadia Maps, MapTiler or Thunderforest — see [Configuration](/getting-started/configuration#map-providers).
 
 ## `img()` returns nothing
 
-Static map images come from Google. Add a **Google Maps API Key** with the **Maps Static API** enabled, and allow your site’s domain in the key’s restrictions. Without one, `img()` and `imgSrcSet()` return `null`, so always check before outputting:
+Static map images come from Google (the **Maps Static API**, enabled on the **Browser key**) with Google maps, or Mapbox when a **Mapbox access token** is set. Allow your site’s domain in the key’s or token’s restrictions. Without either, `img()` and `imgSrcSet()` return `null`, so always check before outputting:
 
 ```twig
 {% set src = entry.storeLocation.img({ width: 600, height: 300 }) %}
@@ -59,7 +59,7 @@ Static map images come from Google. Add a **Google Maps API Key** with the **Map
 
 - Set **Limit Search to Countries** in the field’s settings to the countries your entries are in (up to 5).
 - Results are biased towards the area shown on the map, so pan the map nearer first.
-- Without a Google key, search uses OpenStreetMap data. Google Places often knows more businesses; add a key if you need them.
+- Without a Google key, search uses OpenStreetMap ([Photon](https://photon.komoot.io)), or Mapbox with permanent geocoding. Google Places often knows more businesses; add a key if you need them.
 
 ## Content Security Policy
 
@@ -68,11 +68,12 @@ If your site sends a `Content-Security-Policy` header, allow the services Geo Ma
 | Directive | Allow | Needed for |
 |---|---|---|
 | `img-src` | `https://tile.openstreetmap.org` (or your tile provider) | OpenStreetMap tiles |
+| `img-src`, `connect-src` | `https://api.mapbox.com` | Mapbox tiles and static images; address suggestions and reverse lookups (only with Mapbox) |
 | `connect-src` | `https://photon.komoot.io` `https://nominatim.openstreetmap.org` | Address search and reverse lookup in the control panel |
 | `script-src`, `img-src`, `connect-src` | `https://maps.googleapis.com` `https://maps.gstatic.com` | Google maps, Places search and static images (only with a Google key) |
 | `script-src` | A nonce or `'unsafe-inline'` | `embed()` adds a small inline script with each map’s settings |
 
-Server-side geocoding for location search runs from your server, so it needs no browser rule, but your server must be able to reach `nominatim.openstreetmap.org` (or `maps.googleapis.com` with a Google key).
+Server-side geocoding for location search runs from your server, so it needs no browser rule, but your server must be able to reach `nominatim.openstreetmap.org` (or `maps.googleapis.com` with Google, or `api.mapbox.com` with Mapbox).
 
 ## Still stuck?
 

@@ -21,6 +21,7 @@
 
 ### Fixed
 - Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.
+- Dragging the pin on a Google map in the field left the old address when the browser key didn’t have the Geocoding API enabled. The address is now looked up with OpenStreetMap instead.
 
 ## 1.3.0 - 2026-11-08
 

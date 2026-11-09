@@ -35,7 +35,7 @@ For a map that fills its container, use a CSS width:
 
 Shapes are coloured from their `color`, `stroke` and `fill` properties, lines are drawn 4px wide (set a `weight` property to change any shape’s line width), and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
 
-Maps use Google Maps when a **Google Maps API Key** is set, and Leaflet with your [map tiles](/getting-started/configuration) (OpenStreetMap, [Mapbox](/examples/mapbox) or another provider) otherwise. To choose differently for the front end and the control panel, see [Map Providers](/getting-started/configuration#map-providers). If Google rejects the key, the map falls back to Leaflet automatically.
+Maps use Google Maps when a Google **Browser key** is set, and Leaflet with your [map tiles](/getting-started/configuration) (OpenStreetMap, [Mapbox](/examples/mapbox) or another provider) otherwise. To choose differently for the front end and the control panel, see [Map Providers](/getting-started/configuration#map-providers). If Google rejects the key, the map falls back to Leaflet automatically.
 
 | Option | Description | Default |
 |---|---|---|
@@ -132,7 +132,7 @@ Embedded maps are ordinary Leaflet (or Google) maps, so you can style them with 
 [data-geo-embed] .leaflet-tile-pane { filter: saturate(0.35) contrast(0.92) brightness(1.06); }
 ```
 
-For a different map style altogether, set **Map Tiles URL** to another [tile provider](/getting-started/configuration#map-providers).
+For a different map style altogether, set **Map tiles URL** to another [tile provider](/getting-started/configuration#map-providers).
 
 ## Static map images
 

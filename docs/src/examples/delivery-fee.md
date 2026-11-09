@@ -85,7 +85,7 @@ One field holds both the store’s pin and its zone: distance search uses the pi
 {% set fee = km < 5 ? 8 : (km < 10 ? 12 : 18) %}
 ```
 
-- **Each address is looked up once.** Both queries geocode the same address, and results are cached for 30 days, so the second query costs nothing.
+- **Each address is looked up once.** Both queries geocode the same address, and results are cached for 30 days (except Mapbox without permanent geocoding, which isn’t cached), so the second query costs nothing.
 - **Markers can be addresses.** The “you are here” dot passes the address string as `location`; `embed()` geocodes it the same way.
 
 ::: tip Charging at checkout

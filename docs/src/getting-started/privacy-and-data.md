@@ -15,7 +15,7 @@ This page explains how the plugin works. It isn’t legal advice; check your obl
 
 - **Field values:** coordinates, the address and its parts, the zoom level and any drawn shapes with their properties, in Craft’s content tables like any other field.
 - **A search index:** a copy of each value’s coordinates and area outlines in the `supgeo` table, used for distance and `contains` searches. Rows are removed automatically when their entry is deleted, and the table is removed when the plugin is uninstalled.
-- **A cache:** looked-up addresses and their coordinates are cached for 30 days in Craft’s cache. From Google, only the coordinates are cached, as Google’s terms require.
+- **A cache:** looked-up addresses and their coordinates are cached for 30 days in Craft’s cache. From Google, only the coordinates are cached, as Google’s terms require. Mapbox results are only cached with Mapbox permanent geocoding.
 
 If you store people’s home addresses (customers, members, staff), those values are personal data. Treat them like any other personal data on your site.
 
@@ -28,14 +28,14 @@ Each map service receives the requester’s IP address and browser details, as w
 | When | Sent to | What |
 |---|---|---|
 | Showing the map | OpenStreetMap tile servers, or your [tile provider](/getting-started/configuration#map-providers), or Google with a key | Which map area is being viewed |
-| Typing in the address search | [Photon](https://photon.komoot.io) (komoot), or Google Places with a key | The text typed, the map’s position and the field’s countries |
-| Dropping or dragging the pin | [Nominatim](https://nominatim.org) (OpenStreetMap Foundation), or Google with a key | The pin’s coordinates |
+| Typing in the address search | [Photon](https://photon.komoot.io) (komoot), Mapbox with permanent geocoding, or Google Places on Google maps | The text typed, the map’s position and the field’s countries |
+| Dropping or dragging the pin | [Nominatim](https://nominatim.org) (OpenStreetMap Foundation), Mapbox with permanent geocoding, or Google on Google maps | The pin’s coordinates |
 
 ### On your server
 
 | When | Sent to | What |
 |---|---|---|
-| A template searches by an address (`location: 'Glenelg'`, `contains: '12 Smith St'`) | Nominatim, or Google Geocoding with a key | The address text and your site’s URL (Nominatim requires requests to identify the site) |
+| A template searches by an address (`location: 'Glenelg'`, `contains: '12 Smith St'`) | Nominatim, Mapbox (`api.mapbox.com`) when it’s the geocoding service, or Google Geocoding when your maps are Google maps | The address text and your site’s URL (Nominatim requires requests to identify the site) |
 
 Searches by coordinates (`{ lat, lng }`) or by another entry’s value aren’t sent anywhere. If your site searches by addresses that visitors type, those addresses go to the geocoding service; mention this in your privacy policy.
 
@@ -43,11 +43,11 @@ Searches by coordinates (`{ lat, lng }`) or by another entry’s value aren’t 
 
 | When | Sent to | What |
 |---|---|---|
-| A page shows `embed()` with OpenStreetMap | OpenStreetMap tile servers, or your tile provider | Which map area is viewed. No cookies. |
+| A page shows `embed()` with OpenStreetMap or Mapbox tiles | OpenStreetMap tile servers, Mapbox, or your tile provider | Which map area is viewed. No cookies. |
 | A page shows `embed()` with Google | Google Maps | Which map area is viewed. Google may set cookies and processes data under the [Google Privacy Policy](https://policies.google.com/privacy). |
-| A page shows `img()` / `imgSrcSet()` | Google Static Maps | The image’s location and markers |
+| A page shows `img()` / `imgSrcSet()` | Google Static Maps or Mapbox Static Images | The image’s location and markers |
 | A visitor uses **Use my location** in `locator()` | Your own site only | The browser asks permission, then the position is sent to your site as the search |
-| A visitor types in an `addressInput()` box | [Photon](https://photon.komoot.io) (komoot), or Mapbox when it’s the geocoding service | The text typed, the box’s countries and its `near` position. No cookies. |
+| A visitor types in an `addressInput()` box | [Photon](https://photon.komoot.io) (komoot), or [Mapbox](/examples/mapbox#address-search-with-mapbox) when it’s the geocoding service (with `field`, only with permanent geocoding) | The text typed, the box’s countries and its `near` position. No cookies. |
 
 Custom pin images and everything else on the page come from your own site.
 
@@ -65,20 +65,20 @@ OpenStreetMap maps set no cookies, so many sites show them without a consent pro
 
 `mapsAllowed` stands for however your consent tool exposes the visitor’s choice, such as a cookie or a JavaScript-loaded fragment.
 
-To avoid Google entirely, leave the Google keys blank: maps, address search and geocoding then use OpenStreetMap services only.
+To avoid Google entirely, leave the Google keys blank: maps, address search and geocoding then use OpenStreetMap services (or Mapbox, if you’ve set it up) only.
 
 ## Wording for your privacy policy
 
 Adapt this to the services your site actually uses:
 
-> **Maps.** Our pages show maps from OpenStreetMap [and Google Maps]. When a map is shown, your browser requests map images from these services, which receive your IP address and the area being viewed. [Google may set cookies; see the Google Privacy Policy.] When you search our site by address, the address is sent to a geocoding service (OpenStreetMap Nominatim [or Google]) to find its location. [When you type an address in our forms, the text is sent to Photon (komoot) to suggest matching addresses.]
+> **Maps.** Our pages show maps from OpenStreetMap [, Mapbox] [and Google Maps]. When a map is shown, your browser requests map images from these services, which receive your IP address and the area being viewed. [Google may set cookies; see the Google Privacy Policy.] When you search our site by address, the address is sent to a geocoding service (OpenStreetMap Nominatim [, Mapbox or Google]) to find its location. [When you type an address in our forms, the text is sent to Photon (komoot) [or Mapbox] to suggest matching addresses.]
 
 ## Usage policies of the free services
 
 The free OpenStreetMap services are for light use:
 
 - **Tiles:** busy public sites should use a [tile provider](/getting-started/configuration#map-providers) ([tile usage policy](https://operations.osmfoundation.org/policies/tiles/)).
-- **Nominatim:** at most one request per second ([Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/)). Geo Maps spaces its requests, caches results for 30 days, and pauses for 10 minutes if Nominatim asks it to slow down. Sites with a lot of address searches should add a Google Geocoding key.
+- **Nominatim:** at most one request per second ([Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/)). Geo Maps spaces its requests, caches results for 30 days, and pauses for 10 minutes if Nominatim asks it to slow down. Sites with a lot of address searches should use Mapbox, or Google if your maps are Google maps.
 - **Photon:** a free public service run by komoot for fair use.
 
 OpenStreetMap data must be credited. Geo Maps shows the credit on every map; keep it visible if you restyle your maps.

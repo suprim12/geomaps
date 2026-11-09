@@ -4,17 +4,17 @@
 
 # Geo Maps for Craft CMS
 
-Pin an address, draw areas, and find the nearest entries, or the zone that contains an address. Works with OpenStreetMap out of the box, or with Google Maps when you add a key.
+Pin an address, draw areas, and find the nearest entries, or the zone that contains an address. Works with OpenStreetMap out of the box, or with Mapbox or Google Maps when you add a key.
 
 ## Features
 
 - **Fast location entry.** Address autocomplete, click-to-place and a draggable pin. Street, suburb, postcode, country and coordinates fill in automatically.
-- **No API key required.** Uses OpenStreetMap by default. Add a Google key for Google tiles, Places search and static images; if Google rejects the key, maps fall back to OpenStreetMap.
+- **No API key required.** Uses OpenStreetMap by default. Add a Mapbox access token for Mapbox map styles, address search and static images, or a Google key for Google maps, Places search and static images; if Google rejects the key, maps fall back to OpenStreetMap.
 - **Draw shapes.** Markers, lines, rectangles and polygons (with holes), with per-shape properties, a GeoJSON editor, and `.geojson` upload and download.
 - **Distance search.** Find entries within a radius of an address, coordinates or another entry, sorted nearest first, with the distance on every result.
 - **Containment search.** Find the delivery area, sales territory or bin-collection zone that contains an address.
 - **Address autocomplete for your forms.** Add an address box with suggestions to front-end forms with one Twig tag, to save locations or search by address.
-- **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google static map images, straight from Twig.
+- **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google or Mapbox static map images, straight from Twig.
 - **Flexible field settings.** Hide the pin, drawing, search, address or map; set zoom limits; limit search to up to 5 countries.
 - **GraphQL and Feed Me.** Query, search and save locations in headless projects, and import locations from feeds.
 - **One-click import.** Already using another map plugin? Convert its fields in place. Handles, layouts, content and most templates carry over.
@@ -32,7 +32,7 @@ composer require suprim/geomaps
 php craft plugin/install geomaps
 ```
 
-Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://plugins.geomaps.suprim.com.au/getting-started/configuration) to add Google keys or a different tile provider.
+Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://plugins.geomaps.suprim.com.au/getting-started/configuration) to add Mapbox, Google keys or a different tile provider.
 
 ## Examples
 
@@ -96,7 +96,7 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 ### Static map image
 
-Requires a Google key with the Maps Static API enabled.
+Requires a Google key with the Maps Static API enabled, or a Mapbox access token.
 
 ```twig
 {% set src = entry.storeLocation.img({ width: 600, height: 300 }) %}
@@ -136,7 +136,7 @@ Common template patterns (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()
 
 ## Roadmap
 
-Geo Maps is free, and everything it does today stays free. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
+Geo Maps is free, and everything in the free edition stays free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds marker clustering, the locator component and missing coordinates. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
 
 ## License
 

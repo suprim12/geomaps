@@ -84,6 +84,8 @@ Pass a `query` to search only some entries, such as stores in a category chosen 
 {{ craft.geomaps.locator({ query: stores, field: 'storeLocation' }) }}
 ```
 
+The locator keeps the page’s other URL parameters, such as `service`, as hidden inputs in its search form, so searching again keeps the filter. See [Locator with Filters](/examples/locator-filters).
+
 ## Styling
 
 The locator comes with clean default styles in a two-column layout that stacks on small screens. Change the colours with CSS custom properties:
@@ -120,7 +122,7 @@ Keys: `search`, `address`, `distance`, `useMyLocation`, `locating`, `locationFai
 
 ## Privacy
 
-Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser, and **Use my location** asks the browser for the visitor’s position, which is only sent to your own site as part of the search. See [Privacy and Data](/getting-started/privacy-and-data).
+Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser, or [Mapbox](/examples/mapbox#address-search-with-mapbox) when Mapbox is the geocoding service, and **Use my location** asks the browser for the visitor’s position, which is only sent to your own site as part of the search. See [Privacy and Data](/getting-started/privacy-and-data).
 
 ## Without Pro
 

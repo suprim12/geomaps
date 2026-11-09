@@ -99,7 +99,7 @@ Coordinates go straight to the search index without geocoding, so each request i
 {% endblock %}
 ```
 
-This page draws its own Leaflet map because it redraws the pins itself. It reads **Map Tiles URL** and **Map Credit** from the plugin settings, so it matches your other maps.
+This page draws its own Leaflet map because it redraws the pins itself. It reads **Map tiles URL** and **Map credit** from the plugin settings, so it matches your other maps.
 
 ## Going further
 

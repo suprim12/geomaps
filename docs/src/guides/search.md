@@ -97,7 +97,7 @@ See [Store Locator](/examples/store-locator) and [Bin Collection Zones](/example
 
 ## How addresses are looked up
 
-Address and place names are geocoded with Google when a **Google Geocoding API Key** is set, otherwise with OpenStreetMap (Nominatim). Results are cached for 30 days. If an address can’t be found, the search returns no results.
+Address and place names are looked up with the **Geocoding service** chosen under **Address lookups** in **Settings → Plugins → Geo Maps**: OpenStreetMap (Nominatim) by default, Google (only with both Google keys and Google maps on the front end), or [Mapbox](/examples/mapbox#address-search-with-mapbox). If Google or Mapbox refuses a request, OpenStreetMap is used. Results are cached for 30 days (Mapbox results only with permanent geocoding). If an address can’t be found, the search returns no results.
 
 ::: tip
 Coordinates are indexed when entries are saved. After importing content directly into the database, run `php craft geomaps/lookup/rebuild` — see [Console Commands](/guides/console).

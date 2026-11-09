@@ -1,6 +1,6 @@
 # Using Geo Maps from PHP
 
-Everything you can do in Twig also works in a module or plugin. These examples assume a Stores section with a Geo Maps field called `storeLocation`, and a Service Areas section whose `areaShape` field holds drawn areas.
+Everything you can do in Twig also works in a module or plugin. These examples assume a Stores section with a Geo Maps field called `storeLocation`, and a Service Areas section whose `areaShape` field holds drawn areas. The first example checks a Jobs section (`jobs`) with a Geo Maps field called `jobLocation`.
 
 ## Only accept addresses in your service area
 
@@ -63,7 +63,7 @@ $point = GeoService::geocode('175 The Parade, Norwood SA', 'AU');
 // ['lat' => -34.9214557, 'lng' => 138.6306147], or null if it can't be found
 ```
 
-It uses your Google Geocoding key if one is set, otherwise OpenStreetMap, and caches the result for 30 days.
+It uses the **Geocoding service** from the plugin settings (see [How addresses are looked up](/guides/search#how-addresses-are-looked-up)) and caches the result for 30 days.
 
 ## Check a single area
 

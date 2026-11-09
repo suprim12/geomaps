@@ -57,7 +57,7 @@ Passing the field value as `location` searches from its coordinates, so no geoco
 
 ## Static map in listings
 
-Interactive maps are heavy for listing pages and emails. Use a static image instead. Static images need a Google key with the **Maps Static API** enabled, so always check for `null`:
+Interactive maps are heavy for listing pages and emails. Use a static image instead. Static images need a Google **Browser key** with the **Maps Static API** enabled, or a **Mapbox access token**, so always check for `null`:
 
 ```twig
 {% for store in craft.entries().section('stores').all() %}

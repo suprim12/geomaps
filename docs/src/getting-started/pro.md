@@ -10,7 +10,7 @@ Geo Maps is free, and everything in the free edition stays free. **Geo Maps Pro*
 | [Locator component](/guides/locator) | `craft.geomaps.locator()` outputs an address search, “Use my location”, a distance filter, a numbered results list and a map for any element query. |
 | [Missing coordinates](/guides/missing-coordinates) | Looks up coordinates for locations that only have an address, such as imported ones, automatically or with `php craft geomaps/geocode`. |
 
-More Pro features are on the way; see the [roadmap](https://github.com/suprim12/geomaps/blob/main/ROADMAP.md).
+See the [roadmap](https://github.com/suprim12/geomaps/blob/main/ROADMAP.md) for what’s planned.
 
 ## Trying Pro
 
@@ -32,6 +32,6 @@ Craft asks for a licence once the site goes live in production. Buy Pro from the
 
 ## Without Pro
 
-Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back. For example, a map with `cluster: true` shows every marker without grouping. Craft logs a warning so you can see why.
+Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), and `php craft geomaps/geocode` exits with a message saying it needs Pro. For maps and the locator, Craft logs a warning so you can see why.
 
 The **Geo Maps Pro** section at the bottom of the plugin’s settings page shows whether Pro is active.

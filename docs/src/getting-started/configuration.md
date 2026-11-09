@@ -1,8 +1,8 @@
 # Configuration
 
-Configure **Geo Maps** in the control panel under **Settings → Geo Maps**, or with a `config/geomaps.php` file.
+Configure **Geo Maps** in the control panel under **Settings → Plugins → Geo Maps**, or with a `config/geomaps.php` file.
 
-![The Geo Maps plugin settings: optional Google keys, and the OpenStreetMap tiles URL and credit](/images/plugin-settings.jpg)
+![The Geo Maps settings: status tiles, then the Google Maps, Address lookups, Map tiles and Geo Maps Pro sections](/images/plugin-settings.jpg)
 
 ## Map Providers
 
@@ -35,16 +35,18 @@ Some things follow the map, so each service’s terms are met:
 | Static map images (`.img()`) | Google Static Maps | Mapbox Static Images, with a Mapbox token |
 
 ::: warning Google results only on Google maps
-Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, and the same applies to the Places API. If your maps aren’t Google maps, use OpenStreetMap or Mapbox for address lookups. The settings page shows a warning when Google lookups are combined with other maps. Using Google lookups only for distance search, with results shown in a list rather than on a map, doesn’t involve a map.
+Google’s terms say you “must not use Google Maps Content from the Geocoding API in conjunction with a non-Google map”, and the same applies to the Places API. If your maps aren’t Google maps, use OpenStreetMap or Mapbox for address lookups. Geo Maps only uses Google lookups when your front-end maps are Google maps: choosing **Google** otherwise shows a validation error, and **Automatic** uses OpenStreetMap.
 :::
 
 ::: tip Google Maps
-- **Google Maps API Key (browser)** — enable the **Maps JavaScript API**, **Places API** and **Maps Static API**. Restrict it by HTTP referrer, including your local development domain (e.g. `*.ddev.site/*`).
-- **Google Geocoding API Key (server)** — enable the **Geocoding API**. Restrict it by your server’s IP address.
+In the **Google Maps** section:
+
+- **Browser key** — enable the **Maps JavaScript API**, **Places API**, **Maps Static API** and **Geocoding API** (the Geocoding API finds the address when the pin is dragged on a Google map in the field; without it, Geo Maps uses OpenStreetMap for that). Restrict it by HTTP referrer, including your local development domain (e.g. `*.ddev.site/*`).
+- **Server key** — enable the **Geocoding API**. Restrict it by your server’s IP address.
 :::
 
 ::: warning OpenStreetMap tiles on busy sites
-The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Map Tiles URL** to a tile provider such as [Mapbox](/examples/mapbox), [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Map Credit** to match.
+The default `tile.openstreetmap.org` tiles are free for light use, such as the control panel. For public-facing maps on busy sites, set **Map tiles URL** to a tile provider such as [Mapbox](/examples/mapbox), [Stadia Maps](https://stadiamaps.com), [MapTiler](https://www.maptiler.com) or [Thunderforest](https://www.thunderforest.com), and update **Map credit** to match.
 :::
 
 ::: tip Mapbox
@@ -53,7 +55,7 @@ The settings page has **Quick setup** buttons for Mapbox map styles, and Mapbox 
 
 ## Config File
 
-Create `config/geomaps.php` to set values per environment. Values can reference environment variables.
+Create `config/geomaps.php` to set values per environment. Values can reference environment variables, and `${VAR}` also works inside a URL.
 
 ```php
 <?php
@@ -61,8 +63,21 @@ Create `config/geomaps.php` to set values per environment. Values can reference 
 return [
     'mapToken' => '$GOOGLE_MAPS_KEY',
     'geoToken' => '$GOOGLE_GEOCODING_KEY',
-    'tileUrl' => 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$STADIA_KEY',
+    'tileUrl' => 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=${STADIA_KEY}',
     'tileAttribution' => '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors',
+    'mapboxToken' => '$MAPBOX_TOKEN',  // for Mapbox styles ({mapboxToken} in tileUrl) and Mapbox lookups
+
+    // Address lookups: 'auto', 'nominatim', 'google' or 'mapbox'
+    'geocoder' => 'auto',
+    // Mapbox permanent geocoding (needs a card on your Mapbox account)
+    'mapboxPermanent' => false,
+
+    // Which maps to show: 'auto', 'google' or 'tiles'
+    'mapProvider' => 'auto',     // front end: embed() and the locator component
+    'cpMapProvider' => 'auto',   // control panel: the map in the field
+
+    // Pro: look up coordinates in the background for locations saved with only an address
+    'geocodeMissing' => true,
 ];
 ```
 

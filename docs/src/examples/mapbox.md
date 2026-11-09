@@ -110,7 +110,7 @@ Mapbox’s terms only allow saving results from its **permanent** geocoding, whi
 | Suggestions that are saved: the field in the control panel, and `addressInput()` with `field` | OpenStreetMap or Google | Mapbox |
 | [Missing coordinates](/guides/missing-coordinates) | OpenStreetMap | Mapbox, without the one-per-second limit |
 
-If Mapbox refuses a request, for example because the token is restricted to other domains, or finds nothing, OpenStreetMap is used instead, and Geo Maps logs a warning.
+If Mapbox refuses a request (Geo Maps logs a warning), or a search finds nothing, OpenStreetMap is used instead.
 
 ## Good to know
 
