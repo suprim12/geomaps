@@ -9,6 +9,8 @@
 {% import '_includes/forms.twig' as forms %}
 
 {% set configFileExists = config is not empty %}
+{# Only mention the config file when it sets something shown on this page. #}
+{% set lockedHere = configFileExists and (config|keys|filter(k => k in ['service', 'mapToken', 'geoToken', 'mapboxToken', 'mapboxStyle', 'tileUrl', 'tileAttribution'])|length) %}
 {% set docs = 'https://plugins.geomaps.suprim.com.au' %}
 {% set isPro = plugin.isPro() %}
 {% set service = settings.getService() %}
@@ -29,7 +31,7 @@
 
 <div class="gm">
 
-	{% if configFileExists %}
+	{% if lockedHere %}
 		<div class="gm-notice">
 			{{ icons.key|raw }}
 			<p>{{ 'Some settings are set in {file} and can’t be changed here.'|t('geomaps', { file: '<code>config/geomaps.php</code>' })|raw }}</p>

@@ -86,6 +86,8 @@ const { results, total } = await res.json();
 
 ### Searching the visible map area
 
+For a complete store finder built this way, see [Search as the Map Moves](/examples/search-as-map-moves).
+
 ```js
 map.on('moveend', async () => {
   const b = map.getBounds();

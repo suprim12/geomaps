@@ -73,6 +73,7 @@ export default defineConfig({
         items: [
           { text: 'Locator with Filters', link: '/examples/locator-filters' },
           { text: 'Opening Hours and Open Now', link: '/examples/opening-hours' },
+          { text: 'Search as the Map Moves', link: '/examples/search-as-map-moves' },
         ],
       },
       {

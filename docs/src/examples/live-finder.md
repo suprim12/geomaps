@@ -103,6 +103,8 @@ This page draws its own Leaflet map because it redraws the pins itself. It reads
 
 ## Going further
 
+- **With Geo Maps Pro:** a [search endpoint](/guides/search-endpoint) replaces the JSON template with five lines of config, and searches exactly the visible map. See [Search as the Map Moves](/examples/search-as-map-moves).
+
 - **Numbered pins.** Swap `L.marker` for an `L.divIcon` with the result’s number inside, and number the list to match, as in the screenshot.
 - **Search box.** Add an address input and send `q` instead of `lat`/`lng`; in the endpoint, pass `location: q` and Geo Maps geocodes it.
 - **Caching.** Wrap the endpoint’s query in `{% cache using key "stores-#{lat}-#{lng}-#{radius}" for 10 minutes %}` on busy sites.
