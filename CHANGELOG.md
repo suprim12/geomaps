@@ -23,6 +23,8 @@
 - Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.
 - Dragging the pin on a Google map in the field left the old address when the browser key didn’t have the Geocoding API enabled. The address is now looked up with OpenStreetMap instead.
 - With Google maps in the field, the map tiles from the plugin settings (such as Mapbox) were also loaded underneath, using up tile requests. They're now only loaded if Google fails.
+- Address search with OpenStreetMap, in the field and `addressInput()`, filled in the city rather than the suburb (“Adelaide” instead of “Ashford”), and dropped the house number when OpenStreetMap only knows the street. The suburb is now used, and the house number you typed is kept.
+- Picking an address the field’s map was already showing logged errors in the browser console.
 
 ## 1.3.0 - 2026-11-08
 

@@ -5,17 +5,18 @@
  * search-as-you-type. Picking one fills the hidden coordinate and address inputs,
  * which post in the same shape as the control panel field.
  */
+import { withTypedHouseNumber, osmSuburb } from "./osm-address.js";
 import "./address.css";
 import { mapboxSuggest, MAPBOX_CREDIT } from "./mapbox-search.js";
 
 const PHOTON_URL = "https://photon.komoot.io/api/?";
 const PHOTON_LANGS = ["en", "de", "fr", "it"];
 
-function suggestionFromFeature(f, i) {
-  const p = f.properties || {};
+function suggestionFromFeature(f, i, query) {
+  const p = withTypedHouseNumber(f.properties || {}, query);
   const street = [p.housenumber, p.street].filter(Boolean).join(" ");
   const main = p.name || street || p.city || p.country || "";
-  const secondary = [p.name ? street : null, p.city || p.district, p.state, p.postcode, p.country]
+  const secondary = [p.name ? street : null, p.district || p.city, p.state, p.postcode, p.country]
     .filter(Boolean)
     .join(", ");
   const [lng, lat] = f.geometry?.coordinates || [];
@@ -29,7 +30,7 @@ function suggestionFromFeature(f, i) {
       lat: typeof lat === "number" ? lat.toFixed(6) : "",
       lng: typeof lng === "number" ? lng.toFixed(6) : "",
       address1: street || p.name || "",
-      suburb: p.suburb || p.city || p.town || p.village || p.district || p.locality || "",
+      suburb: osmSuburb(p),
       postcode: p.postcode || "",
       country: p.country || "",
       countryCode: (p.countrycode || "").toUpperCase(),
@@ -187,7 +188,7 @@ function init(root) {
         if (countries.length) {
           features = features.filter((f) => countries.includes((f.properties?.countrycode || "").toUpperCase()));
         }
-        found = features.map(suggestionFromFeature);
+        found = features.map((f, i) => suggestionFromFeature(f, i, query));
         source = "photon";
       }
       if (id !== requestId) return; // a newer search has started

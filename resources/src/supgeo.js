@@ -4,6 +4,7 @@
  * copyright Copyright (c) 2026 suprim
  * 
  */
+import { withTypedHouseNumber, osmSuburb } from "./osm-address.js";
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import "./supgeo.css";
@@ -534,10 +535,10 @@ document.addEventListener("alpine:init", () => {
         }
         const seen = new Set();
         this.suggestions = features.map((f, i) => {
-          const p = f.properties;
+          const p = withTypedHouseNumber(f.properties, query);
           const street = [p.housenumber, p.street].filter(Boolean).join(" ");
           const main = p.name || street || p.city || p.country || query;
-          const secondary = [p.name ? street : null, p.city || p.district, p.state, p.country]
+          const secondary = [p.name ? street : null, p.district || p.city, p.state, p.country]
             .filter(Boolean)
             .join(", ");
           return {
@@ -545,7 +546,7 @@ document.addEventListener("alpine:init", () => {
             mainText: main,
             secondaryText: secondary,
             fullText: [main, secondary].filter(Boolean).join(", "),
-            osm: f,
+            osm: { ...f, properties: p },
           };
         }).filter((s) => {
           // Photon often returns several OSM objects for the same place.
@@ -571,8 +572,7 @@ document.addEventListener("alpine:init", () => {
       this.lat = lat?.toFixed(6) ?? null;
       this.lng = lng?.toFixed(6) ?? null;
       this.address1 = street || a.name || null;
-      this.suburb =
-        a.suburb || a.city || a.town || a.village || a.district || a.locality || null;
+      this.suburb = osmSuburb(a) || null;
       this.postcode = a.postcode || null;
       this.country = a.country || null;
       this.countryCode = (a.countrycode || a.country_code || "").toUpperCase() || null;
@@ -637,7 +637,15 @@ document.addEventListener("alpine:init", () => {
     },
     // Centre on a point, keeping it clear of the search/address panel that overlays the map's left side.
     focusOn(lat, lng, zoom = 16) {
-      this.map.flyTo(L.latLng(lat, lng), Math.max(zoom, this.map.getZoom()), { duration: 1.2 });
+      const target = L.latLng(lat, lng);
+      const targetZoom = Math.max(zoom, this.map.getZoom());
+      const size = this.map.getSize();
+      // Leaflet's flyTo animates through NaN when the map has no size yet or is already at the target.
+      if (!size.x || !size.y || (this.map.getCenter().distanceTo(target) < 1 && targetZoom === this.map.getZoom())) {
+        this.map.setView(target, targetZoom, { animate: false });
+        return;
+      }
+      this.map.flyTo(target, targetZoom, { duration: 1.2 });
     },
     closeSuggestions() {
       // Small delay so a click on a suggestion fires before the list disappears
