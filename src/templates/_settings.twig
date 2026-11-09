@@ -64,10 +64,21 @@
 
 	{# Map service #}
 	{% set serviceLocked = configFileExists and config.service is defined %}
+	{# Whether each service's keys are set, using their real values (an environment variable can be empty). #}
+	{% set browserKey = settings.getMapToken() %}
+	{% set serverKey = settings.getGeoToken() %}
+	{% set mapboxToken = settings.getMapboxToken() %}
+	{% set googleBadge = browserKey and serverKey ? { text: 'Keys set'|t('geomaps'), class: 'gm-badge--on' }
+		: browserKey ? { text: 'Browser key only'|t('geomaps'), class: 'gm-badge--warn' }
+		: settings.mapToken ? { text: 'Key not found'|t('geomaps'), class: 'gm-badge--warn' }
+		: { text: 'Two keys'|t('geomaps'), class: '' } %}
+	{% set mapboxBadge = mapboxToken ? { text: 'Token set'|t('geomaps'), class: 'gm-badge--on' }
+		: settings.mapboxToken ? { text: 'Token not found'|t('geomaps'), class: 'gm-badge--warn' }
+		: { text: 'Access token'|t('geomaps'), class: '' } %}
 	{% set services = [
-		{ value: 'openstreetmap', name: 'OpenStreetMap', badge: 'No key'|t('geomaps'), text: 'Free maps and address search. Good for the control panel and light use.'|t('geomaps') },
-		{ value: 'mapbox', name: 'Mapbox', badge: 'Access token'|t('geomaps'), text: 'Styled maps and accurate address search, with a free monthly allowance.'|t('geomaps') },
-		{ value: 'google', name: 'Google Maps', badge: 'Two keys'|t('geomaps'), text: 'Google maps, Places address search and Google lookups.'|t('geomaps') },
+		{ value: 'openstreetmap', name: 'OpenStreetMap', badge: { text: 'No key'|t('geomaps'), class: '' }, text: 'Free maps and address search. Good for the control panel and light use.'|t('geomaps') },
+		{ value: 'mapbox', name: 'Mapbox', badge: mapboxBadge, text: 'Styled maps and accurate address search, with a free monthly allowance.'|t('geomaps') },
+		{ value: 'google', name: 'Google Maps', badge: googleBadge, text: 'Google maps, Places address search and Google lookups.'|t('geomaps') },
 	] %}
 	<section class="gm-card">
 		<header class="gm-card__head">
@@ -83,7 +94,7 @@
 				{% for option in services %}
 					<label class="gm-service{{ option.value == service ? ' is-on' }}">
 						<input type="radio" name="service" value="{{ option.value }}"{{ option.value == service ? ' checked' }}{{ serviceLocked ? ' disabled' }} data-gm-service>
-						<span class="gm-service__name">{{ option.name }} <span class="gm-badge">{{ option.badge }}</span></span>
+						<span class="gm-service__name">{{ option.name }} <span class="gm-badge {{ option.badge.class }}">{% if option.badge.class == 'gm-badge--on' %}<span class="status green"></span>{% endif %}{{ option.badge.text }}</span></span>
 						<span class="gm-service__text">{{ option.text }}</span>
 					</label>
 				{% endfor %}
@@ -245,6 +256,7 @@
 .gm-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; background: var(--gray-100, #f1f5f9); color: var(--medium-text-color, #475569); }
 .gm-badge--pro { background: var(--gm-accent); color: #fff; }
 .gm-badge--on { background: #dcfce7; color: #166534; }
+.gm-badge--warn { background: #fef3c7; color: #92400e; }
 .gm-badge .status { margin: 0; width: 7px; height: 7px; }
 
 .gm-help { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: var(--gray-050, #f8fafc); border: 1px solid var(--gm-line); }
@@ -268,7 +280,7 @@
 .gm-service:has(input:disabled) { cursor: not-allowed; opacity: .75; }
 .gm-service__name { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 600; font-size: 14px; color: var(--text-color, #1f2937); }
 .gm-service__text { font-size: 12px; line-height: 1.45; color: var(--medium-text-color, #475569); }
-.gm-service.is-on .gm-badge { background: #fff; }
+.gm-service.is-on .gm-badge:not(.gm-badge--on):not(.gm-badge--warn) { background: #fff; }
 .gm-service__name .gm-badge { flex: none; white-space: nowrap; }
 .gm-panel { margin-top: 22px; }
 .gm-panel[hidden] { display: none; }
