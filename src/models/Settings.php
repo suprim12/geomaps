@@ -53,6 +53,14 @@ class Settings extends Model
     /** Pro: find coordinates in the background for saved locations that only have an address. */
     public bool $geocodeMissing = true;
 
+    /**
+     * Pro, config file only: JSON search endpoints, keyed by name, for `actions/geomaps/search?endpoint=name`.
+     * See `src/config.php` for the options.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    public array $searchEndpoints = [];
+
     public const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     public const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     public const MAPBOX_ATTRIBUTION = '© <a href="https://www.mapbox.com/about/maps">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://apps.mapbox.com/feedback/">Improve this map</a></strong>';

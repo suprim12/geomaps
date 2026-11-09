@@ -51,6 +51,7 @@ export default defineConfig({
           { text: 'Console Commands', link: '/guides/console' },
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
           { text: 'Locator Component', link: '/guides/locator' },
+          { text: 'Search Endpoint', link: '/guides/search-endpoint' },
         ],
       },
       {

@@ -173,6 +173,9 @@ class MapService extends Component
      * Supported values:
      * - `':empty:'` / `':notempty:'`
      * - `{ location: 'Address' | {lat, lng} | GeoValue, coordinate: {lat, lng}, radius: 50, unit: 'km'|'mi', country: 'AU' }`
+     * - `{ contains: 'Address' | {lat, lng} | GeoValue }`
+     * - Pro: `{ within: {north, south, east, west} | 'south,west,north,east' | GeoValue | GeoJSON }`, optionally with
+     *   `location` to sort by distance
      *
      * @param GeoField[] $instances
      * @return array|string|false|null
@@ -211,6 +214,23 @@ class MapService extends Component
             return $this->containsCondition($fieldIds, $value['contains'], $value['country'] ?? null);
         }
 
+        // GraphQL passes a GeoJSON area separately.
+        if (isset($value['withinGeoJson']) && !isset($value['within'])) {
+            $value['within'] = $value['withinGeoJson'];
+        }
+
+        $within = null;
+        if (isset($value['within'])) {
+            if (Plugin::getInstance()->isPro()) {
+                $within = $this->withinCondition($fieldIds, $value['within']);
+                if ($within === false) {
+                    return false;
+                }
+            } else {
+                Craft::warning('Geo Maps: `within` needs Geo Maps Pro, so it was ignored.', __METHOD__);
+            }
+        }
+
         $location = $value['coordinate'] ?? $value['location'] ?? null;
 
         if ($location instanceof GeoValue) {
@@ -218,7 +238,7 @@ class MapService extends Component
         }
 
         if ($location === null) {
-            return null;
+            return $within;
         }
 
         $origin = GeoService::resolveLocation($location, $value['country'] ?? null);
@@ -229,7 +249,8 @@ class MapService extends Component
         }
 
         $unit = GeoService::normalizeUnit($value['unit'] ?? null);
-        $radius = max(0.0, (float)($value['radius'] ?? 50));
+        // With an area, the location only sorts by distance unless a radius is given too.
+        $radius = $within !== null && !isset($value['radius']) ? null : max(0.0, (float)($value['radius'] ?? 50));
         $perDegree = $unit === 'mi' ? self::MI_PER_DEGREE : self::KM_PER_DEGREE;
 
         $alias = 'supgeo_' . StringHelper::randomString(6);
@@ -261,6 +282,10 @@ class MapService extends Component
 
         $this->attachDistancePopulator($query, $instances[0]->handle, $lat, $lng, $perDegree);
 
+        if ($radius === null) {
+            return $within;
+        }
+
         // Bounding box first so the lat/lng index can narrow rows before the trig runs.
         $latDelta = $radius / $perDegree;
         $lngDelta = $radius / max(0.000001, $perDegree * abs(cos(deg2rad($lat))));
@@ -280,7 +305,108 @@ class MapService extends Component
 
         $condition[] = new Expression(sprintf('%s <= %F', $distanceSql, $radius));
 
-        return $condition;
+        return $within !== null ? ['and', $within, $condition] : $condition;
+    }
+
+    /**
+     * Condition matching elements whose point is inside an area: a bounding box, or the polygons of a
+     * GeoValue or GeoJSON object (holes respected).
+     *
+     * @param int[] $fieldIds
+     */
+    private function withinCondition(array $fieldIds, mixed $area): array|false
+    {
+        $bounds = self::parseBounds($area);
+
+        if ($bounds) {
+            $condition = ['and', ['g.fieldId' => $fieldIds], ['between', 'g.lat', $bounds['south'], $bounds['north']]];
+            // A box across the ±180° line has its west edge east of its east edge.
+            $condition[] = $bounds['west'] <= $bounds['east']
+                ? ['between', 'g.lng', $bounds['west'], $bounds['east']]
+                : ['or', ['>=', 'g.lng', $bounds['west']], ['<=', 'g.lng', $bounds['east']]];
+
+            return ['exists', (new Query())
+                ->from(['g' => GeoRecord::TABLE_NAME])
+                ->where('[[g.ownerId]] = [[elements.id]]')
+                ->andWhere('[[g.ownerSiteId]] = [[elements_sites.siteId]]')
+                ->andWhere($condition),
+            ];
+        }
+
+        $polygons = self::areaPolygons($area);
+        if (!$polygons) {
+            return false;
+        }
+
+        $zones = Plugin::getInstance()->zones;
+        $box = $zones->bounds($polygons);
+        if (!$box) {
+            return false;
+        }
+
+        $matches = [];
+        $candidates = (new Query())
+            ->select(['ownerId', 'ownerSiteId', 'lat', 'lng'])
+            ->from(GeoRecord::TABLE_NAME)
+            ->where(['fieldId' => $fieldIds])
+            ->andWhere(['between', 'lat', $box['minLat'], $box['maxLat']])
+            ->andWhere(['between', 'lng', $box['minLng'], $box['maxLng']]);
+
+        foreach ($candidates->each() as $row) {
+            if ($zones->polygonsContain($polygons, (float)$row['lat'], (float)$row['lng'])) {
+                $matches[] = ['elements.id' => (int)$row['ownerId'], 'elements_sites.siteId' => (int)$row['ownerSiteId']];
+            }
+        }
+
+        return $matches ? ['in', ['elements.id', 'elements_sites.siteId'], $matches] : false;
+    }
+
+    /**
+     * A bounding box as `south, west, north, east`, from `{ north, south, east, west }`,
+     * `[[south, west], [north, east]]` or the string `'south,west,north,east'`. Null if it isn't one.
+     *
+     * @return array{south: float, west: float, north: float, east: float}|null
+     */
+    public static function parseBounds(mixed $area): ?array
+    {
+        if (is_string($area)) {
+            $parts = array_map('trim', explode(',', $area));
+            if (count($parts) !== 4) {
+                return null;
+            }
+            $area = ['south' => $parts[0], 'west' => $parts[1], 'north' => $parts[2], 'east' => $parts[3]];
+        } elseif (is_array($area) && array_is_list($area) && count($area) === 2 && is_array($area[0]) && is_array($area[1])) {
+            $area = ['south' => $area[0][0] ?? null, 'west' => $area[0][1] ?? null, 'north' => $area[1][0] ?? null, 'east' => $area[1][1] ?? null];
+        }
+
+        if (!is_array($area)) {
+            return null;
+        }
+
+        $box = [];
+        foreach (['south' => 90, 'west' => 180, 'north' => 90, 'east' => 180] as $edge => $max) {
+            $v = $area[$edge] ?? null;
+            if (!is_numeric($v) || abs((float)$v) > $max) {
+                return null;
+            }
+            $box[$edge] = (float)$v;
+        }
+
+        return $box['south'] <= $box['north'] ? $box : null;
+    }
+
+    /**
+     * The polygons of a GeoValue, a GeoJSON array or a GeoJSON string.
+     */
+    private static function areaPolygons(mixed $area): array
+    {
+        if ($area instanceof GeoValue) {
+            $area = $area->getGeoJsonData();
+        } elseif (is_string($area)) {
+            $area = Json::decodeIfJson($area);
+        }
+
+        return is_array($area) ? Plugin::getInstance()->zones->polygons($area) : [];
     }
 
     /**

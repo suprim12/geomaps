@@ -67,6 +67,22 @@ Results are nearest first, and `distance` is set in the requested unit.
 }
 ```
 
+## Searching within an area <Badge type="tip" text="Pro" />
+
+Use `within` for a map area, or `withinGeoJson` for a drawn shape as GeoJSON text. Add `coordinate` to sort by distance.
+
+```graphql
+{
+  inView: entries(
+    section: "stores"
+    storeLocation: {
+      within: { north: -34.85, south: -35.05, east: 138.70, west: 138.45 }
+      coordinate: { lat: -34.93, lng: 138.60 }
+    }
+  ) { title }
+}
+```
+
 ## Saving values
 
 Mutations accept the value as a JSON string:

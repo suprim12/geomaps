@@ -59,6 +59,16 @@ class GeoQueryArgument extends InputObjectType
                 'type' => GeoCoordsInput::getType(),
                 'description' => 'Find entries whose areas contain this lat/lng coordinate',
             ],
+            'within' => [
+                'name' => 'within',
+                'type' => GeoBoundsInput::getType(),
+                'description' => 'Pro: find entries whose location is inside this map area',
+            ],
+            'withinGeoJson' => [
+                'name' => 'withinGeoJson',
+                'type' => Type::string(),
+                'description' => 'Pro: find entries whose location is inside the polygons of this GeoJSON',
+            ],
             'country' => [
                 'name' => 'country',
                 'type' => Type::string(),

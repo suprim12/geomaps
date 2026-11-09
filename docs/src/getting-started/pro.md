@@ -9,6 +9,8 @@ Geo Maps is free, and everything in the free edition stays free. **Geo Maps Pro*
 | [Marker clustering](/guides/maps#marker-clustering) | Groups nearby pins on `embed()` maps into numbered bubbles, so maps with hundreds of locations stay readable. |
 | [Locator component](/guides/locator) | `craft.geomaps.locator()` outputs an address search, “Use my location”, a distance filter, a numbered results list and a map for any element query. |
 | [Missing coordinates](/guides/missing-coordinates) | Looks up coordinates for locations that only have an address, such as imported ones, automatically or with `php craft geomaps/geocode`. |
+| [Search within an area](/guides/search#search-within-an-area) | Finds entries inside a map area or a drawn shape, for “search as the map moves” and region pages, from Twig and GraphQL. |
+| [Search endpoint](/guides/search-endpoint) | JSON search URLs for headless and app front ends, set up in the config file, with distances, paging and CORS. |
 
 See the [roadmap](https://github.com/suprim12/geomaps/blob/main/ROADMAP.md) for what’s planned.
 
@@ -32,6 +34,6 @@ Craft asks for a licence once the site goes live in production. Buy Pro from the
 
 ## Without Pro
 
-Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), and `php craft geomaps/geocode` exits with a message saying it needs Pro. For maps and the locator, Craft logs a warning so you can see why.
+Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), `php craft geomaps/geocode` exits with a message saying it needs Pro, `within` is ignored, and search endpoints return a 403 error. For maps and the locator, Craft logs a warning so you can see why.
 
 The **Edition** tile at the top of the plugin’s settings page (**Settings → Plugins → Geo Maps**) shows whether Pro is active, with a **Try Pro** link on the free edition.

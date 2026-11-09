@@ -13,11 +13,11 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 - **Marker clustering** (1.4, Pro) for `embed()` maps.
 - **Mapbox** (1.4). Mapbox map styles, address lookups and static images.
 - **Missing coordinates** (1.4, Pro). Coordinates for imported locations that only have an address, in the background or with `php craft geomaps/geocode`.
+- **Search within an area** (1.4, Pro). Entries inside the visible map area or a drawn shape, from Twig and GraphQL.
+- **Search endpoint** (1.4, Pro). Ready-made JSON search for headless sites and apps.
 
 ## Next
 
-- **Viewport and polygon search.** Find entries inside the visible map area or any polygon from element queries, for “search as the map moves” without custom SQL.
-- **Headless search endpoint.** A ready-made JSON endpoint and matching GraphQL arguments that return the nearest entries with distances, for React, Vue and app front ends.
 - **More providers.** HERE and MapTiler for address lookups and static images, and an interface for adding your own.
 
 ## Later

@@ -38,6 +38,18 @@ return [
 
         // Pro: look up coordinates in the background for locations saved with only an address.
         // 'geocodeMissing' => true,
+
+        // Pro: JSON search endpoints for headless front ends, at /actions/geomaps/search?endpoint=stores
+        // 'searchEndpoints' => [
+        //     'stores' => [
+        //         'field' => 'storeLocation',              // the Geo Maps field to search
+        //         'criteria' => ['section' => 'stores'],   // which elements (element query params)
+        //         'fields' => ['title', 'url', 'phone'],   // values to include in each result
+        //         'limit' => 20,                           // results per page (up to 100)
+        //         'maxRadius' => 200,                      // largest radius visitors can ask for
+        //         'cors' => ['https://app.example.com'],   // sites allowed to call it from a browser
+        //     ],
+        // ],
     ],
 
     // Environment-specific settings, for example OpenStreetMap locally and Mapbox in production:

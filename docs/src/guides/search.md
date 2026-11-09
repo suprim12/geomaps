@@ -27,6 +27,7 @@ Pass an object to the field’s query parameter to find entries near a place. Re
 | `unit` | `km` or `mi` | `km` |
 | `country` | Two-letter code to narrow address lookups, e.g. `AU` | — |
 | `contains` | An address, `{ lat, lng }` or Geo Maps value: find entries whose areas contain it (see [below](#find-the-area-containing-a-place)). Use instead of `location` | — |
+| `within` | Pro: a map area or a drawn shape: find entries whose location is inside it (see [below](#search-within-an-area)) | — |
 
 ## Searching from coordinates
 
@@ -81,6 +82,44 @@ Only polygons and multipolygons count as areas; markers and lines are ignored. T
 ::: tip
 Turn off **Show Location Pin** on fields that only hold areas — see [The Field](/guides/field#field-settings).
 :::
+
+## Search within an area <Badge type="tip" text="Pro" />
+
+Find entries whose location is inside a map area, such as the part of a map a visitor is looking at, or inside a drawn shape such as a delivery zone or council area.
+
+```twig
+{# The visible part of a map: north, south, east and west edges #}
+{% set stores = craft.entries()
+    .section('stores')
+    .storeLocation({ within: { north: -34.85, south: -35.05, east: 138.70, west: 138.45 } })
+    .all() %}
+
+{# Inside the shapes drawn on another entry #}
+{% set region = craft.entries().section('regions').slug('eastern-suburbs').one() %}
+{% set stores = craft.entries()
+    .section('stores')
+    .storeLocation({ within: region.regionArea })
+    .all() %}
+```
+
+`within` takes:
+
+- **A map area:** `{ north, south, east, west }`, `[[south, west], [north, east]]`, or the text `'south,west,north,east'`, which is handy in a URL. An area across the 180° line (west edge east of the east edge) works too.
+- **A shape:** a Geo Maps value with drawn areas, or GeoJSON as an array or text. Holes in shapes are respected.
+
+Add `location` to sort the results by distance from a point, nearest first, with `distance` set on each. With an area, `radius` is optional: without it, every entry in the area is returned.
+
+```twig
+{% set stores = craft.entries()
+    .section('stores')
+    .storeLocation({
+        within: craft.app.request.getQueryParam('bounds'),
+        location: { lat: -34.93, lng: 138.60 },
+    })
+    .all() %}
+```
+
+On the free edition, `within` is ignored and Craft logs a warning.
 
 ## With or without a location
 
