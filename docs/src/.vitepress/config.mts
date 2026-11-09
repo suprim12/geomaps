@@ -53,7 +53,6 @@ export default defineConfig({
           { text: 'Locator Component', link: '/guides/locator' },
           { text: 'Search Endpoint', link: '/guides/search-endpoint' },
           { text: 'Import and Export', link: '/guides/import-export' },
-          { text: 'Control Panel Map', link: '/guides/cp-map' },
         ],
       },
       {
