@@ -47,6 +47,7 @@ Outputting the value directly prints the full address. Without an address it pri
 | `contains(place, country)` | Whether the value’s areas (polygons) contain an address, `{ lat, lng }` or another value. `country` (optional, e.g. `'AU'`) narrows address lookups |
 | `embed(options)` | An interactive map centred on this location — see [Maps](/guides/maps) |
 | `img(options)` / `imgSrcSet(options)` | A static map image URL — see [Maps](/guides/maps) |
+| `schema(options)` | Pro: schema.org structured data as a JSON-LD `<script>` tag, for location pages — see [Location Page](/examples/location-page#structured-data-for-search-engines). `schemaData(options)` returns it as an array |
 
 ### Working with shapes
 

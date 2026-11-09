@@ -79,7 +79,39 @@ Printing the field value on its own (`store.storeLocation`) outputs the full add
 
 ## Structured data for search engines
 
-Add the location to the page as schema.org data:
+Structured data tells search engines the business's address, map position and opening hours, which can show in search results and on Google Maps.
+
+### With Geo Maps Pro <Badge type="tip" text="Pro" />
+
+`schema()` outputs it in one line. The name and URL come from the entry:
+
+```twig
+{{ entry.storeLocation.schema({
+  type: 'Store',
+  telephone: entry.phone,
+  image: entry.photo.one(),
+  openingHours: entry.openingHours,
+}) }}
+```
+
+| Option | Description |
+|---|---|
+| `type` | The [schema.org type](https://schema.org/LocalBusiness#subtypes), such as `Store`, `Restaurant` or `Dentist`. Default `LocalBusiness` |
+| `name`, `url` | Default to the entry's title and URL |
+| `openingHours` | Rows with `day`, `open` and `close`, such as a Table field (see [Opening Hours](/examples/opening-hours)), or text such as `['Mo-Fr 09:00-17:00', 'Sa 10:00-16:00']`. Rows without times are left out |
+| Anything else | Added as it is, such as `telephone`, `email`, `priceRange` or `sameAs`. Assets and entries become their URL, and empty values are left out |
+
+To combine it with other structured data, or pass it to an SEO plugin, `schemaData()` returns the same data as an array:
+
+```twig
+{% set data = entry.storeLocation.schemaData({ type: 'Store' }) %}
+```
+
+On the free edition, `schema()` outputs nothing.
+
+### Without Pro
+
+Build the data yourself:
 
 ```twig
 {% if place and place.hasCoordinates() %}

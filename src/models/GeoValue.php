@@ -9,9 +9,16 @@
 
 namespace suprim\geomaps\models;
 
+use Craft;
+use craft\base\ElementInterface;
 use craft\base\Model;
+use craft\elements\Asset;
+use craft\elements\db\ElementQueryInterface;
 use craft\helpers\Json;
+use DateTimeInterface;
+use suprim\geomaps\Plugin;
 use suprim\geomaps\services\GeoService;
+use Twig\Markup;
 
 /**
  * GeoValue is the object returned by GeoField::normalizeValue().
@@ -460,6 +467,146 @@ class GeoValue extends Model
         return $this->getMap()?->imgSrcSet($options);
     }
 
+    /**
+     * Pro: schema.org structured data for this location as a JSON-LD `<script>` tag, for location pages.
+     *
+     *   {{ entry.storeLocation.schema({ type: 'Store', telephone: entry.phone }) }}
+     *
+     * The name and URL come from the entry. See schemaData() for the options.
+     */
+    public function schema(array $options = []): Markup
+    {
+        $data = $this->schemaData($options);
+        if (!$data) {
+            return new Markup('', 'UTF-8');
+        }
+
+        // HEX_TAG keeps `</script>` in a value from ending the tag.
+        $json = Json::encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_PRETTY_PRINT);
+
+        return new Markup('<script type="application/ld+json">' . $json . '</script>', 'UTF-8');
+    }
+
+    /**
+     * Pro: the structured data as an array, to add to other JSON-LD or pass to an SEO plugin.
+     *
+     * Options: `type` (default `LocalBusiness`), `name`, `url`, `openingHours` (rows with `day`, `open` and
+     * `close`, such as a Table field, or strings like `Mo-Fr 09:00-17:00`), and any other schema.org
+     * properties, such as `telephone`, `email`, `image`, `priceRange` or `sameAs`, which are added as they are.
+     * Assets and entries become their URL, dates become ISO 8601, and empty values are left out.
+     */
+    public function schemaData(array $options = []): ?array
+    {
+        if (!Plugin::getInstance()->isPro()) {
+            Craft::warning('Geo Maps: schema() needs Geo Maps Pro, so no structured data was output.', __METHOD__);
+            return null;
+        }
+
+        $owner = $this->_element;
+        $type = $options['type'] ?? 'LocalBusiness';
+        $hours = $options['openingHours'] ?? null;
+        unset($options['type'], $options['openingHours']);
+
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => $type,
+            'name' => $options['name'] ?? ($owner ? (string)$owner : null),
+            'url' => $options['url'] ?? $owner?->getUrl(),
+            'address' => array_filter([
+                '@type' => 'PostalAddress',
+                'streetAddress' => $this->address1 ?? ($this->suburb || $this->postcode ? null : $this->full_address),
+                'addressLocality' => $this->suburb,
+                'postalCode' => $this->postcode,
+                'addressCountry' => $this->countryCode ?: $this->country,
+            ], fn($v) => $v !== null && $v !== ''),
+            'geo' => $this->hasCoordinates() ? ['@type' => 'GeoCoordinates', 'latitude' => $this->lat, 'longitude' => $this->lng] : null,
+        ];
+        unset($options['name'], $options['url']);
+
+        if (count($data['address']) === 1) {
+            $data['address'] = null;
+        }
+
+        if (is_array($hours) && $hours) {
+            if (is_array(reset($hours))) {
+                $data['openingHoursSpecification'] = self::openingHoursSpecification($hours);
+            } else {
+                $data['openingHours'] = array_values(array_filter($hours, 'is_string'));
+            }
+        } elseif (is_string($hours) && $hours !== '') {
+            $data['openingHours'] = $hours;
+        }
+
+        foreach ($options as $key => $value) {
+            $data[$key] = self::schemaValue($value);
+        }
+
+        return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
+    }
+
+    /**
+     * Opening hours rows (`day`, `open`, `close`) as schema.org OpeningHoursSpecification.
+     */
+    private static function openingHoursSpecification(array $rows): array
+    {
+        $specs = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $day = $row['day'] ?? $row['dayOfWeek'] ?? null;
+            if ($day instanceof \Stringable) {
+                $day = (string)$day; // a Table field's dropdown column
+            }
+            $open = self::time($row['open'] ?? $row['opens'] ?? null);
+            $close = self::time($row['close'] ?? $row['closes'] ?? null);
+            if (!is_string($day) || $day === '' || !$open || !$close) {
+                continue;
+            }
+            $specs[] = ['@type' => 'OpeningHoursSpecification', 'dayOfWeek' => ucfirst(strtolower($day)), 'opens' => $open, 'closes' => $close];
+        }
+
+        return $specs;
+    }
+
+    private static function time(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('H:i');
+        }
+        if (is_array($value) && isset($value['time'])) {
+            $value = $value['time'];
+        }
+
+        return is_string($value) && preg_match('/^\d{1,2}:\d{2}/', $value) ? substr(str_pad($value, 5, '0', STR_PAD_LEFT), 0, 5) : null;
+    }
+
+    private static function schemaValue(mixed $value): mixed
+    {
+        return match (true) {
+            $value instanceof ElementQueryInterface => self::schemaValue($value->one()),
+            $value instanceof Asset => $value->getUrl(),
+            $value instanceof ElementInterface => $value->getUrl() ?? (string)$value,
+            $value instanceof DateTimeInterface => $value->format(DATE_ATOM),
+            is_array($value) => array_map(fn($v) => self::schemaValue($v), $value),
+            $value instanceof \Stringable => (string)$value,
+            default => $value,
+        };
+    }
+
+    /**
+     * The element this value belongs to, when it came from a field.
+     */
+    public function getElement(): ?ElementInterface
+    {
+        return $this->_element;
+    }
+
+    public function setElement(?ElementInterface $element): void
+    {
+        $this->_element = $element;
+    }
+
     public function __toString(): string
     {
         // Address first; shape-only values print their GeoJSON (as Craft Geoman fields did).
@@ -475,6 +622,8 @@ class GeoValue extends Model
 
     /** @var string[] */
     private array $_inputErrors = [];
+
+    private ?ElementInterface $_element = null;
 
     /** Whether the field shows a location pin (set by the field; used as the embed() default). */
     private bool $_showMarker = true;

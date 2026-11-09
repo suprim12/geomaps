@@ -484,6 +484,9 @@ class GeoField extends Field implements PreviewableFieldInterface
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if ($value instanceof GeoValue) {
+            if ($element && !$value->getElement()) {
+                $value->setElement($element);
+            }
             return $value;
         }
 
@@ -493,6 +496,7 @@ class GeoField extends Field implements PreviewableFieldInterface
 
         $geoValue = GeoValue::fromArray($value);
         $geoValue?->setShowMarker($this->showMarker);
+        $geoValue?->setElement($element);
 
         return $geoValue;
     }

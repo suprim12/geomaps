@@ -11,6 +11,8 @@
 - Pro: missing coordinates are found for locations saved with only an address, such as from Feed Me imports, in a background job or with `php craft geomaps/geocode`.
 - Pro: search within an area, with `within` on the field’s query param and in GraphQL. Find entries inside the visible part of a map, for “search as the map moves”, or inside drawn shapes such as regions and delivery zones, optionally sorted by distance.
 - Pro: JSON search endpoints for headless sites and apps, set up in `config/geomaps.php` under `searchEndpoints`. They return the nearest entries with distances, locations and chosen fields, with paging, map-area search and CORS.
+- Pro: `php craft geomaps/locations/import` and `export` load locations, zones and trails from CSV, GeoJSON, KML or GPX into a section, and export them as CSV, GeoJSON or KML. Re-running an import updates entries rather than creating copies.
+- Pro: `entry.myField.schema()` outputs schema.org local business structured data with the address, coordinates and opening hours, and `schemaData()` returns it as an array.
 - `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
 - A simpler settings page: choose one **Map service** (OpenStreetMap, Mapbox or Google Maps) for maps, address search, location lookups and static images, and see which services the site is using.
 - Mapbox as a map service: add an access token and pick a style (Streets, Light, Dark, Satellite or your own from Mapbox Studio), with a live preview. Maps, address suggestions in the field and forms, location searches, missing coordinates and static images then use Mapbox.

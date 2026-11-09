@@ -52,6 +52,7 @@ export default defineConfig({
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
           { text: 'Locator Component', link: '/guides/locator' },
           { text: 'Search Endpoint', link: '/guides/search-endpoint' },
+          { text: 'Import and Export', link: '/guides/import-export' },
         ],
       },
       {
