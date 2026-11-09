@@ -10,14 +10,14 @@
 - Pro: marker clustering for `embed()` maps (`cluster: true`), which groups nearby pins into numbered bubbles on OpenStreetMap and Google maps.
 - Pro: missing coordinates are found for locations saved with only an address, such as from Feed Me imports, in a background job or with `php craft geomaps/geocode`.
 - `embed()` maps can zoom to fit their markers (`fitMarkers: true`), and page scripts can open a marker’s info window with `element.geomaps.open(index)`.
-- The plugin settings page shows which map and search services the site is using, and previews the map tiles URL as you type.
-- Mapbox map styles: a **Mapbox access token** setting, and quick setup buttons for Mapbox Streets, Light, Dark and Satellite that fill in the tiles URL and the credit Mapbox requires.
-- Mapbox can be chosen as the **Geocoding service** for location searches, address suggestions and missing coordinates, with an option for Mapbox permanent geocoding where results are saved.
-- `mapProvider` and `cpMapProvider` config settings choose Google Maps or the map tiles separately for the front end and the control panel, and `embed({ provider: 'google' })` or `provider: 'tiles'` chooses for a single map.
-- Static map images from Mapbox, using your Mapbox style, when the front-end maps aren’t Google maps, or with `img({ provider: 'mapbox' })`.
+- A simpler settings page: choose one **Map service** (OpenStreetMap, Mapbox or Google Maps) for maps, address search, location lookups and static images, and see which services the site is using.
+- Mapbox as a map service: add an access token and pick a style (Streets, Light, Dark, Satellite or your own from Mapbox Studio), with a live preview. Maps, address suggestions in the field and forms, location searches, missing coordinates and static images then use Mapbox.
+- `embed({ provider: 'google' })` or `provider: 'tiles'` chooses the map for a single map, and the `mapProvider` and `cpMapProvider` config settings show the map tiles instead of Google maps on the front end or in the control panel.
+- `img({ provider: 'mapbox' })` or `provider: 'google'` chooses the service for a single static map image.
 
 ### Changed
-- Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap (or Mapbox, if chosen), and the settings page explains why.
+- Google address lookups are only used when both Google keys are set, because Google’s terms only allow its results on Google maps. Sites with a Google server key but no browser key now look up addresses with OpenStreetMap instead.
+- Existing sites keep their maps: Geo Maps uses Google Maps when a Google browser key is set, and OpenStreetMap or your tiles URL otherwise.
 
 ### Fixed
 - Google Places address suggestions in the field sometimes didn’t appear, because the field started before Google’s script had finished loading. If Google Places isn’t available, the field now suggests addresses from OpenStreetMap instead of showing none.
