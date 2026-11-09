@@ -146,7 +146,8 @@ class AddressInput extends Model
             'data-msg-results' => $messages['results'] ?? null,
             'data-provider' => $useMapbox ? 'mapbox' : null,
             'data-mapbox-token' => $useMapbox ? $settings->getMapboxToken() : null,
-            'data-permanent' => $useMapbox && $settings->mapboxPermanent ? '1' : null,
+            // Only boxes that save need permanent geocoding; searches use Mapbox's cheaper temporary geocoding.
+            'data-permanent' => $useMapbox && $this->field !== null && $settings->mapboxPermanent ? '1' : null,
         ]);
 
         return new Markup($html, 'UTF-8');

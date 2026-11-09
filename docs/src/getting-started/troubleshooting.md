@@ -2,7 +2,7 @@
 
 ## “Google Maps rejected the API key”
 
-The field shows this notice, and switches to OpenStreetMap, when Google refuses the **Browser key** in the **Google Maps** section of **Settings → Plugins → Geo Maps**. Your front-end maps switch too, so nothing breaks while you fix it. In the [Google Cloud console](https://console.cloud.google.com/google/maps-apis/credentials):
+The field shows this notice, and switches to OpenStreetMap, when Google refuses the **Browser key** of the **Google Maps** service in **Settings → Plugins → Geo Maps**. Your front-end maps switch too, so nothing breaks while you fix it. In the [Google Cloud console](https://console.cloud.google.com/google/maps-apis/credentials):
 
 1. Enable the **Maps JavaScript API**, **Places API** and **Geocoding API** for the key’s project, and the **Maps Static API** if you use `img()`. Without the Geocoding API, Geo Maps uses OpenStreetMap to find the address when the pin is dragged.
 2. Under the key’s **Application restrictions → Website restrictions**, add every domain the control panel and site run on, including local ones such as `*.ddev.site/*` or `localhost:*`.
@@ -44,11 +44,13 @@ Check which entries have no location:
 
 ## The map tiles are grey or say “Access blocked”
 
-The free `tile.openstreetmap.org` tiles are for light use. Busy public sites can be blocked under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/). Set **Map tiles URL** to a tile provider such as Stadia Maps, MapTiler or Thunderforest — see [Configuration](/getting-started/configuration#map-providers).
+The free `tile.openstreetmap.org` tiles are for light use. Busy public sites can be blocked under the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/). Choose the **Mapbox** service, or under **OpenStreetMap → Use another tile provider** set **Map tiles URL** to a provider such as Stadia Maps, MapTiler or Thunderforest — see [Configuration](/getting-started/configuration#openstreetmap).
+
+With Mapbox, grey tiles usually mean the access token is mistyped or its URL restrictions don’t include the domain, or the style URL is wrong. The preview under **Style** on the settings page shows whether the tiles load.
 
 ## `img()` returns nothing
 
-Static map images come from Google (the **Maps Static API**, enabled on the **Browser key**) with Google maps, or Mapbox when a **Mapbox access token** is set. Allow your site’s domain in the key’s or token’s restrictions. Without either, `img()` and `imgSrcSet()` return `null`, so always check before outputting:
+Static map images come from Google (the **Maps Static API**, enabled on the **Browser key**) with the Google Maps service, or Mapbox with the Mapbox service. Allow your site’s domain in the key’s or token’s restrictions. With OpenStreetMap, which has no static images, `img()` and `imgSrcSet()` return `null`, so always check before outputting:
 
 ```twig
 {% set src = entry.storeLocation.img({ width: 600, height: 300 }) %}
@@ -59,7 +61,11 @@ Static map images come from Google (the **Maps Static API**, enabled on the **Br
 
 - Set **Limit Search to Countries** in the field’s settings to the countries your entries are in (up to 5).
 - Results are biased towards the area shown on the map, so pan the map nearer first.
-- Without a Google key, search uses OpenStreetMap ([Photon](https://photon.komoot.io)), or Mapbox with permanent geocoding. Google Places often knows more businesses; add a key if you need them.
+- With the OpenStreetMap service, search uses [Photon](https://photon.komoot.io). Mapbox and Google Places often find addresses more reliably, and Google Places knows more businesses; choose another [map service](/getting-started/configuration#map-service) if you need them.
+
+## Mapbox searches use OpenStreetMap
+
+If Mapbox refuses a lookup, Geo Maps uses OpenStreetMap for 10 minutes and logs a warning in `storage/logs/web.log`. Check the access token and its URL restrictions, and that your Mapbox account has a card for permanent geocoding (or set `mapboxPermanent` to `false`; see [Mapbox Maps](/examples/mapbox#address-search-with-mapbox)).
 
 ## Content Security Policy
 

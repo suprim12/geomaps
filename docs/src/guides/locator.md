@@ -122,7 +122,7 @@ Keys: `search`, `address`, `distance`, `useMyLocation`, `locating`, `locationFai
 
 ## Privacy
 
-Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser, or [Mapbox](/examples/mapbox#address-search-with-mapbox) when Mapbox is the geocoding service, and **Use my location** asks the browser for the visitor’s position, which is only sent to your own site as part of the search. See [Privacy and Data](/getting-started/privacy-and-data).
+Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser, or [Mapbox](/examples/mapbox#address-search-with-mapbox) with the Mapbox map service, and **Use my location** asks the browser for the visitor’s position, which is only sent to your own site as part of the search. See [Privacy and Data](/getting-started/privacy-and-data).
 
 ## Without Pro
 

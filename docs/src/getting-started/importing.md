@@ -41,7 +41,7 @@ The import changes field types, so it updates your [project config](https://craf
 | `entry.map.parts.city`, `.postcode`, `.country` | Same |
 | `entry.map.parts.address` | Same (street number and name) |
 | `entry.map.distance` | Same |
-| `entry.map.img({ width: 600 })` | Same (needs a Google browser key or a Mapbox access token) |
+| `entry.map.img({ width: 600 })` | Same (needs the Google Maps or Mapbox map service) |
 | `craft.entries.map({ location: 'London', radius: 10, unit: 'mi' })` | Same |
 | `craft.maps.*` | Use `craft.geomaps.*` |
 | `parts.state`, `parts.county`, `what3words` | Not available |

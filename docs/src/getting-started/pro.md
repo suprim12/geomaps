@@ -34,4 +34,4 @@ Craft asks for a licence once the site goes live in production. Buy Pro from the
 
 Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), and `php craft geomaps/geocode` exits with a message saying it needs Pro. For maps and the locator, Craft logs a warning so you can see why.
 
-The **Geo Maps Pro** section at the bottom of the plugin’s settings page shows whether Pro is active.
+The **Edition** tile at the top of the plugin’s settings page (**Settings → Plugins → Geo Maps**) shows whether Pro is active, with a **Try Pro** link on the free edition.

@@ -6,7 +6,7 @@ Locations need coordinates for maps, distance search and zone lookups. Content f
 
 With Pro active, when an entry (or any other element) is saved with an address but no coordinates, a background job looks the address up and saves the coordinates. This covers [Feed Me](/guides/feed-me) imports, front-end forms and anything else that saves elements.
 
-Turn this off with the **Automatic** switch beside **Missing coordinates** in the **Geo Maps Pro** section of **Settings → Plugins → Geo Maps** (only shown with Pro), or in `config/geomaps.php`:
+It’s on by default. To turn it off, set `geocodeMissing` in `config/geomaps.php`:
 
 ```php
 return [
@@ -39,7 +39,7 @@ Saved 1, not found 1.
 
 - **What’s looked up:** the field’s full address, or its street, suburb, postcode and country joined together. The address you entered isn’t changed; only the coordinates are added.
 - **Country:** the location’s own country code narrows the search. If it has none and the field limits search to a single country, that country is tried first, then anywhere.
-- **Service:** coordinates come from OpenStreetMap (Nominatim), or from Mapbox when it’s the **Geocoding service** with **Mapbox permanent geocoding** on (then without the one-per-second limit). Google isn’t used, even when you’ve added Google keys, because Google’s terms only allow caching its results for 30 days, while these coordinates are stored in your content. See [Mapbox Maps](/examples/mapbox#address-search-with-mapbox).
+- **Service:** coordinates come from Mapbox with the Mapbox [map service](/getting-started/configuration#map-service) (then without the one-per-second limit), and otherwise from OpenStreetMap (Nominatim). With `mapboxPermanent` set to `false`, OpenStreetMap is used with Mapbox too. Google isn’t used, even with the Google Maps service, because Google’s terms only allow caching its results for 30 days, while these coordinates are stored in your content. See [Mapbox Maps](/examples/mapbox#address-search-with-mapbox).
 - **Speed:** Nominatim allows one request per second, so 1,000 addresses take about 17 minutes. If Nominatim asks Geo Maps to slow down, lookups pause for 10 minutes and the rest are picked up by the next run.
 - **Addresses that can’t be found** are remembered for 30 days, so they aren’t looked up again on every save. Fix the address and save the entry to try again, or run the command with `--retry`.
 

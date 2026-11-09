@@ -41,7 +41,7 @@ Your layout needs Craft’s `{{ head() }}`, `{{ beginBody() }}` and `{{ endBody(
 
 ## Next steps
 
-1. Optionally add Google API keys under **Settings → Plugins → Geo Maps** ([Configuration](/getting-started/configuration)). Without them, Geo Maps uses OpenStreetMap.
+1. Optionally choose Mapbox or Google Maps as the map service under **Settings → Plugins → Geo Maps** ([Configuration](/getting-started/configuration)). Without a change, Geo Maps uses OpenStreetMap, with no key.
 2. Learn the field’s settings and drawing tools in [The Field](/guides/field).
 3. Switching from another map plugin? See [Importing Existing Fields](/getting-started/importing).
 4. Browse the [examples](/examples/store-locator) for complete templates, or [Troubleshooting](/getting-started/troubleshooting) if something doesn’t work.

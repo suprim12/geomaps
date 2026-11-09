@@ -66,7 +66,7 @@ Coordinates go straight to the search index without geocoding, so each request i
   <script>
     const map = L.map('map').setView([-34.93, 138.6], 11);
     L.tileLayer({{ geo.getTileUrl()|json_encode|raw }}, {
-      attribution: {{ geo.tileAttribution|json_encode|raw }},
+      attribution: {{ geo.getTileAttribution()|json_encode|raw }},
     }).addTo(map);
 
     const pins = L.layerGroup().addTo(map);
@@ -99,7 +99,7 @@ Coordinates go straight to the search index without geocoding, so each request i
 {% endblock %}
 ```
 
-This page draws its own Leaflet map because it redraws the pins itself. It reads **Map tiles URL** and **Map credit** from the plugin settings, so it matches your other maps.
+This page draws its own Leaflet map because it redraws the pins itself. It reads the tiles URL and credit from the plugin settings (OpenStreetMap, your tile provider or your Mapbox style), so it matches your other maps.
 
 ## Going further
 

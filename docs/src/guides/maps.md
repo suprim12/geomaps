@@ -35,7 +35,7 @@ For a map that fills its container, use a CSS width:
 
 Shapes are coloured from their `color`, `stroke` and `fill` properties, lines are drawn 4px wide (set a `weight` property to change any shape’s line width), and a shape with a `name` or `title` shows it when clicked — see [Map of Areas](/examples/area-map#styling-shapes).
 
-Maps use Google Maps when a Google **Browser key** is set, and Leaflet with your [map tiles](/getting-started/configuration) (OpenStreetMap, [Mapbox](/examples/mapbox) or another provider) otherwise. To choose differently for the front end and the control panel, see [Map Providers](/getting-started/configuration#map-providers). If Google rejects the key, the map falls back to Leaflet automatically.
+Maps use the [map service](/getting-started/configuration#map-service) chosen in the settings: Leaflet with OpenStreetMap tiles (or another tile provider), Leaflet with your [Mapbox](/examples/mapbox) style, or Google Maps. To show other tiles than Google maps on the front end or in the control panel, see [Advanced: mixing services](/getting-started/configuration#advanced-mixing-services). If Google rejects the key, the map falls back to Leaflet automatically.
 
 | Option | Description | Default |
 |---|---|---|
@@ -50,19 +50,19 @@ Maps use Google Maps when a Google **Browser key** is set, and Leaflet with your
 | `marker` | Show a pin at the centre when no `markers` are given | `true` (the field’s **Show Location Pin** setting) |
 | `fitShapes` | Zoom to fit the shapes | `true` |
 | `fitMarkers` | Zoom to fit the markers | `false` |
-| `provider` | `'google'` or `'tiles'` to choose the map for this map | Google with a browser key, otherwise the map tiles |
+| `provider` | `'google'` or `'tiles'` to choose the map for this map | the map service |
 | `options` | Extra options passed to the map library (Leaflet or Google) | `{}` |
 | `cluster` | Group nearby markers into numbered bubbles: `true` or `{ color, radius, maxZoom }`. **Pro.** See [Marker clustering](#marker-clustering) | `false` |
 
 ### Choosing Google or map tiles for one map
 
-Maps use Google when a Google browser key is set, and the [map tiles](/getting-started/configuration#map-providers) otherwise. Use `provider` to choose for a single map:
+Maps follow the [map service](/getting-started/configuration#map-service). Use `provider` to choose for a single map. `'tiles'` shows your Mapbox style when a Mapbox token is set with the Mapbox or Google Maps service, and otherwise OpenStreetMap or your tiles URL:
 
 ```twig
 {# Always Google Maps (needs the browser key; falls back to the map tiles without one) #}
 {{ entry.storeLocation.embed({ provider: 'google', height: 360 }) }}
 
-{# Always the map tiles: OpenStreetMap, Mapbox or your tile provider, even with a Google key #}
+{# Always the map tiles: Mapbox, OpenStreetMap or your tile provider, even with Google Maps #}
 {{ craft.geomaps.embed({
     provider: 'tiles',
     center: 'Adelaide, South Australia',
@@ -71,7 +71,7 @@ Maps use Google when a Google browser key is set, and the [map tiles](/getting-s
 }) }}
 ```
 
-To change the default for every map on your site, or in the control panel, set `mapProvider` or `cpMapProvider` in [`config/geomaps.php`](/getting-started/configuration#map-providers).
+With the Google Maps service, you can change the default for every map on your site, or in the control panel, with `mapProvider` or `cpMapProvider` in [`config/geomaps.php`](/getting-started/configuration#advanced-mixing-services).
 
 Static images work the same way with `img({ provider: 'google' })` or `img({ provider: 'mapbox' })`; see [Static map images](#static-map-images).
 
@@ -132,13 +132,13 @@ Embedded maps are ordinary Leaflet (or Google) maps, so you can style them with 
 [data-geo-embed] .leaflet-tile-pane { filter: saturate(0.35) contrast(0.92) brightness(1.06); }
 ```
 
-For a different map style altogether, set **Map tiles URL** to another [tile provider](/getting-started/configuration#map-providers).
+For a different map style altogether, choose a [Mapbox](/examples/mapbox) style, or another [tile provider](/getting-started/configuration#openstreetmap) under **OpenStreetMap → Use another tile provider**.
 
 ## Static map images
 
-Static images come from Google (the Maps Static API) when your front-end maps are Google maps, and otherwise from Mapbox (the Static Images API) when a **Mapbox access token** is set. Mapbox images use your Mapbox style and include the Mapbox logo and credit. Without either key, the methods return `null`.
+Static images come from the map service: Google (the Maps Static API, on the **Browser key**) with Google Maps, or Mapbox (the Static Images API) with Mapbox. Mapbox images use your Mapbox style and include the Mapbox logo and credit. With OpenStreetMap, which has no static images, the methods return `null`.
 
-Choose the service for one image with `provider: 'google'` or `provider: 'mapbox'`.
+Choose the service for one image with `provider: 'google'` (needs a Google browser key) or `provider: 'mapbox'` (needs a Mapbox token).
 
 ```twig
 {% set src = entry.storeLocation.img({ width: 600, height: 300, zoom: 13 }) %}
@@ -156,7 +156,7 @@ Without a field value, use `craft.geomaps.img()` / `craft.geomaps.imgSrcSet()` w
 | `center` | `{ lat, lng }`, `[lat, lng]` or an address | the field value, or the first marker |
 | `zoom` | Zoom level | `14` |
 | `width`, `height` | Size in pixels. Google allows up to 640 and Mapbox up to 1280; larger sizes are scaled down, keeping their shape | `640` × `400` |
-| `provider` | `'google'` or `'mapbox'` | Google with Google maps, otherwise Mapbox |
+| `provider` | `'google'` or `'mapbox'` | the map service |
 | `mapType` | Google only: `roadmap`, `satellite`, `hybrid` or `terrain` | `roadmap` |
 | `mapId` | Google only: a Google Cloud map style ID | — |
 | `format` | Google only: `png`, `jpg`, … | `png` |

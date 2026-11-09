@@ -9,7 +9,7 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 ## Features
 
 - **Fast location entry.** Address autocomplete, click-to-place and a draggable pin. Street, suburb, postcode, country and coordinates fill in automatically.
-- **No API key required.** Uses OpenStreetMap by default. Add a Mapbox access token for Mapbox map styles, address search and static images, or a Google key for Google maps, Places search and static images; if Google rejects the key, maps fall back to OpenStreetMap.
+- **No API key required.** Uses OpenStreetMap by default. Choose one map service in the settings: OpenStreetMap, Mapbox (an access token) for Mapbox map styles, address search and static images, or Google Maps (two keys) for Google maps, Places search and static images. If Google rejects the key, maps fall back to OpenStreetMap.
 - **Draw shapes.** Markers, lines, rectangles and polygons (with holes), with per-shape properties, a GeoJSON editor, and `.geojson` upload and download.
 - **Distance search.** Find entries within a radius of an address, coordinates or another entry, sorted nearest first, with the distance on every result.
 - **Containment search.** Find the delivery area, sales territory or bin-collection zone that contains an address.
@@ -32,7 +32,7 @@ composer require suprim/geomaps
 php craft plugin/install geomaps
 ```
 
-Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://plugins.geomaps.suprim.com.au/getting-started/configuration) to add Mapbox, Google keys or a different tile provider.
+Then add a **Geo Maps** field to a field layout. No configuration is needed; see [Configuration](https://plugins.geomaps.suprim.com.au/getting-started/configuration) to choose Mapbox, Google Maps or a different tile provider.
 
 ## Examples
 
@@ -96,7 +96,7 @@ The examples below use a `stores` section with a Geo Maps field called `storeLoc
 
 ### Static map image
 
-Requires a Google key with the Maps Static API enabled, or a Mapbox access token.
+Requires the Google Maps service (with the Maps Static API enabled) or the Mapbox service.
 
 ```twig
 {% set src = entry.storeLocation.img({ width: 600, height: 300 }) %}
