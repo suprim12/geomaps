@@ -182,9 +182,11 @@ document.addEventListener("alpine:init", () => {
         // pmIgnore: false,
         fullscreenControl: false,
         attributionControl: false,
-      })
-        .setView([this.defaultLat, this.defaultLng], this.defaultZoom)
-        .addLayer(tiles);
+      }).setView([this.defaultLat, this.defaultLng], this.defaultZoom);
+
+      // Google maps don't need the tiles underneath (they'd load for nothing); they're added if Google fails.
+      this._tiles = tiles;
+      if (this.provider !== "google") map.addLayer(tiles);
 
       this.map = map;
 
@@ -893,6 +895,7 @@ document.addEventListener("alpine:init", () => {
         const container = layer.getContainer?.();
         if (container) container.style.display = "none";
       }
+      if (this._tiles && !this.map.hasLayer(this._tiles)) this._tiles.addTo(this.map).bringToBack();
       this.addTileAttribution();
     },
     get hasLocation() {
