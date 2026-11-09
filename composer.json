@@ -21,6 +21,7 @@
     "craftcms/cms": "^5.10.0"
   },
   "require-dev": {
+    "craftcms/commerce": "^5.0",
     "craftcms/ecs": "dev-main",
     "craftcms/feed-me": "^6.0",
     "craftcms/phpstan": "dev-main",

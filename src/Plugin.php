@@ -23,6 +23,8 @@ use craft\services\Gql;
 use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
 use suprim\geomaps\fields\GeoField;
+use suprim\geomaps\integrations\commerce\DeliveryDistanceConditionRule;
+use suprim\geomaps\integrations\commerce\DeliveryZoneConditionRule;
 use suprim\geomaps\integrations\feedme\fields\GeoFeedMeField as FieldsGeoFeedMeField;
 use suprim\geomaps\integrations\graphql\types\GeoCoordsInput;
 use suprim\geomaps\integrations\graphql\types\GeoQueryArgument;
@@ -156,6 +158,22 @@ class Plugin extends BasePlugin
         Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITIES, function(RegisterComponentTypesEvent $event) {
             $event->types[] = ImportUtility::class;
         });
+
+        // Pro, with Craft Commerce: delivery zone and distance conditions for shipping rules, shipping
+        // methods and discounts. They're registered on the free edition too, so saved rules aren't dropped
+        // (which would make a shipping rule match every order); there they never match.
+        if (class_exists(\craft\commerce\Plugin::class)) {
+            foreach ([
+                \craft\commerce\elements\conditions\orders\ShippingRuleOrderCondition::class,
+                \craft\commerce\elements\conditions\orders\ShippingMethodOrderCondition::class,
+                \craft\commerce\elements\conditions\orders\DiscountOrderCondition::class,
+            ] as $condition) {
+                Event::on($condition, \craft\base\conditions\BaseCondition::EVENT_REGISTER_CONDITION_RULES, function(\craft\events\RegisterConditionRulesEvent $event) {
+                    $event->conditionRules[] = DeliveryZoneConditionRule::class;
+                    $event->conditionRules[] = DeliveryDistanceConditionRule::class;
+                });
+            }
+        }
 
 
         // When an existing field becomes a Geo Maps field (e.g. a Maps import arriving via project config),

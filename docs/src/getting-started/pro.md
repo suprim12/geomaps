@@ -13,6 +13,7 @@ Geo Maps is free, and everything in the free edition stays free. **Geo Maps Pro*
 | [Search endpoint](/guides/search-endpoint) | JSON search URLs for headless and app front ends, set up in the config file, with distances, paging and CORS. |
 | [Import and export](/guides/import-export) | Loads locations, zones and trails from CSV, GeoJSON, KML or GPX into a section, and exports them again, with `php craft geomaps/locations/import` and `export`. |
 | [Structured data](/examples/location-page#structured-data-for-search-engines) | `entry.storeLocation.schema()` outputs schema.org local business data, with the address, map position and opening hours, for search engines. |
+| [Delivery zones for Commerce](/examples/delivery-zones) | Adds “Delivery address is in zone” and “Delivery distance” conditions to Craft Commerce shipping rules, shipping methods and discounts, to price delivery by drawn zone or distance from the store. |
 
 See the [roadmap](https://github.com/suprim12/geomaps/blob/main/ROADMAP.md) for what’s planned.
 
@@ -36,6 +37,6 @@ Craft asks for a licence once the site goes live in production. Buy Pro from the
 
 ## Without Pro
 
-Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), `php craft geomaps/geocode` exits with a message saying it needs Pro, `within` is ignored, search endpoints return a 403 error, `schema()` outputs nothing, and the import and export commands exit with a message. For maps and the locator, Craft logs a warning so you can see why.
+Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `locator()` outputs nothing (an HTML comment in dev mode), `php craft geomaps/geocode` exits with a message saying it needs Pro, `within` is ignored, search endpoints return a 403 error, `schema()` outputs nothing, the import and export commands exit with a message, and Commerce delivery conditions match no orders. For maps and the locator, Craft logs a warning so you can see why.
 
 The **Edition** tile at the top of the plugin’s settings page (**Settings → Plugins → Geo Maps**) shows whether Pro is active, with a **Try Pro** link on the free edition.

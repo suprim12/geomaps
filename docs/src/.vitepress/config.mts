@@ -74,6 +74,7 @@ export default defineConfig({
           { text: 'Locator with Filters', link: '/examples/locator-filters' },
           { text: 'Opening Hours and Open Now', link: '/examples/opening-hours' },
           { text: 'Search as the Map Moves', link: '/examples/search-as-map-moves' },
+          { text: 'Delivery Zones for Commerce', link: '/examples/delivery-zones' },
         ],
       },
       {

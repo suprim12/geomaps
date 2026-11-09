@@ -17,6 +17,7 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 - **Search endpoint** (1.4, Pro). Ready-made JSON search for headless sites and apps.
 - **Import and export** (1.4, Pro). Locations, zones and trails as CSV, GeoJSON, KML or GPX.
 - **Structured data** (1.4, Pro). schema.org local business data for location pages.
+- **Delivery zones for Craft Commerce** (1.4, Pro). Shipping and discount conditions for drawn zones and distance from the store.
 
 ## Next
 
