@@ -558,27 +558,29 @@
     background: var(--white, #fff);
     border-radius: var(--supgeo-radius);
     box-shadow: 0 0 0 1px rgba(31, 41, 51, 0.08), 0 12px 32px rgba(31, 41, 51, 0.18);
+    border-top: 3px solid var(--shape, var(--supgeo-accent));
 }
 
 .supgeo__fe-header {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 10px;
-    padding: 12px 10px 10px 12px;
+    gap: 12px;
+    padding: 14px 10px 12px 14px;
     color: var(--text-color, #1f2933);
-    background: var(--white, #fff);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--shape, #2563eb) 7%, #fff), var(--white, #fff));
 }
 
 .supgeo__fe-swatch {
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    color: var(--shape);
-    background: color-mix(in srgb, var(--shape) 14%, #fff);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    color: #fff;
+    background: var(--shape);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--shape) 35%, transparent);
 }
 
 .supgeo__fe-heading { display: grid; flex: 1; min-width: 0; gap: 1px; }
@@ -602,20 +604,20 @@
 .supgeo__fe-close { align-self: flex-start; background: none; border: none; color: var(--supgeo-muted); cursor: pointer; display: flex; align-items: center; padding: 6px; border-radius: 4px; }
 .supgeo__fe-close:hover { background: var(--supgeo-subtle); color: var(--text-color, #1f2933); }
 
-.supgeo__fe-tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--supgeo-border); flex-shrink: 0; }
+.supgeo__fe-tabs { display: flex; gap: 4px; padding: 0 14px; border-bottom: 1px solid var(--supgeo-border); flex-shrink: 0; }
 .supgeo__fe-tab { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 6px 4px 8px; margin-right: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--supgeo-muted); }
 .supgeo__fe-tab:hover { color: var(--text-color, #1f2933); }
-.supgeo__fe-tab.--active { color: var(--text-color, #1f2933); border-bottom-color: var(--supgeo-accent); }
+.supgeo__fe-tab.--active { color: var(--text-color, #1f2933); border-bottom-color: var(--shape, var(--supgeo-accent)); }
 
-.supgeo__fe-body { display: grid; gap: 16px; align-content: start; padding: 14px 12px; overflow-y: auto; flex: 1; }
-.supgeo__fe-section { display: grid; gap: 8px; }
-.supgeo__fe-label { font-size: 12px; font-weight: 600; color: var(--supgeo-muted); }
+.supgeo__fe-body { display: grid; gap: 18px; align-content: start; padding: 16px 14px; overflow-y: auto; flex: 1; }
+.supgeo__fe-section { display: grid; gap: 10px; }
+.supgeo__fe-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--supgeo-muted); }
 
-.supgeo__fe-colors { display: flex; flex-wrap: wrap; gap: 6px; }
+.supgeo__fe-colors { display: flex; flex-wrap: wrap; gap: 8px; }
 .supgeo__fe-color {
     position: relative;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -626,6 +628,12 @@
 }
 .supgeo__fe-color:hover { transform: scale(1.12); }
 .supgeo__fe-color.--active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--c); }
+.supgeo__fe-color.--active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 14px no-repeat;
+}
 .supgeo__fe-color.--custom {
     display: grid;
     place-items: center;
@@ -664,10 +672,15 @@
 
 .supgeo__fe-del { background: none; border: none; cursor: pointer; color: var(--supgeo-muted); display: flex; align-items: center; padding: 6px; border-radius: 4px; }
 .supgeo__fe-del:hover { color: #dc2626; background: #fef2f2; }
-.supgeo__fe-empty { margin: 0; color: var(--supgeo-muted); font-size: 13px; line-height: 1.45; }
+.supgeo__fe-empty { margin: 0; padding: 10px 12px; color: var(--supgeo-muted); font-size: 13px; line-height: 1.5; border: 1px dashed var(--supgeo-border); border-radius: 6px; background: var(--supgeo-subtle); }
+.supgeo__fe-empty code { padding: 1px 5px; border-radius: 4px; background: #fff; color: var(--text-color, #1f2933); font-size: 12px; box-shadow: inset 0 0 0 1px var(--supgeo-border); }
 
-.supgeo__fe-addrow { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto; gap: 6px; align-items: center; }
-.supgeo__fe-addrow .supgeo__fe-input { border-color: var(--supgeo-border); background: #fff; padding: 5px 8px; }
+.supgeo__fe-addrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.supgeo__fe-addrow .supgeo__fe-input { height: 32px; border-color: var(--supgeo-border); background: #fff; padding: 5px 9px; }
+.supgeo__fe-addrow .supgeo__fe-input:hover { border-color: color-mix(in srgb, var(--supgeo-muted) 45%, transparent); }
+.supgeo__fe-addrow .supgeo__fe-input:focus { border-color: var(--supgeo-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--supgeo-accent) 18%, transparent); }
+.supgeo .btn.small.supgeo__fe-add:not(:disabled) { color: #fff; background: var(--supgeo-accent); }
+.supgeo .btn.small.supgeo__fe-add:disabled { opacity: 0.55; }
 
 .supgeo__fe-pre { margin: 0; background: #0f1117; color: #e8ecf0; border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.6; overflow: auto; max-height: 200px; white-space: pre; }
 
@@ -676,11 +689,12 @@
     flex-wrap: wrap;
     gap: 6px;
     flex-shrink: 0;
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-top: 1px solid var(--supgeo-border);
     background: var(--supgeo-subtle);
 }
-.supgeo .btn.small.supgeo__fe-delete { margin-left: auto; color: #b91c1c; }
+.supgeo .btn.small.supgeo__fe-action { display: inline-flex; align-items: center; gap: 6px; background: #fff; box-shadow: inset 0 0 0 1px var(--supgeo-border); }
+.supgeo .btn.small.supgeo__fe-delete { margin-left: auto; color: #b91c1c; background: transparent; }
 .supgeo .btn.small.supgeo__fe-delete:hover { background: #fef2f2; }
 .supgeo .btn.small.--copied { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
 
