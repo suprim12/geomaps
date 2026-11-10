@@ -2,7 +2,7 @@
 
 Show different content to visitors in different areas: delivery messages, regional offers, the local branch, or the right phone number. The visitor picks their address once, and the page uses the [zone](/guides/search#find-the-area-containing-a-place) that contains it.
 
-Works on the free edition.
+Works on Lite.
 
 ![An address form with “175 The Parade, Norwood SA 5067” entered, and below it a box for Bin Zone A Norwood showing Monday as the collection day](/examples/content-by-area.jpg)
 

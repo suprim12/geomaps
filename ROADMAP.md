@@ -1,6 +1,6 @@
 # Geo Maps Roadmap
 
-Geo Maps is free, and everything in the free edition stays free: location fields, drawn zones and trails, distance and “which zone” search, front-end maps, address autocomplete, GraphQL, Feed Me and importing from other map plugins.
+Geo Maps Lite is free, and everything in it stays free: location fields, drawn zones and trails, distance and “which zone” search, front-end maps, address autocomplete, GraphQL, Feed Me and importing from other map plugins.
 
 **Geo Maps Pro** adds features that save developers time on bigger builds. Nothing that’s free moves to Pro.
 
@@ -37,4 +37,4 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 
 ## Always free
 
-Ways to build on Geo Maps stay in the free edition: events for geocoding and maps, Twig helpers, field values and query parameters, and clear errors and logging.
+Ways to build on Geo Maps stay in Lite: events for geocoding and maps, Twig helpers, field values and query parameters, and clear errors and logging.

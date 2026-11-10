@@ -107,7 +107,7 @@ To combine it with other structured data, or pass it to an SEO plugin, `schemaDa
 {% set data = entry.storeLocation.schemaData({ type: 'Store' }) %}
 ```
 
-On the free edition, `schema()` outputs nothing.
+On Lite, `schema()` outputs nothing.
 
 ### Without Pro
 

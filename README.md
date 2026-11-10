@@ -22,7 +22,7 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 
 ## Geo Maps Pro
 
-Everything above is free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds features that save time on bigger builds:
+Everything above is in Geo Maps Lite, which is free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds features that save time on bigger builds:
 
 - **[Marker clustering](https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering).** Groups nearby pins on maps with hundreds of locations.
 - **[Missing coordinates](https://plugins.geomaps.suprim.com.au/guides/missing-coordinates).** Looks up coordinates for imported locations that only have an address.
@@ -151,7 +151,7 @@ Common template patterns (`entry.map.address`, `.parts`, `.img()`, `.imgSrcSet()
 
 ## Roadmap
 
-Everything in the free edition stays free. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
+Everything in Geo Maps Lite stays free. See [ROADMAP.md](ROADMAP.md) for what’s planned next, and suggest features on [GitHub](https://github.com/suprim12/geomaps/issues).
 
 ## License
 

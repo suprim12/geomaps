@@ -3,7 +3,7 @@
 ## 1.4.0 - 2026-11-08
 
 > [!NOTE]
-> Geo Maps now has a **Pro** edition. Everything in the free edition stays free; Pro adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
+> Geo Maps now comes in two editions. **Lite** is free and includes everything from 1.3. **Pro** adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
 
 ### Added
 - `craft.geomaps.locator()`, a locator component that outputs an address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins for any element query.

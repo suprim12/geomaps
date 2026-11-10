@@ -52,8 +52,11 @@ use yii\base\Event;
 
 class Plugin extends BasePlugin
 {
-    /** The free edition. Its handle matches the edition already in the Plugin Store. */
-    public const EDITION_STANDARD = 'standard';
+    /**
+     * The free edition. Sites on 1.3 and earlier were on `standard`, and Craft moves them to the first
+     * edition, Lite, as `standard` is no longer listed.
+     */
+    public const EDITION_LITE = 'lite';
     public const EDITION_PRO = 'pro';
 
     public string $schemaVersion = '1.0.2';
@@ -62,7 +65,7 @@ class Plugin extends BasePlugin
     public static function editions(): array
     {
         return [
-            self::EDITION_STANDARD,
+            self::EDITION_LITE,
             self::EDITION_PRO,
         ];
     }
@@ -160,7 +163,7 @@ class Plugin extends BasePlugin
         });
 
         // Pro, with Craft Commerce: delivery zone and distance conditions for shipping rules, shipping
-        // methods and discounts. They're registered on the free edition too, so saved rules aren't dropped
+        // methods and discounts. They're registered on Lite too, so saved rules aren't dropped
         // (which would make a shipping rule match every order); there they never match.
         if (class_exists(\craft\commerce\Plugin::class)) {
             foreach ([

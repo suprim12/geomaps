@@ -46,7 +46,7 @@ Times are compared in your site’s time zone (**Settings → General**). For st
 
 ## On an entry page
 
-Works on the free edition:
+Works on Lite:
 
 ```twig
 <h1>{{ entry.title }}</h1>

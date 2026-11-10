@@ -30,7 +30,7 @@ Before a search, it lists locations in the order of your query and shows them al
 | `placeholder` | Placeholder for the address box | “Address, suburb or postcode” |
 | `color` | Pin and accent colour, as a hex colour | `'#4f46e5'` |
 | `mapHeight` | Map height in pixels or a CSS length such as `'70vh'` | `520` |
-| `cluster` | Group nearby pins. **[Pro](/getting-started/pro)**; on the free edition pins are shown without grouping | `true` |
+| `cluster` | Group nearby pins. **[Pro](/getting-started/pro)**; on Lite pins are shown without grouping | `true` |
 | `directionsUrl` | Directions link, with `{lat}` and `{lng}` placeholders, or `false` to hide it | Google Maps directions |
 | `resultTemplate` | Your own template for each result’s content | — |
 | `popupTemplate` | Your own template for each pin’s info window | — |

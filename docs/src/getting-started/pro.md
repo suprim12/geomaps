@@ -1,6 +1,6 @@
 # Geo Maps Pro
 
-Geo Maps is free, and everything in the free edition stays free. **Geo Maps Pro** adds extra features for bigger sites.
+Geo Maps Lite is free, and everything in it stays free. **Geo Maps Pro** adds extra features for bigger sites.
 
 ## Pro features
 
@@ -36,6 +36,6 @@ Craft asks for a licence once the site goes live in production. Buy Pro from the
 
 ## Without Pro
 
-Pro options are ignored on the free edition rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `php craft geomaps/geocode` exits with a message saying it needs Pro, `within` is ignored, search endpoints return a 403 error, `schema()` outputs nothing, the import and export commands exit with a message, and Commerce delivery conditions match no orders. For maps, Craft logs a warning so you can see why.
+Pro options are ignored on Lite rather than causing errors, so templates keep working if you switch back: a map with `cluster: true` shows every marker without grouping, `php craft geomaps/geocode` exits with a message saying it needs Pro, `within` is ignored, search endpoints return a 403 error, `schema()` outputs nothing, the import and export commands exit with a message, and Commerce delivery conditions match no orders. For maps, Craft logs a warning so you can see why.
 
-The **Edition** tile at the top of the plugin’s settings page (**Settings → Plugins → Geo Maps**) shows whether Pro is active, with a **Try Pro** link on the free edition.
+The **Edition** tile at the top of the plugin’s settings page (**Settings → Plugins → Geo Maps**) shows whether Pro is active, with a **Try Pro** link on Lite.

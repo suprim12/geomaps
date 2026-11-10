@@ -109,7 +109,7 @@ cluster: { color: '#0f766e', radius: 40, maxZoom: 15 },
 
 Clustering works with both OpenStreetMap and Google maps, and the clustering script only loads on maps that use it. Markers with `open: true` are revealed and their info window opened. To restyle the bubbles on OpenStreetMap maps, target `.geomaps-cluster span` in your CSS.
 
-Clustering is part of [Geo Maps Pro](/getting-started/pro). On the free edition, the `cluster` option is ignored and every marker is shown.
+Clustering is part of [Geo Maps Pro](/getting-started/pro). On Lite, the `cluster` option is ignored and every marker is shown.
 
 ### Working with the map in JavaScript
 

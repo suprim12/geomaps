@@ -119,7 +119,7 @@ Add `location` to sort the results by distance from a point, nearest first, with
     .all() %}
 ```
 
-On the free edition, `within` is ignored and Craft logs a warning.
+On Lite, `within` is ignored and Craft logs a warning.
 
 ## With or without a location
 

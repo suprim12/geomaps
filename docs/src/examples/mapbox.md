@@ -1,6 +1,6 @@
 # Mapbox Maps
 
-Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [locator component](/guides/locator) and the map in the control panel. It works on the free edition, with no code.
+Use [Mapbox](https://www.mapbox.com) map styles (Streets, Light, Dark, Satellite, or your own style from Mapbox Studio) for `embed()` maps, the [locator component](/guides/locator) and the map in the control panel. It works on Lite, with no code.
 
 With **Mapbox** as the map service, address suggestions, location searches and [static map images](/guides/maps#static-map-images) use Mapbox too (see [Address search with Mapbox](#address-search-with-mapbox)).
 

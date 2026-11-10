@@ -55,7 +55,7 @@ class Locator extends Model
     public string $color = '#4f46e5';
     /** Map height: pixels or a CSS length. */
     public int|string $mapHeight = 520;
-    /** Group nearby pins on the map (Geo Maps Pro; ignored on the free edition). */
+    /** Group nearby pins on the map (Geo Maps Pro; ignored on Lite). */
     public bool $cluster = true;
     /** Directions link with `{lat}` and `{lng}` placeholders, or false (or null) to hide it. */
     public string|false|null $directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination={lat},{lng}';

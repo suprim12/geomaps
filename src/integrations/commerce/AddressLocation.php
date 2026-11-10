@@ -23,7 +23,7 @@ class AddressLocation
     private static array $_memo = [];
 
     /**
-     * Whether the delivery conditions can match. They need Pro: on the free edition they never match, so a
+     * Whether the delivery conditions can match. They need Pro: on Lite they never match, so a
      * shipping rule or discount that uses them isn't applied to every order.
      */
     public static function isAvailable(): bool

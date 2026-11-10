@@ -4,7 +4,7 @@ A store finder that searches exactly what's on the map: pan or zoom and the list
 
 ![A store finder: an address box above five numbered stores with their distances, beside a map of Adelaide with matching numbered pins](/examples/map-search.jpg)
 
-Compare it with [Live Map Search](/examples/live-finder), which does the same with a hand-written JSON template on the free edition.
+Compare it with [Live Map Search](/examples/live-finder), which does the same with a hand-written JSON template on Lite.
 
 ## 1. The endpoint
 

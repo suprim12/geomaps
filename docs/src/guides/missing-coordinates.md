@@ -47,4 +47,4 @@ For tens of thousands of addresses, Nominatim’s [usage policy](https://operati
 
 ## Without Pro
 
-On the free edition, addresses are saved as they are and nothing is looked up. The console command explains that it needs Pro.
+On Lite, addresses are saved as they are and nothing is looked up. The console command explains that it needs Pro.
