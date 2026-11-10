@@ -1,6 +1,6 @@
 # Store Locator
 
-::: tip Geo Maps Pro
+::: tip One tag instead
 `craft.geomaps.locator()` builds all of this from one tag. See [Locator Component](/guides/locator). This page shows how to build one yourself, with your own markup.
 :::
 
