@@ -1,4 +1,4 @@
-# Locator with Filters <Badge type="tip" text="Pro" />
+# Locator with Filters
 
 Let visitors narrow the [locator component](/guides/locator) to stores that offer a service, such as “Click & collect” or “Parking”, while keeping their search.
 

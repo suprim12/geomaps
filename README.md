@@ -13,6 +13,7 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 - **Draw shapes.** Markers, lines, rectangles and polygons (with holes), with per-shape properties, a GeoJSON editor, and `.geojson` upload and download.
 - **Distance search.** Find entries within a radius of an address, coordinates or another entry, sorted nearest first, with the distance on every result.
 - **Containment search.** Find the delivery area, sales territory or bin-collection zone that contains an address.
+- **[Store locator in one tag](https://plugins.geomaps.suprim.com.au/guides/locator).** `craft.geomaps.locator()` outputs an address search, “Use my location”, a distance filter, a numbered results list and a map for any element query.
 - **Address autocomplete for your forms.** Add an address box with suggestions to front-end forms with one Twig tag, to save locations or search by address.
 - **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google or Mapbox static map images, straight from Twig.
 - **Flexible field settings.** Hide the pin, drawing, search, address or map; set zoom limits; limit search to up to 5 countries.
@@ -23,7 +24,6 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 
 Everything above is free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds features that save time on bigger builds:
 
-- **[Locator component](https://plugins.geomaps.suprim.com.au/guides/locator).** `craft.geomaps.locator()` outputs an address search, “Use my location”, a distance filter, a numbered results list and a map for any element query.
 - **[Marker clustering](https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering).** Groups nearby pins on maps with hundreds of locations.
 - **[Missing coordinates](https://plugins.geomaps.suprim.com.au/guides/missing-coordinates).** Looks up coordinates for imported locations that only have an address.
 - **[Search within an area](https://plugins.geomaps.suprim.com.au/guides/search#search-within-an-area).** Finds entries inside the visible map or a drawn shape, for “search as the map moves”.

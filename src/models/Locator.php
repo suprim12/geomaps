@@ -24,7 +24,7 @@ use suprim\geomaps\web\LocatorAsset;
 use Twig\Markup;
 
 /**
- * The locator component (Pro): address search with suggestions, "use my location",
+ * The locator component: address search with suggestions, "use my location",
  * a distance filter, a numbered results list and a map, from one Twig tag.
  *
  * The search is a plain GET form, so results are server-rendered, linkable and work without
@@ -55,7 +55,7 @@ class Locator extends Model
     public string $color = '#4f46e5';
     /** Map height: pixels or a CSS length. */
     public int|string $mapHeight = 520;
-    /** Group nearby pins on the map. */
+    /** Group nearby pins on the map (Geo Maps Pro; ignored on the free edition). */
     public bool $cluster = true;
     /** Directions link with `{lat}` and `{lng}` placeholders, or false (or null) to hide it. */
     public string|false|null $directionsUrl = 'https://www.google.com/maps/dir/?api=1&destination={lat},{lng}';
@@ -79,13 +79,6 @@ class Locator extends Model
             if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
-        }
-
-        if (!Plugin::getInstance()->isPro()) {
-            Craft::warning('craft.geomaps.locator() needs Geo Maps Pro, so nothing was output.', __METHOD__);
-            return new Markup(Craft::$app->getConfig()->getGeneral()->devMode
-                ? '<!-- Geo Maps: locator() needs Geo Maps Pro. Switch the edition under Settings → Plugins (free on local and staging sites). -->'
-                : '', 'UTF-8');
         }
 
         $field = $this->field ? Craft::$app->getFields()->getFieldByHandle($this->field) : null;
@@ -194,7 +187,8 @@ class Locator extends Model
             'marker' => false,
             'markers' => $markers,
             'fitMarkers' => count($markers) > 1,
-            'cluster' => $this->cluster ? ['color' => $color] : false,
+            // Clustering is Pro; checked here so free sites don't log a warning on every page.
+            'cluster' => $this->cluster && Plugin::getInstance()->isPro() ? ['color' => $color] : false,
         ]);
 
         $search = (new AddressInput())->render([

@@ -1,4 +1,4 @@
-# Opening Hours and “Open Now” <Badge type="tip" text="Pro for the locator part" />
+# Opening Hours and “Open Now”
 
 Show whether a location is open right now (“Open now · closes 5:00 pm”, “Opens 9:00 am”, “Closed today”) on entry pages and in [locator component](/guides/locator) results.
 
@@ -54,7 +54,7 @@ Works on the free edition:
 <address>{{ entry.storeLocation.address1 }}, {{ entry.storeLocation.suburb }}</address>
 ```
 
-## In locator results <Badge type="tip" text="Pro" />
+## In locator results
 
 Give [`locator()`](/guides/locator) your own result template, and include the partial in it:
 

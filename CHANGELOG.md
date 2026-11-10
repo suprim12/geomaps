@@ -6,7 +6,7 @@
 > Geo Maps now has a **Pro** edition. Everything in the free edition stays free; Pro adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
 
 ### Added
-- Pro: `craft.geomaps.locator()`, a locator component that outputs an address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins for any element query.
+- `craft.geomaps.locator()`, a locator component that outputs an address search, “Use my location”, a distance filter, a numbered results list and a map with matching pins for any element query.
 - Pro: marker clustering for `embed()` maps (`cluster: true`), which groups nearby pins into numbered bubbles on OpenStreetMap and Google maps.
 - Pro: missing coordinates are found for locations saved with only an address, such as from Feed Me imports, in a background job or with `php craft geomaps/geocode`.
 - Pro: search within an area, with `within` on the field’s query param and in GraphQL. Find entries inside the visible part of a map, for “search as the map moves”, or inside drawn shapes such as regions and delivery zones, optionally sorted by distance.

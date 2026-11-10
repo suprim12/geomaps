@@ -9,7 +9,7 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 ## Done
 
 - **Address autocomplete for front-end forms** (1.3). See the [example](https://plugins.geomaps.suprim.com.au/examples/address-autocomplete).
-- **Locator component** (1.4, Pro). `craft.geomaps.locator()`: address search, “Use my location”, results list and map for any element query.
+- **Locator component** (1.4). `craft.geomaps.locator()`: address search, “Use my location”, results list and map for any element query.
 - **Marker clustering** (1.4, Pro) for `embed()` maps.
 - **Mapbox** (1.4). Mapbox map styles, address lookups and static images.
 - **Missing coordinates** (1.4, Pro). Coordinates for imported locations that only have an address, in the background or with `php craft geomaps/geocode`.

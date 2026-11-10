@@ -65,7 +65,7 @@ class GeoVariable
     }
 
     /**
-     * The locator component: address search, "use my location", a results list and a map (Pro).
+     * The locator component: address search, "use my location", a results list and a map.
      */
     public function locator(array $options = []): \Twig\Markup
     {

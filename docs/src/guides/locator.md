@@ -1,4 +1,4 @@
-# Locator Component <Badge type="tip" text="Pro" />
+# Locator Component
 
 A complete “find the nearest” interface from one Twig tag, for stores, clinics, dealers, offices, events or any entries with a location: an address box with suggestions, **Use my location**, a distance filter, a numbered list of the nearest locations and a map with matching pins.
 
@@ -30,7 +30,7 @@ Before a search, it lists locations in the order of your query and shows them al
 | `placeholder` | Placeholder for the address box | “Address, suburb or postcode” |
 | `color` | Pin and accent colour, as a hex colour | `'#4f46e5'` |
 | `mapHeight` | Map height in pixels or a CSS length such as `'70vh'` | `520` |
-| `cluster` | Group nearby pins | `true` |
+| `cluster` | Group nearby pins. **[Pro](/getting-started/pro)**; on the free edition pins are shown without grouping | `true` |
 | `directionsUrl` | Directions link, with `{lat}` and `{lng}` placeholders, or `false` to hide it | Google Maps directions |
 | `resultTemplate` | Your own template for each result’s content | — |
 | `popupTemplate` | Your own template for each pin’s info window | — |
@@ -124,6 +124,6 @@ Keys: `search`, `address`, `distance`, `useMyLocation`, `locating`, `locationFai
 
 Address suggestions come from Photon (OpenStreetMap) in the visitor’s browser, or [Mapbox](/examples/mapbox#address-search-with-mapbox) with the Mapbox map service, and **Use my location** asks the browser for the visitor’s position, which is only sent to your own site as part of the search. See [Privacy and Data](/getting-started/privacy-and-data).
 
-## Without Pro
+## Building your own
 
-On the free edition, `locator()` outputs nothing, so pages still load. In dev mode it leaves an HTML comment explaining why. To build one by hand on the free edition, see the [Store Locator example](/examples/store-locator).
+To build a locator by hand, with your own markup and behaviour, see the [Store Locator example](/examples/store-locator).
