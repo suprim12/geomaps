@@ -1,6 +1,6 @@
 # Release Notes for Geo Maps
 
-## 1.4.0 - 2026-11-08
+## 1.4.0 - 2026-11-12
 
 > [!NOTE]
 > Geo Maps now comes in two editions. **Lite** is free and includes everything from 1.3. **Pro** adds the new features marked below. Try Pro free on local and staging sites by switching the edition under **Settings → Plugins**.
