@@ -151,48 +151,75 @@ class EmbedMap extends Model
                 });
             }
 
+            // Pages tell a map they moved it themselves (fitting results), so only a visitor's moves are reported.
+            function reportMoves(el, onMoveEnd, getBounds) {
+                var quiet = 0;
+                el.geomapsQuietly = function(fn) { quiet++; fn(); };
+                onMoveEnd(function() {
+                    var byVisitor = quiet === 0;
+                    if (quiet > 0) quiet--;
+                    el.dispatchEvent(new CustomEvent('geomaps:moveend', { bubbles: true, detail: { bounds: getBounds(), byVisitor: byVisitor } }));
+                });
+            }
+
             function renderLeaflet(el) {
                 if (typeof L === 'undefined') return;
                 var map = L.map(el, config.options || {}).setView([config.center.lat, config.center.lng], config.zoom);
                 L.tileLayer(config.tileUrl, { maxZoom: 19, attribution: config.tileAttribution }).addTo(map);
                 var cluster = config.cluster && window.GeoMapsCluster ? window.GeoMapsCluster.leaflet(config.cluster) : null;
-                var openLater = [];
+                if (cluster) map.addLayer(cluster);
                 var made = [];
-                (config.markers || []).forEach(function(marker) {
-                    if (marker.lat == null || marker.lng == null) { made.push(null); return; }
-                    var m;
-                    if (marker.icon) {
-                        var w = marker.icon.width, h = marker.icon.height;
-                        m = L.marker([marker.lat, marker.lng], {
-                            title: marker.label || '',
-                            alt: marker.label || '',
-                            icon: L.icon({ iconUrl: marker.icon.url, iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h] }),
-                        });
-                    } else {
-                        m = L.circleMarker([marker.lat, marker.lng], {
-                            radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
-                        });
-                    }
-                    var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
-                    if (content) {
-                        m.bindPopup(content, { maxWidth: 320 });
-                    }
-                    var inCluster = cluster && marker.cluster !== false;
-                    m.addTo(inCluster ? cluster : map);
-                    made.push(m);
-                    if (content && marker.open) {
-                        if (inCluster) openLater.push(m); else m.openPopup();
-                    }
-                });
-                if (cluster) {
-                    map.addLayer(cluster);
+
+                function addMarkers(markers) {
+                    var openLater = [];
+                    (markers || []).forEach(function(marker) {
+                        if (marker.lat == null || marker.lng == null) { made.push(null); return; }
+                        var m;
+                        if (marker.icon) {
+                            var w = marker.icon.width, h = marker.icon.height;
+                            m = L.marker([marker.lat, marker.lng], {
+                                title: marker.label || '',
+                                alt: marker.label || '',
+                                icon: L.icon({ iconUrl: marker.icon.url, iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h] }),
+                            });
+                        } else {
+                            m = L.circleMarker([marker.lat, marker.lng], {
+                                radius: 8, fillColor: marker.color || '#ff0000', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+                            });
+                        }
+                        var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
+                        if (content) {
+                            m.bindPopup(content, { maxWidth: 320 });
+                        }
+                        var inCluster = cluster && marker.cluster !== false;
+                        m.addTo(inCluster ? cluster : map);
+                        made.push(m);
+                        if (content && marker.open) {
+                            if (inCluster) openLater.push(m); else m.openPopup();
+                        }
+                    });
                     // A marker inside a cluster has to be revealed before its popup can open.
                     openLater.forEach(function(m) { cluster.zoomToShowLayer(m, function() { m.openPopup(); }); });
                 }
-                var placed = made.filter(Boolean);
-                if (config.fitMarkers && placed.length > 1) {
-                    map.fitBounds(L.latLngBounds(placed.map(function(m) { return m.getLatLng(); })), { padding: [40, 40], maxZoom: 15 });
+
+                function fit() {
+                    var placed = made.filter(Boolean);
+                    if (placed.length > 1) {
+                        el.geomapsQuietly(function() { map.fitBounds(L.latLngBounds(placed.map(function(m) { return m.getLatLng(); })), { padding: [40, 40], maxZoom: 15 }); });
+                    } else if (placed.length === 1) {
+                        el.geomapsQuietly(function() { map.setView(placed[0].getLatLng(), Math.max(map.getZoom(), 12)); });
+                    }
                 }
+
+                function getBounds() {
+                    var b = map.getBounds();
+                    return { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
+                }
+
+                reportMoves(el, function(fn) { map.on('moveend', fn); }, getBounds);
+                addMarkers(config.markers);
+                if (config.fitMarkers && made.filter(Boolean).length > 1) fit();
+
                 // A small handle for page scripts, such as a results list opening its marker.
                 el.geomaps = {
                     map: map,
@@ -203,6 +230,16 @@ class EmbedMap extends Model
                         map.panTo(m.getLatLng());
                         if (m.getPopup()) m.openPopup();
                     },
+                    // Replaces the markers, such as with new search results, and optionally zooms to them.
+                    setMarkers: function(markers, zoomToThem) {
+                        made.forEach(function(m) { if (m) m.remove(); });
+                        if (cluster) cluster.clearLayers();
+                        made = [];
+                        addMarkers(markers);
+                        if (zoomToThem) fit();
+                    },
+                    fit: fit,
+                    getBounds: getBounds,
                 };
                 el.dispatchEvent(new CustomEvent('geomaps:ready', { bubbles: true, detail: el.geomaps }));
                 if (config.geoJson) {
@@ -228,49 +265,74 @@ class EmbedMap extends Model
                 }, config.options || {}));
                 var infoWindow = new google.maps.InfoWindow({ maxWidth: 320 });
                 var clusterOn = config.cluster && window.GeoMapsCluster;
-                var clustered = [];
+                var clusterer = null;
                 var made = [];
-                (config.markers || []).forEach(function(marker) {
-                    if (marker.lat == null || marker.lng == null) { made.push(null); return; }
-                    var icon = marker.icon ? {
-                        url: marker.icon.url,
-                        scaledSize: new google.maps.Size(marker.icon.width, marker.icon.height),
-                        anchor: new google.maps.Point(marker.icon.width / 2, marker.icon.height),
-                    } : {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: marker.color || '#ff0000', fillOpacity: 1,
-                        strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
-                    };
-                    var m = new google.maps.Marker({
-                        position: { lat: marker.lat, lng: marker.lng },
-                        map: clusterOn && marker.cluster !== false ? null : map,
-                        title: marker.label || null,
-                        icon: icon,
-                    });
-                    var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
-                    made.push({ marker: m, content: content });
-                    if (content) {
-                        var open = function() { infoWindow.setContent(content); infoWindow.open({ anchor: m, map: map }); };
-                        m.addListener('click', open);
-                        if (marker.open) {
-                            if (clusterOn) {
-                                infoWindow.setContent(content);
-                                infoWindow.setPosition(m.getPosition());
-                                infoWindow.open({ map: map });
-                            } else {
-                                open();
+
+                function addMarkers(markers) {
+                    var clustered = [];
+                    (markers || []).forEach(function(marker) {
+                        if (marker.lat == null || marker.lng == null) { made.push(null); return; }
+                        var icon = marker.icon ? {
+                            url: marker.icon.url,
+                            scaledSize: new google.maps.Size(marker.icon.width, marker.icon.height),
+                            anchor: new google.maps.Point(marker.icon.width / 2, marker.icon.height),
+                        } : {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: marker.color || '#ff0000', fillOpacity: 1,
+                            strokeColor: '#ffffff', strokeWeight: 2, scale: 8,
+                        };
+                        var m = new google.maps.Marker({
+                            position: { lat: marker.lat, lng: marker.lng },
+                            map: clusterOn && marker.cluster !== false ? null : map,
+                            title: marker.label || null,
+                            icon: icon,
+                        });
+                        var content = marker.html || (marker.label ? escapeHtml(marker.label) : null);
+                        made.push({ marker: m, content: content });
+                        if (content) {
+                            var open = function() { infoWindow.setContent(content); infoWindow.open({ anchor: m, map: map }); };
+                            m.addListener('click', open);
+                            if (marker.open) {
+                                if (clusterOn) {
+                                    infoWindow.setContent(content);
+                                    infoWindow.setPosition(m.getPosition());
+                                    infoWindow.open({ map: map });
+                                } else {
+                                    open();
+                                }
                             }
                         }
-                    }
-                    if (clusterOn && marker.cluster !== false) clustered.push(m);
-                });
-                var placedGoogle = made.filter(Boolean).map(function(item) { return item.marker; });
-                if (clusterOn) window.GeoMapsCluster.google(map, clustered, config.cluster);
-                if (config.fitMarkers && placedGoogle.length > 1) {
-                    var markerBounds = new google.maps.LatLngBounds();
-                    placedGoogle.forEach(function(m) { markerBounds.extend(m.getPosition()); });
-                    map.fitBounds(markerBounds, 40);
+                        if (clusterOn && marker.cluster !== false) clustered.push(m);
+                    });
+                    if (clusterOn) clusterer = window.GeoMapsCluster.google(map, clustered, config.cluster);
                 }
+
+                function fit() {
+                    var placed = made.filter(Boolean).map(function(item) { return item.marker; });
+                    if (placed.length > 1) {
+                        var markerBounds = new google.maps.LatLngBounds();
+                        placed.forEach(function(m) { markerBounds.extend(m.getPosition()); });
+                        el.geomapsQuietly(function() { map.fitBounds(markerBounds, 40); });
+                    } else if (placed.length === 1) {
+                        el.geomapsQuietly(function() { map.setCenter(placed[0].getPosition()); if (map.getZoom() < 12) map.setZoom(12); });
+                    }
+                }
+
+                function getBounds() {
+                    var b = map.getBounds();
+                    if (!b) return null;
+                    var ne = b.getNorthEast(), sw = b.getSouthWest();
+                    return { south: sw.lat(), west: sw.lng(), north: ne.lat(), east: ne.lng() };
+                }
+
+                var ready = false;
+                reportMoves(el, function(fn) {
+                    // The first idle is the map loading, not a move.
+                    map.addListener('idle', function() { if (ready) fn(); ready = true; });
+                }, getBounds);
+                addMarkers(config.markers);
+                if (config.fitMarkers && made.filter(Boolean).length > 1) fit();
+
                 el.geomaps = {
                     map: map,
                     open: function(i) {
@@ -287,6 +349,16 @@ class EmbedMap extends Model
                             infoWindow.open({ anchor: item.marker, map: map });
                         }
                     },
+                    setMarkers: function(markers, zoomToThem) {
+                        infoWindow.close();
+                        if (clusterer && clusterer.clearMarkers) clusterer.clearMarkers();
+                        made.forEach(function(item) { if (item) item.marker.setMap(null); });
+                        made = [];
+                        addMarkers(markers);
+                        if (zoomToThem) fit();
+                    },
+                    fit: fit,
+                    getBounds: getBounds,
                 };
                 el.dispatchEvent(new CustomEvent('geomaps:ready', { bubbles: true, detail: el.geomaps }));
                 if (config.geoJson) {
@@ -376,6 +448,16 @@ class EmbedMap extends Model
         ]);
 
         return  new \Twig\Markup($html, 'UTF-8');
+    }
+
+    /**
+     * Markers as the map script reads them, such as for replacing a map's markers with `setMarkers()`.
+     */
+    public function markerData(array $markers): array
+    {
+        $this->setOptions(['markers' => $markers]);
+
+        return $this->resolveMarkers($this->resolveCenter());
     }
 
     /**

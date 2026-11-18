@@ -119,9 +119,21 @@ Each map element gets a small `geomaps` object once it’s drawn, and fires a `g
 document.addEventListener('geomaps:ready', (e) => {
   const map = e.detail;      // also available as element.geomaps
   map.open(0);               // open the first marker (in the order of `markers`)
+  map.setMarkers([           // replace the markers, and zoom to them
+    { lat: -34.98, lng: 138.51, label: 'Glenelg', color: '#0f766e' },
+  ], true);
+  map.fit();                 // zoom to the markers
+  map.getBounds();           // { south, west, north, east } in view
   map.map;                   // the Leaflet or Google map, for anything else
 });
+
+// After the map stops moving. byVisitor is false when your script moved it (setMarkers, fit).
+document.addEventListener('geomaps:moveend', (e) => {
+  if (e.detail.byVisitor) console.log('Now showing', e.detail.bounds);
+});
 ```
+
+`setMarkers()` takes markers with `lat` and `lng`, and optionally `label`, `color`, `html`, `cluster` and `icon` as `{ url, width, height }`.
 
 ### Styling the map
 

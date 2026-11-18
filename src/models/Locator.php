@@ -16,11 +16,11 @@ use craft\base\Model;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use craft\web\View;
 use suprim\geomaps\events\SearchResultEvent;
 use suprim\geomaps\fields\GeoField;
 use suprim\geomaps\Plugin;
+use suprim\geomaps\services\MapService;
 use suprim\geomaps\web\LocatorAsset;
 use Twig\Markup;
 
@@ -70,10 +70,25 @@ class Locator extends Model
     public ?string $resultTemplate = null;
     /** Site template for each pin's info window. Gets the same variables. */
     public ?string $popupTemplate = null;
+    /**
+     * Pro: search without reloading the page. Results, pins and the address bar update in place; without
+     * JavaScript, or on Lite, the search reloads the page as usual.
+     */
+    public bool $live = true;
+    /** Pro: show a “Search this area” button after the visitor moves the map. */
+    public bool $searchArea = true;
+    /**
+     * Site template for filters inside the search form, such as a category select. Its inputs are sent with the
+     * search; read them from the query string to narrow `query`. Changing one searches again.
+     */
+    public ?string $filtersTemplate = null;
     /** Override any interface text; see the docs for keys. */
     public array $messages = [];
     public ?string $id = null;
     public ?string $class = null;
+
+    /** Locators rendered so far in this request, for their default ids. */
+    private static int $_rendered = 0;
 
     public function __toString(): string
     {
@@ -95,7 +110,9 @@ class Locator extends Model
         }
 
         $unit = $this->unit === 'mi' ? 'mi' : 'km';
-        $id = $this->id ?? 'geomaps-locator-' . StringHelper::randomString(6);
+        // The same on every request for the same page, so a live search can find this locator in the new page.
+        $id = $this->id ?? 'geomaps-locator-' . (++self::$_rendered);
+        $pro = Plugin::getInstance()->isPro();
         $color = preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $this->color) ? $this->color : '#4f46e5';
         $messages = $this->messages + [
             'search' => Craft::t('geomaps', 'Search'),
@@ -110,6 +127,10 @@ class Locator extends Model
             'none' => Craft::t('geomaps', 'No locations within {radius} {unit}. Try a larger distance.'),
             'directions' => Craft::t('geomaps', 'Directions'),
             'details' => Craft::t('geomaps', 'Details'),
+            'searchArea' => Craft::t('geomaps', 'Search this area'),
+            'searching' => Craft::t('geomaps', 'Searching…'),
+            'inArea' => Craft::t('geomaps', '{count, plural, =1{1 location} other{# locations}} in this area'),
+            'noneInArea' => Craft::t('geomaps', 'No locations in this area. Move the map or zoom out.'),
         ];
 
         // The search, from the query string.
@@ -123,12 +144,17 @@ class Locator extends Model
             $radius = in_array($this->radius, $radii, true) ? $this->radius : $radii[0];
         }
         $searched = $lat !== null && $lng !== null;
+        // Pro: “Search this area” searches the part of the map in view, still nearest first from the location.
+        $within = $pro && is_string($params['within'] ?? null) ? MapService::parseBounds($params['within']) : null;
         // Only plain text: `?near[full_address][]=x` mustn't break the page.
         $searchText = is_string($params['full_address'] ?? null) ? trim($params['full_address']) : '';
 
         $query = $this->query ? clone $this->query : Entry::find()->section($this->section ?? '*');
         $handle = $field->handle;
-        if ($searched) {
+        if ($within) {
+            $area = implode(',', [$within['south'], $within['west'], $within['north'], $within['east']]);
+            $query->$handle($searched ? ['within' => $area, 'location' => ['lat' => $lat, 'lng' => $lng], 'unit' => $unit] : ['within' => $area]);
+        } elseif ($searched) {
             $query->$handle(['location' => ['lat' => $lat, 'lng' => $lng], 'radius' => $radius, 'unit' => $unit]);
         } else {
             $query->$handle(':notempty:');
@@ -193,7 +219,8 @@ class Locator extends Model
 
         $countries = $this->countries ?? $field->getSearchCountries();
 
-        $map = (new EmbedMap())->embed([
+        $mapModel = new EmbedMap();
+        $map = $mapModel->embed([
             'id' => "$id-map",
             'center' => $searched ? ['lat' => $lat, 'lng' => $lng] : ['lat' => $field->lat, 'lng' => $field->lng],
             'zoom' => $searched ? 12 : (int)$field->zoom,
@@ -201,7 +228,8 @@ class Locator extends Model
             'height' => '100%',
             'marker' => false,
             'markers' => $markers,
-            'fitMarkers' => count($markers) > 1,
+            // In an area, the map stays where the visitor put it.
+            'fitMarkers' => !$within && count($markers) > 1,
             // Clustering is Pro; checked here so free sites don't log a warning on every page.
             'cluster' => $this->cluster && Plugin::getInstance()->isPro() ? ['color' => $color] : false,
         ]);
@@ -223,10 +251,12 @@ class Locator extends Model
         $view->registerAssetBundle(LocatorAsset::class);
 
         $placeholders = ['radius' => $radius, 'unit' => $unit, 'count' => count($results)];
-        $summary = $searched && $results
-            ? Craft::$app->getI18n()->format($messages['results'], $placeholders, Craft::$app->language)
+        $i18n = Craft::$app->getI18n();
+        $summary = $results && ($searched || $within)
+            ? $i18n->format($messages[$within ? 'inArea' : 'results'], $placeholders, Craft::$app->language)
             : null;
-        $none = Craft::$app->getI18n()->format($messages['none'], $placeholders, Craft::$app->language);
+        $none = $i18n->format($messages[$within ? 'noneInArea' : 'none'], $placeholders, Craft::$app->language);
+        $live = $pro && $this->live;
         $height = is_numeric($this->mapHeight) ? max(200, (int)$this->mapHeight) . 'px'
             : (preg_match('/^\d+(\.\d+)?(px|r?em|vh|svh|dvh)$/', trim($this->mapHeight)) ? trim($this->mapHeight) : '520px');
 
@@ -238,13 +268,18 @@ class Locator extends Model
             'search' => $search,
             'map' => $map,
             'results' => $results,
-            'searched' => $searched,
+            'searched' => $searched || $within,
+            'within' => $within ? implode(',', $within) : null,
+            'live' => $live,
+            'searchArea' => $live && $this->searchArea,
+            'markerData' => $live ? $mapModel->markerData($markers) : null,
+            'filters' => $this->filtersTemplate ? $view->renderTemplate($this->filtersTemplate, ['locator' => $this], View::TEMPLATE_MODE_SITE) : null,
             'radius' => $radius,
             'radii' => $radii,
             'unit' => $unit,
             'messages' => $messages,
             'summary' => $summary,
-            'none' => $none,
+            'noneMessage' => $none,
             'height' => $height,
             'keep' => $request->getIsConsoleRequest() ? [] : self::hiddenParams($request->getQueryParams(), $this->name, self::pathInQuery($request)),
         ], View::TEMPLATE_MODE_CP);

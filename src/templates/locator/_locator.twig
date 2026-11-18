@@ -12,7 +12,12 @@
 	data-geomaps-locator
 	data-msg-locating="{{ messages.locating }}"
 	data-msg-location-failed="{{ messages.locationFailed }}"
-	data-msg-your-location="{{ messages.yourLocation }}">
+	data-msg-your-location="{{ messages.yourLocation }}"
+	{%- if live %}
+	data-live
+	data-msg-searching="{{ messages.searching }}"
+	data-markers="{{ markerData|json_encode }}"
+	{%- endif %}>
 
 	<div class="geomaps-locator__panel">
 		<form class="geomaps-locator__form" method="get" role="search" data-locator-form>
@@ -20,6 +25,9 @@
 				<input type="hidden" name="{{ paramName }}" value="{{ paramValue }}">
 			{% endfor %}
 			{{ search }}
+			{% if live %}
+				<input type="hidden" name="{{ name }}[within]" value="{{ within }}" data-locator-within>
+			{% endif %}
 			<div class="geomaps-locator__row">
 				<select name="{{ name }}[radius]" aria-label="{{ messages.distance }}" data-locator-radius>
 					{% for r in radii %}
@@ -31,16 +39,20 @@
 					{{ messages.useMyLocation }}
 				</button>
 			</div>
+			{% if filters %}
+				<div class="geomaps-locator__filters" data-locator-filters>{{ filters|raw }}</div>
+			{% endif %}
 			<button type="submit" class="geomaps-locator__button geomaps-locator__button--primary">{{ messages.search }}</button>
 			<p class="geomaps-locator__status" role="status" aria-live="polite" data-locator-status></p>
 		</form>
 
+		<div class="geomaps-locator__list" data-locator-list>
 		{% if summary %}
 			<p class="geomaps-locator__summary">{{ summary }}</p>
 		{% endif %}
 
 		{% if searched and results is empty %}
-			<p class="geomaps-locator__empty">{{ none }}</p>
+			<p class="geomaps-locator__empty">{{ noneMessage }}</p>
 		{% elseif not searched and results is empty %}
 			<p class="geomaps-locator__empty">{{ messages.prompt }}</p>
 		{% else %}
@@ -68,7 +80,13 @@
 				{% endfor %}
 			</ol>
 		{% endif %}
+		</div>
 	</div>
 
-	<div class="geomaps-locator__map">{{ map }}</div>
+	<div class="geomaps-locator__map">
+		{{ map }}
+		{% if searchArea %}
+			<button type="button" class="geomaps-locator__button geomaps-locator__area" hidden data-locator-area>{{ messages.searchArea }}</button>
+		{% endif %}
+	</div>
 </div>

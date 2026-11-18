@@ -11,7 +11,9 @@ A complete “find the nearest” interface from one Twig tag, for stores, clini
 }) }}
 ```
 
-That’s all that’s needed. The locator is a normal form that reloads the page with the search in the URL, so results are rendered on the server, can be bookmarked and shared, and work without JavaScript. With JavaScript, picking a suggestion searches straight away, changing the distance searches again, and clicking a result opens its pin on the map.
+That’s all that’s needed. The locator is a normal form with the search in the URL, so results are rendered on the server, can be bookmarked and shared, and work without JavaScript. With JavaScript, picking a suggestion searches straight away, changing the distance searches again, and clicking a result opens its pin on the map.
+
+With [Geo Maps Pro](/getting-started/pro), searches are **live**: results and pins update in place without reloading the page, the address bar keeps the search so it can still be shared, and **Search this area** appears when the visitor moves the map. On Lite, each search reloads the page.
 
 Before a search, it lists locations in the order of your query and shows them all on the map. After a search, it lists the nearest first, with the distance to each.
 
@@ -34,6 +36,9 @@ Before a search, it lists locations in the order of your query and shows them al
 | `directionsUrl` | Directions link, with `{lat}` and `{lng}` placeholders, or `false` to hide it | Google Maps directions |
 | `resultTemplate` | Your own template for each result’s content | — |
 | `popupTemplate` | Your own template for each pin’s info window | — |
+| `filtersTemplate` | Your own template for filters inside the search form; see [Filtering locations](#filtering-locations) | — |
+| `live` | Search without reloading the page. **[Pro](/getting-started/pro)** | `true` |
+| `searchArea` | Show **Search this area** after the visitor moves the map. **[Pro](/getting-started/pro)** | `true` |
 | `name` | Name prefix for the search in the URL, such as `?near[lat]=…` | `'near'` |
 | `messages` | Change any of the text; see [below](#changing-the-text) | — |
 | `id`, `class` | The locator’s `id` and extra classes | — |
@@ -49,6 +54,11 @@ Before a search, it lists locations in the order of your query and shows them al
 | `distance` | Distance from the search, or `null` before a search |
 | `unit` | `km` or `mi` |
 | `number` | The result’s number, matching its pin |
+| `address` | The address as one line |
+| `url` | The element’s URL |
+| `directionsUrl` | The directions link, or `null` |
+
+Add your own variables, or change these, with the [`Locator::EVENT_DEFINE_RESULT`](/guides/events#changing-search-results) event.
 
 ```twig
 {{ craft.geomaps.locator({
@@ -86,6 +96,39 @@ Pass a `query` to search only some entries, such as stores in a category chosen 
 
 The locator keeps the page’s other URL parameters, such as `service`, as hidden inputs in its search form, so searching again keeps the filter. See [Locator with Filters](/examples/locator-filters).
 
+To put the filters inside the locator’s search form, pass a `filtersTemplate`. Its inputs are sent with each search, and with live searches, changing one searches again straight away:
+
+```twig
+{# templates/_partials/store-filters.twig #}
+{% set service = craft.app.request.getQueryParam('service') %}
+<select name="service" aria-label="Service">
+  <option value="">All stores</option>
+  {% for category in craft.categories.group('services').all() %}
+    <option value="{{ category.slug }}" {{ category.slug == service ? 'selected' }}>{{ category.title }}</option>
+  {% endfor %}
+</select>
+```
+
+```twig
+{{ craft.geomaps.locator({ query: stores, field: 'storeLocation', filtersTemplate: '_partials/store-filters' }) }}
+```
+
+## Live searches <Badge type="tip" text="Pro" />
+
+Live searches fetch the same page with the new search in the URL and swap in the results and pins, so your result templates, filters and query all work as they do on a full page load. If anything goes wrong, the locator falls back to loading the page.
+
+**Search this area** searches the part of the map in view, still listing the nearest first from the searched address. It uses [`within`](/guides/search#search-within-an-area), so the area is in the URL as `near[within]=south,west,north,east`.
+
+After each live search the locator fires a `geomaps:results` event, for analytics or your own scripts:
+
+```js
+document.addEventListener('geomaps:results', (e) => {
+  console.log('Searched', e.detail.url);
+});
+```
+
+If your page has other content that depends on the search, such as a count elsewhere on the page, turn live searches off with `live: false`.
+
 ## Styling
 
 The locator comes with clean default styles in a two-column layout that stacks on small screens. Change the colours with CSS custom properties:
@@ -99,7 +142,7 @@ The locator comes with clean default styles in a two-column layout that stacks o
 }
 ```
 
-Or style the classes: `.geomaps-locator__panel`, `__form`, `__results`, `__result` (with `.is-active` on the selected one), `__number`, `__name`, `__distance`, `__address`, `__links` and `__map`. The address box uses the [address autocomplete](/examples/address-autocomplete#styling) classes.
+Or style the classes: `.geomaps-locator__panel`, `__form`, `__filters`, `__results`, `__result` (with `.is-active` on the selected one), `__number`, `__name`, `__distance`, `__address`, `__links`, `__map` and `__area` (the **Search this area** button). While a live search runs, the locator has `.is-loading`. The address box uses the [address autocomplete](/examples/address-autocomplete#styling) classes.
 
 ## Changing the text
 
@@ -118,7 +161,7 @@ Pass `messages` to translate or reword any text:
 }) }}
 ```
 
-Keys: `search`, `address`, `distance`, `useMyLocation`, `locating`, `locationFailed`, `yourLocation`, `prompt`, `results`, `none`, `directions` and `details`. All text also goes through Craft’s translations in the `geomaps` category.
+Keys: `search`, `address`, `distance`, `useMyLocation`, `locating`, `locationFailed`, `yourLocation`, `prompt`, `results`, `none`, `directions`, `details`, `searchArea`, `searching`, `inArea` and `noneInArea`. All text also goes through Craft’s translations in the `geomaps` category.
 
 ## Privacy
 

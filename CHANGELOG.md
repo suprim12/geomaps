@@ -8,6 +8,12 @@
 - Craft addresses, such as a Commerce cart’s shipping address or a user’s address, can be used wherever a place is accepted: location searches, map centres and pins, and the new `craft.geomaps.distance(a, b)`. So can another entry’s location field.
 - Pro: Craft addresses in Addresses fields get coordinates in the background, saved in Craft’s own latitude and longitude, along with missing coordinates. Set `geocodeAddresses` to `all` to include users’ and orders’ addresses.
 - Pro: `near()` on address queries finds Craft addresses near a place, nearest first, with `distance` on each.
+- Pro: the locator searches live. Results and pins update without reloading the page, the address bar keeps the search, and **Search this area** searches the part of the map in view. Turn it off with `live: false`.
+- `filtersTemplate` for the locator puts your own filters, such as a category select, inside its search form.
+- Page scripts can replace a map’s markers with `element.geomaps.setMarkers()`, zoom to them with `fit()`, read the area in view with `getBounds()`, and follow the visitor’s moves with the `geomaps:moveend` event.
+
+### Fixed
+- The locator didn’t say when no locations were found within the chosen distance.
 
 ## 1.4.0 - 2026-11-12
 
