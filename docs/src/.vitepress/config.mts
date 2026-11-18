@@ -53,6 +53,7 @@ export default defineConfig({
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
           { text: 'Search Endpoint', link: '/guides/search-endpoint' },
           { text: 'Import and Export', link: '/guides/import-export' },
+          { text: 'Events', link: '/guides/events' },
         ],
       },
       {

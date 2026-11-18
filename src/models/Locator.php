@@ -18,6 +18,7 @@ use craft\elements\Entry;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\web\View;
+use suprim\geomaps\events\SearchResultEvent;
 use suprim\geomaps\fields\GeoField;
 use suprim\geomaps\Plugin;
 use suprim\geomaps\web\LocatorAsset;
@@ -32,6 +33,12 @@ use Twig\Markup;
  */
 class Locator extends Model
 {
+    /**
+     * @event SearchResultEvent For each result, with the variables its result and pin templates get, such as
+     * `distance` and `url`. Change `result` to change them or add your own.
+     */
+    public const EVENT_DEFINE_RESULT = 'defineResult';
+
     /** Handle of the Geo Maps field to search. Required. */
     public ?string $field = null;
     /** Section handle(s) to search, when no `query` is given. */
@@ -150,10 +157,18 @@ class Locator extends Model
                 ? strtr($this->directionsUrl, ['{lat}' => (string)$location->lat, '{lng}' => (string)$location->lng])
                 : null;
 
-            $results[] = $vars + [
+            $vars += [
                 'address' => $this->addressText($location),
                 'url' => $element->getUrl(),
                 'directionsUrl' => $directions,
+            ];
+            if ($this->hasEventHandlers(self::EVENT_DEFINE_RESULT)) {
+                $event = new SearchResultEvent(['element' => $element, 'location' => $location, 'result' => $vars]);
+                $this->trigger(self::EVENT_DEFINE_RESULT, $event);
+                $vars = $event->result;
+            }
+
+            $results[] = $vars + [
                 'html' => $this->resultTemplate ? $view->renderTemplate($this->resultTemplate, $vars, View::TEMPLATE_MODE_SITE) : null,
             ];
 
@@ -163,7 +178,7 @@ class Locator extends Model
                 'icon' => ['url' => self::pinUrl($number, $color), 'width' => 34, 'height' => 44],
                 'html' => $this->popupTemplate
                     ? $view->renderTemplate($this->popupTemplate, $vars, View::TEMPLATE_MODE_SITE)
-                    : $this->defaultPopup($element, $location, $vars['distance'], $unit, $directions, $messages),
+                    : $this->defaultPopup($element, $location, $vars['distance'], $unit, $vars['directionsUrl'], $messages),
             ];
         }
 

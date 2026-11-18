@@ -10,3 +10,4 @@ node_modules
 /dist
 /docs/src/.vitepress/cache
 /docs/src/.vitepress/dist
+.phpunit.cache/

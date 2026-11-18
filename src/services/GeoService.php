@@ -12,9 +12,11 @@ namespace suprim\geomaps\services;
 use Craft;
 use craft\helpers\Json;
 use GuzzleHttp\Exception\RequestException;
+use suprim\geomaps\events\GeocodeEvent;
 use suprim\geomaps\Plugin;
 use Throwable;
 use yii\base\Component;
+use yii\base\Event;
 
 /**
  * Geocoding: Google Geocoding API when a key is set, OpenStreetMap Nominatim otherwise.
@@ -28,6 +30,16 @@ class GeoService extends Component
     private const MAPBOX_UNAVAILABLE_KEY = 'geo:mapbox-geocoding-unavailable';
     private const NOMINATIM_BLOCKED_KEY = 'geo:nominatim-blocked';
     private const NOMINATIM_LAST_REQUEST_KEY = 'geo:nominatim-last-request';
+
+    /**
+     * @event GeocodeEvent Before an address is looked up. Set `result` and `handled` to answer it yourself.
+     */
+    public const EVENT_BEFORE_GEOCODE = 'beforeGeocode';
+
+    /**
+     * @event GeocodeEvent After an address was looked up. Change `result` to adjust it.
+     */
+    public const EVENT_AFTER_GEOCODE = 'afterGeocode';
 
     /** Results are cached so repeated searches don't burn API quota. */
     public const CACHE_DURATION = 60 * 60 * 24 * 30;
@@ -65,6 +77,19 @@ class GeoService extends Component
             $country = null;
         }
 
+        $event = self::beforeGeocode($address, $country, GeocodeEvent::PURPOSE_SEARCH);
+        if (!$event->handled) {
+            $event->result = self::geocodeWithService($address, $country);
+        }
+
+        return self::afterGeocode($event);
+    }
+
+    /**
+     * @return array{lat: float, lng: float}|null
+     */
+    private static function geocodeWithService(string $address, ?string $country): ?array
+    {
         $geocoder = self::geocoder();
 
         if ($geocoder === 'mapbox') {
@@ -119,6 +144,24 @@ class GeoService extends Component
             $country = null;
         }
 
+        $event = self::beforeGeocode($address, $country, GeocodeEvent::PURPOSE_SAVE);
+        if (!$event->handled) {
+            $result = self::geocodeForSavingWithService($address, $country);
+            // Unavailable: there's no result to adjust, and the caller tries again later.
+            if ($result === false) {
+                return false;
+            }
+            $event->result = $result;
+        }
+
+        return self::afterGeocode($event);
+    }
+
+    /**
+     * @return array{lat: float, lng: float}|false|null
+     */
+    private static function geocodeForSavingWithService(string $address, ?string $country): array|false|null
+    {
         // Mapbox results may only be stored with permanent geocoding.
         if (Plugin::getInstance()->getSettings()->usesMapboxForSaving()) {
             $result = self::geocodeWithMapbox($address, $country);
@@ -134,6 +177,34 @@ class GeoService extends Component
         }
 
         return self::firstNominatimResult($data);
+    }
+
+    private static function beforeGeocode(string $address, ?string $country, string $purpose): GeocodeEvent
+    {
+        $event = new GeocodeEvent(['address' => $address, 'country' => $country, 'purpose' => $purpose]);
+        if (Event::hasHandlers(self::class, self::EVENT_BEFORE_GEOCODE)) {
+            Event::trigger(self::class, self::EVENT_BEFORE_GEOCODE, $event);
+        }
+
+        return $event;
+    }
+
+    /**
+     * @return array{lat: float, lng: float}|null
+     */
+    private static function afterGeocode(GeocodeEvent $event): ?array
+    {
+        if (Event::hasHandlers(self::class, self::EVENT_AFTER_GEOCODE)) {
+            $event->handled = false;
+            Event::trigger(self::class, self::EVENT_AFTER_GEOCODE, $event);
+        }
+
+        $result = $event->result;
+        if (!isset($result['lat'], $result['lng']) || !is_numeric($result['lat']) || !is_numeric($result['lng'])) {
+            return null;
+        }
+
+        return ['lat' => (float)$result['lat'], 'lng' => (float)$result['lng']];
     }
 
     /**

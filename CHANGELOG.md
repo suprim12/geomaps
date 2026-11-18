@@ -1,5 +1,11 @@
 # Release Notes for Geo Maps
 
+## Unreleased
+
+### Added
+- Events for developers: answer or change address lookups (`GeoService::EVENT_BEFORE_GEOCODE` and `EVENT_AFTER_GEOCODE`), change maps before they’re output (`EmbedMap::EVENT_BEFORE_RENDER`), and change the results of search endpoints and the locator (`EVENT_DEFINE_RESULT`).
+- The locator’s result and pin templates also get `address`, `url` and `directionsUrl`.
+
 ## 1.4.0 - 2026-11-12
 
 > [!NOTE]

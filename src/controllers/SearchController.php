@@ -15,6 +15,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\web\Controller;
 use DateTimeInterface;
+use suprim\geomaps\events\SearchResultEvent;
 use suprim\geomaps\models\GeoValue;
 use suprim\geomaps\Plugin;
 use suprim\geomaps\services\GeoService;
@@ -31,6 +32,11 @@ use yii\web\Response;
  */
 class SearchController extends Controller
 {
+    /**
+     * @event SearchResultEvent For each result, with the JSON it returns. Change `result` to change it.
+     */
+    public const EVENT_DEFINE_RESULT = 'defineResult';
+
     /** Results per page when the endpoint doesn't say. */
     private const DEFAULT_LIMIT = 20;
     /** The most results one request can ask for. */
@@ -181,6 +187,12 @@ class SearchController extends Controller
             if (is_string($name) && !array_key_exists($name, $result)) {
                 $result[$name] = $this->plainValue($this->read($element, $name));
             }
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_RESULT)) {
+            $event = new SearchResultEvent(['element' => $element, 'location' => $location, 'result' => $result]);
+            $this->trigger(self::EVENT_DEFINE_RESULT, $event);
+            $result = $event->result;
         }
 
         return $result;

@@ -14,6 +14,7 @@ use craft\base\Model;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use suprim\geomaps\events\MapEvent;
 use suprim\geomaps\Plugin;
 use suprim\geomaps\services\GeoService;
 use suprim\geomaps\web\ClusterAsset;
@@ -21,6 +22,11 @@ use suprim\geomaps\web\EmbedAsset;
 
 class EmbedMap extends Model
 {
+    /**
+     * @event MapEvent Before a map is output, with its options. Change `options`, such as `markers`, to change it.
+     */
+    public const EVENT_BEFORE_RENDER = 'beforeRender';
+
     public mixed   $center = null;
     public mixed   $centerFallback = null;
     /** Pixels, or a CSS length such as `'100%'` or `'60vh'`. */
@@ -57,6 +63,12 @@ class EmbedMap extends Model
 
     public function embed(array $options = []): \Twig\Markup
     {
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_RENDER)) {
+            $event = new MapEvent(['options' => $options]);
+            $this->trigger(self::EVENT_BEFORE_RENDER, $event);
+            $options = $event->options;
+        }
+
         $this->setOptions($options);
 
         $id = $this->id ?? 'geo_map_' . StringHelper::randomString(8);
