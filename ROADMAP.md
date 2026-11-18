@@ -18,6 +18,10 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 - **Import and export** (1.4, Pro). Locations, zones and trails as CSV, GeoJSON, KML or GPX.
 - **Structured data** (1.4, Pro). schema.org local business data for location pages.
 - **Delivery zones for Craft Commerce** (1.4, Pro). Shipping and discount conditions for drawn zones and distance from the store.
+- **Events** (1.5). Answer or change address lookups, change maps, and add to search results.
+- **Craft addresses** (1.5). Use them as places; Pro looks up their coordinates and finds the nearest with `near()`.
+- **Live locator** (1.5, Pro). Searches without reloading the page, with “Search this area” and filters.
+- **Multiple locations per entry** (1.5, Pro). One field holding several addresses, with search matching the nearest.
 
 ## Next
 
@@ -25,7 +29,6 @@ Have a request? Open an issue on [GitHub](https://github.com/suprim12/geomaps/is
 
 ## Later
 
-- **Multiple locations per entry.** One field holding several addresses, such as a business with many branches, with search matching the nearest.
 - **Large datasets.** Native database spatial indexes for sites with tens of thousands of locations.
 - **A map of your entries in the control panel.** See every location in a section on one map, and jump to an entry from its pin.
 - **Route corridor search.** Find entries within a distance of a route or line.

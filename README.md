@@ -18,12 +18,17 @@ Pin an address, draw areas, and find the nearest entries, or the zone that conta
 - **Front-end maps.** Interactive Leaflet or Google maps with markers and shapes, and Google or Mapbox static map images, straight from Twig.
 - **Flexible field settings.** Hide the pin, drawing, search, address or map; set zoom limits; limit search to up to 5 countries.
 - **GraphQL and Feed Me.** Query, search and save locations in headless projects, and import locations from feeds.
+- **Works with Craft addresses.** Use a Commerce cart’s shipping address or a user’s address anywhere a place is accepted, and get the distance between any two places with `craft.geomaps.distance()`.
+- **Events for developers.** Answer address lookups yourself, change maps before they’re output, and add to search results.
 - **One-click import.** Already using another map plugin? Convert its fields in place. Handles, layouts, content and most templates carry over.
 
 ## Geo Maps Pro
 
 Everything above is in Geo Maps Lite, which is free. [Geo Maps Pro](https://plugins.geomaps.suprim.com.au/getting-started/pro) adds features that save time on bigger builds:
 
+- **[Several locations](https://plugins.geomaps.suprim.com.au/guides/several-locations).** One field holds a business’s branches; distance search finds the nearest.
+- **[Live locator](https://plugins.geomaps.suprim.com.au/guides/locator#live-searches).** Results update without reloading the page, with **Search this area**.
+- **[Craft addresses](https://plugins.geomaps.suprim.com.au/guides/addresses).** Coordinates for addresses in Addresses fields, and `near()` to find the nearest.
 - **[Marker clustering](https://plugins.geomaps.suprim.com.au/guides/maps#marker-clustering).** Groups nearby pins on maps with hundreds of locations.
 - **[Missing coordinates](https://plugins.geomaps.suprim.com.au/guides/missing-coordinates).** Looks up coordinates for imported locations that only have an address.
 - **[Search within an area](https://plugins.geomaps.suprim.com.au/guides/search#search-within-an-area).** Finds entries inside the visible map or a drawn shape, for “search as the map moves”.
