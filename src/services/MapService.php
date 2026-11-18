@@ -231,11 +231,8 @@ class MapService extends Component
             }
         }
 
+        // Coordinates, an address, a Craft address or another location field's value.
         $location = $value['coordinate'] ?? $value['location'] ?? null;
-
-        if ($location instanceof GeoValue) {
-            $location = ['lat' => $location->lat, 'lng' => $location->lng];
-        }
 
         if ($location === null) {
             return $within;
@@ -267,16 +264,12 @@ class MapService extends Component
             ]
         );
 
-        // Spherical law of cosines, clamped so floating point error can’t push ACOS out of range.
-        $distanceSql = sprintf(
-            '(%F * DEGREES(ACOS(LEAST(1.0, GREATEST(-1.0, COS(RADIANS(%F)) * COS(RADIANS([[%s.lat]])) * COS(RADIANS(%F) - RADIANS([[%s.lng]])) + SIN(RADIANS(%F)) * SIN(RADIANS([[%s.lat]])))))))',
-            $perDegree, $lat, $alias, $lng, $alias, $lat, $alias,
-        );
+        $distanceSql = self::distanceSql("[[$alias.lat]]", "[[$alias.lng]]", $lat, $lng, $perDegree);
 
         $query->subQuery->addSelect(['distance' => new Expression($distanceSql)]);
 
         // Order by distance unless the template asked for something else.
-        if ($this->usesDefaultOrder($query)) {
+        if (self::usesDefaultOrder($query)) {
             $query->orderBy(['distance' => SORT_ASC]);
         }
 
@@ -286,24 +279,7 @@ class MapService extends Component
             return $within;
         }
 
-        // Bounding box first so the lat/lng index can narrow rows before the trig runs.
-        $latDelta = $radius / $perDegree;
-        $lngDelta = $radius / max(0.000001, $perDegree * abs(cos(deg2rad($lat))));
-        $condition = ['and', ['between', "$alias.lat", $lat - $latDelta, $lat + $latDelta]];
-
-        // Near the poles the box covers every longitude; across the ±180° line it wraps to the other side.
-        if ($lat + $latDelta < 90 && $lat - $latDelta > -90 && $lngDelta < 180) {
-            $west = $lng - $lngDelta;
-            $east = $lng + $lngDelta;
-
-            $condition[] = match (true) {
-                $west < -180 => ['or', ['>=', "$alias.lng", $west + 360], ['<=', "$alias.lng", $east]],
-                $east > 180 => ['or', ['>=', "$alias.lng", $west], ['<=', "$alias.lng", $east - 360]],
-                default => ['between', "$alias.lng", $west, $east],
-            };
-        }
-
-        $condition[] = new Expression(sprintf('%s <= %F', $distanceSql, $radius));
+        $condition = self::radiusCondition("$alias.lat", "$alias.lng", $distanceSql, $lat, $lng, $radius, $perDegree);
 
         return $within !== null ? ['and', $within, $condition] : $condition;
     }
@@ -418,10 +394,6 @@ class MapService extends Component
      */
     private function containsCondition(array $fieldIds, mixed $location, ?string $country): array|false
     {
-        if ($location instanceof GeoValue) {
-            $location = ['lat' => $location->lat, 'lng' => $location->lng];
-        }
-
         $point = GeoService::resolveLocation($location, $country);
 
         if (!$point) {
@@ -457,6 +429,45 @@ class MapService extends Component
     }
 
     /**
+     * SQL for the distance from a point to the coordinates in two columns, in the unit of `$perDegree`.
+     * Spherical law of cosines, clamped so floating point error can’t push ACOS out of range.
+     */
+    public static function distanceSql(string $latSql, string $lngSql, float $lat, float $lng, float $perDegree = self::KM_PER_DEGREE): string
+    {
+        return sprintf(
+            '(%F * DEGREES(ACOS(LEAST(1.0, GREATEST(-1.0, COS(RADIANS(%F)) * COS(RADIANS(%s)) * COS(RADIANS(%F) - RADIANS(%s)) + SIN(RADIANS(%F)) * SIN(RADIANS(%s)))))))',
+            $perDegree, $lat, $latSql, $lng, $lngSql, $lat, $latSql,
+        );
+    }
+
+    /**
+     * Condition for coordinates within a radius of a point: a bounding box first, so an index on the columns can
+     * narrow the rows before the trigonometry runs, then the exact distance.
+     */
+    public static function radiusCondition(string|\yii\db\ExpressionInterface $latColumn, string|\yii\db\ExpressionInterface $lngColumn, string $distanceSql, float $lat, float $lng, float $radius, float $perDegree): array
+    {
+        $latDelta = $radius / $perDegree;
+        $lngDelta = $radius / max(0.000001, $perDegree * abs(cos(deg2rad($lat))));
+        $condition = ['and', ['between', $latColumn, $lat - $latDelta, $lat + $latDelta]];
+
+        // Near the poles the box covers every longitude; across the ±180° line it wraps to the other side.
+        if ($lat + $latDelta < 90 && $lat - $latDelta > -90 && $lngDelta < 180) {
+            $west = $lng - $lngDelta;
+            $east = $lng + $lngDelta;
+
+            $condition[] = match (true) {
+                $west < -180 => ['or', ['>=', $lngColumn, $west + 360], ['<=', $lngColumn, $east]],
+                $east > 180 => ['or', ['>=', $lngColumn, $west], ['<=', $lngColumn, $east - 360]],
+                default => ['between', $lngColumn, $west, $east],
+            };
+        }
+
+        $condition[] = new Expression(sprintf('%s <= %F', $distanceSql, $radius));
+
+        return $condition;
+    }
+
+    /**
      * Great-circle distance using the same formula as the SQL search.
      */
     public static function distance(float $lat1, float $lng1, float $lat2, float $lng2, float $perDegree = self::KM_PER_DEGREE): float
@@ -467,7 +478,7 @@ class MapService extends Component
         return $perDegree * rad2deg(acos(max(-1.0, min(1.0, $cos))));
     }
 
-    private function usesDefaultOrder(ElementQuery $query): bool
+    public static function usesDefaultOrder(ElementQuery $query): bool
     {
         $orderBy = $query->orderBy;
 

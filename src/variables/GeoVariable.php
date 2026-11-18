@@ -14,6 +14,8 @@ use suprim\geomaps\models\AddressInput;
 use suprim\geomaps\models\EmbedMap;
 use suprim\geomaps\models\Locator;
 use suprim\geomaps\models\StaticMap;
+use suprim\geomaps\services\GeoService;
+use suprim\geomaps\services\MapService;
 
 class GeoVariable
 {
@@ -70,5 +72,24 @@ class GeoVariable
     public function locator(array $options = []): \Twig\Markup
     {
         return (new Locator())->render($options);
+    }
+
+    /**
+     * The straight-line distance between two places, or null when either can't be found. Each place is an address,
+     * `{ lat, lng }`, a Craft address or a location field's value; `unit` is `km` or `mi`.
+     *
+     *   {{ craft.geomaps.distance(entry.location, cart.shippingAddress)|number_format(1) }} km
+     */
+    public function distance(mixed $from, mixed $to, string $unit = 'km'): ?float
+    {
+        $a = GeoService::resolveLocation($from);
+        $b = GeoService::resolveLocation($to);
+        if (!$a || !$b) {
+            return null;
+        }
+
+        $perDegree = GeoService::normalizeUnit($unit) === 'mi' ? MapService::MI_PER_DEGREE : MapService::KM_PER_DEGREE;
+
+        return round(MapService::distance($a['lat'], $a['lng'], $b['lat'], $b['lng'], $perDegree), 3);
     }
 }

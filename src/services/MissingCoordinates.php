@@ -14,6 +14,7 @@ use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\elements\Address;
 use craft\helpers\Queue as QueueHelper;
 use Generator;
 use suprim\geomaps\fields\GeoField;
@@ -44,7 +45,7 @@ class MissingCoordinates extends Component
      * when the field isn't translated. Items carry ids rather than elements, so `fill()` works on a
      * fresh copy.
      *
-     * @return Generator<array{type: class-string<ElementInterface>, id: int, siteId: int, handle: string, fieldId: int, address: string, country: ?string}>
+     * @return Generator<array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string}>
      */
     public function find(?string $fieldHandle = null, bool $retry = false): Generator
     {
@@ -107,17 +108,26 @@ class MissingCoordinates extends Component
                 }
             }
         }
+
+        // Craft's own addresses, unless only one field was asked for.
+        if ($fieldHandle === null) {
+            yield from Plugin::getInstance()->addresses->find(fn(string $address, ?string $country) => !$retry && $this->isKnownNotFound($address, $country));
+        }
     }
 
     /**
      * Looks up one value's address and saves its coordinates on a freshly loaded copy of the element,
      * so changes made since the scan (titles, a pin placed by hand) aren't overwritten.
      *
-     * @param array{type: class-string<ElementInterface>, id: int, siteId: int, handle: string, fieldId: int, address: string, country: ?string} $item
+     * @param array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string} $item
      * @return string One of the class constants.
      */
     public function fill(array $item): string
     {
+        if ($item['type'] === Address::class) {
+            return $this->fillAddress($item);
+        }
+
         $element = $item['type']::find()->id($item['id'])->siteId($item['siteId'])->status(null)->one();
         $value = $element?->getFieldValue($item['handle']);
 
@@ -149,6 +159,25 @@ class MissingCoordinates extends Component
         $element->resaving = true;
 
         return Craft::$app->getElements()->saveElement($element, false) ? self::SAVED : self::NOT_FOUND;
+    }
+
+    /**
+     * Looks up a Craft address and saves its coordinates in Craft's own latitude and longitude.
+     */
+    private function fillAddress(array $item): string
+    {
+        $result = GeoService::geocodeForSaving($item['address'], $item['country']);
+
+        if ($result === false) {
+            return self::UNAVAILABLE;
+        }
+
+        if ($result === null) {
+            Craft::$app->getCache()->set($this->notFoundKey($item['address'], $item['country']), true, GeoService::CACHE_DURATION);
+            return self::NOT_FOUND;
+        }
+
+        return Plugin::getInstance()->addresses->save($item['id'], $item['address'], $result) ? self::SAVED : self::SKIPPED;
     }
 
     /**

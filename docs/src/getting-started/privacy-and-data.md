@@ -36,8 +36,9 @@ Each map service receives the requester’s IP address and browser details, as w
 | When | Sent to | What |
 |---|---|---|
 | A template searches by an address (`location: 'Glenelg'`, `contains: '12 Smith St'`) | Nominatim with OpenStreetMap, Mapbox (`api.mapbox.com`) with Mapbox, or Google Geocoding with Google Maps and a server key | The address text and your site’s URL (Nominatim requires requests to identify the site) |
+| Pro: finding [missing coordinates](/guides/missing-coordinates), including for [Craft addresses](/guides/addresses) | Nominatim with OpenStreetMap, or Mapbox with permanent geocoding | The address text and your site’s URL. By default only addresses in entries’ Addresses fields are sent, not users’ or orders’ |
 
-Searches by coordinates (`{ lat, lng }`) or by another entry’s value aren’t sent anywhere. If your site searches by addresses that visitors type, those addresses go to the map service; mention this in your privacy policy.
+Searches by coordinates (`{ lat, lng }`), or by another entry’s value or a Craft address that already has coordinates, aren’t sent anywhere. If your site searches by addresses that visitors type, those addresses go to the map service; mention this in your privacy policy.
 
 ### Visitors to your site
 

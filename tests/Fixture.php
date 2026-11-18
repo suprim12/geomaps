@@ -8,6 +8,7 @@ use craft\db\Table;
 use craft\elements\Entry;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\entries\EntryTitleField;
+use craft\fields\Addresses;
 use craft\helpers\Db;
 use craft\models\EntryType;
 use craft\models\FieldLayout;
@@ -18,6 +19,8 @@ use suprim\geomaps\events\GeocodeEvent;
 use suprim\geomaps\fields\GeoField;
 use suprim\geomaps\services\GeoService;
 use yii\base\Event;
+use yii\queue\PushEvent;
+use yii\queue\Queue;
 
 /**
  * The field, entry type and section the tests save entries into. They’re made when the tests start and removed
@@ -26,6 +29,7 @@ use yii\base\Event;
 final class Fixture
 {
     public const FIELD = 'geoTestLocation';
+    public const ADDRESSES_FIELD = 'geoTestAddresses';
     public const SECTION = 'geoTestPlaces';
     public const ENTRY_TYPE = 'geoTestPlace';
 
@@ -38,6 +42,9 @@ final class Fixture
         'sydney' => ['lat' => -33.8688, 'lng' => 151.2093],
     ];
 
+    /** @var array<int, mixed> Jobs the tests would have queued. */
+    public static array $pushed = [];
+
     /** @var string[] Addresses the tests looked up, so a test can check whether a lookup happened. */
     public static array $lookups = [];
 
@@ -49,6 +56,13 @@ final class Fixture
     {
         // Saving the fixture mustn't rewrite the project's config files.
         Craft::$app->getProjectConfig()->writeYamlAutomatically = false;
+
+        // Nothing the tests do may leave jobs in the site's queue, such as pruning revisions or finding missing
+        // coordinates. Tests that need a job see it with $pushed.
+        Craft::$app->getQueue()->on(Queue::EVENT_BEFORE_PUSH, function(PushEvent $event) {
+            self::$pushed[] = $event->job;
+            $event->handled = true;
+        });
 
         // Never call a real geocoding service: answer from ADDRESSES, and say nothing was found otherwise.
         foreach ([GeoService::EVENT_BEFORE_GEOCODE] as $name) {
@@ -67,9 +81,14 @@ final class Fixture
         }
         self::$fieldId = $field->id;
 
+        $addresses = new Addresses(['name' => 'Geo test addresses', 'handle' => self::ADDRESSES_FIELD]);
+        if (!Craft::$app->getFields()->saveField($addresses)) {
+            throw new \RuntimeException('Couldn’t save the test addresses field: ' . implode(' ', $addresses->getFirstErrors()));
+        }
+
         $layout = new FieldLayout(['type' => Entry::class]);
         $tab = new FieldLayoutTab(['name' => 'Content', 'layout' => $layout]);
-        $tab->setElements([new EntryTitleField(), new CustomField($field)]);
+        $tab->setElements([new EntryTitleField(), new CustomField($field), new CustomField($addresses)]);
         $layout->setTabs([$tab]);
 
         $entryType = new EntryType(['name' => 'Geo test place', 'handle' => self::ENTRY_TYPE]);
@@ -99,12 +118,22 @@ final class Fixture
     public static function tearDown(): void
     {
         self::removeLeftovers();
+        // A queued job is remembered so saves don't queue another; none was queued.
+        Craft::$app->getCache()->delete('geomaps:geocode-queued');
     }
 
     public static function field(): GeoField
     {
         $field = Craft::$app->getFields()->getFieldById((int)self::$fieldId);
         assert($field instanceof GeoField);
+
+        return $field;
+    }
+
+    public static function addressesField(): Addresses
+    {
+        $field = Craft::$app->getFields()->getFieldByHandle(self::ADDRESSES_FIELD);
+        assert($field instanceof Addresses);
 
         return $field;
     }
@@ -136,16 +165,18 @@ final class Fixture
         if ($entryType) {
             $entries->deleteEntryType($entryType);
         }
-        $field = Craft::$app->getFields()->getFieldByHandle(self::FIELD);
-        if ($field) {
-            Craft::$app->getFields()->deleteField($field);
+        foreach ([self::FIELD, self::ADDRESSES_FIELD] as $handle) {
+            $field = Craft::$app->getFields()->getFieldByHandle($handle);
+            if ($field) {
+                Craft::$app->getFields()->deleteField($field);
+            }
         }
 
         // Craft keeps deleted ones for a while; remove the tests’ own for good, by their handles.
         $layoutIds = (new Query())->select('fieldLayoutId')->from(Table::ENTRYTYPES)->where(['handle' => self::ENTRY_TYPE])->column();
         Db::delete(Table::ENTRYTYPES, ['and', ['handle' => self::ENTRY_TYPE], ['not', ['dateDeleted' => null]]]);
         Db::delete(Table::SECTIONS, ['and', ['handle' => self::SECTION], ['not', ['dateDeleted' => null]]]);
-        Db::delete(Table::FIELDS, ['and', ['handle' => self::FIELD], ['not', ['dateDeleted' => null]]]);
+        Db::delete(Table::FIELDS, ['and', ['handle' => [self::FIELD, self::ADDRESSES_FIELD]], ['not', ['dateDeleted' => null]]]);
         if ($layoutIds) {
             Db::delete(Table::FIELDLAYOUTS, ['and', ['id' => array_filter($layoutIds)], ['not', ['dateDeleted' => null]]]);
         }

@@ -5,6 +5,9 @@
 ### Added
 - Events for developers: answer or change address lookups (`GeoService::EVENT_BEFORE_GEOCODE` and `EVENT_AFTER_GEOCODE`), change maps before they’re output (`EmbedMap::EVENT_BEFORE_RENDER`), and change the results of search endpoints and the locator (`EVENT_DEFINE_RESULT`).
 - The locator’s result and pin templates also get `address`, `url` and `directionsUrl`.
+- Craft addresses, such as a Commerce cart’s shipping address or a user’s address, can be used wherever a place is accepted: location searches, map centres and pins, and the new `craft.geomaps.distance(a, b)`. So can another entry’s location field.
+- Pro: Craft addresses in Addresses fields get coordinates in the background, saved in Craft’s own latitude and longitude, along with missing coordinates. Set `geocodeAddresses` to `all` to include users’ and orders’ addresses.
+- Pro: `near()` on address queries finds Craft addresses near a place, nearest first, with `distance` on each.
 
 ## 1.4.0 - 2026-11-12
 

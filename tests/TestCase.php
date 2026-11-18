@@ -25,6 +25,8 @@ abstract class TestCase extends BaseTestCase
         $this->edition = $this->plugin()->edition;
         $this->original = clone $this->settings();
         Fixture::$lookups = [];
+        Fixture::$pushed = [];
+        Craft::$app->getCache()->delete('geomaps:geocode-queued');
     }
 
     protected function tearDown(): void

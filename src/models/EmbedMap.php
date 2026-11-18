@@ -440,7 +440,7 @@ class EmbedMap extends Model
             }
         }
 
-        if (is_string($center) && !empty(trim($center))) {
+        if ((is_string($center) && !empty(trim($center))) || is_object($center)) {
             $coords = GeoService::resolveLocation($center);
             if ($coords) {
                 return $coords;
@@ -498,7 +498,8 @@ class EmbedMap extends Model
                 if (is_numeric($lat) && is_numeric($lng)) {
                     $coords = ['lat' => (float) $lat, 'lng' => (float) $lng];
                 }
-            } elseif (is_string($location) && !empty($location)) {
+            } elseif ((is_string($location) && !empty($location)) || is_object($location)) {
+                // An address, a Craft address or a location field's value.
                 $coords = GeoService::resolveLocation($location);
             }
 

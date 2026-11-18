@@ -12,16 +12,12 @@ namespace suprim\geomaps\integrations\commerce;
 use Craft;
 use craft\elements\Address;
 use suprim\geomaps\Plugin;
-use suprim\geomaps\services\GeoService;
 
 /**
  * Coordinates for Craft addresses, such as a Commerce order's shipping address or the store's location.
  */
 class AddressLocation
 {
-    /** @var array<string, array{lat: float, lng: float}|null> Lookups made during this request. */
-    private static array $_memo = [];
-
     /**
      * Whether the delivery conditions can match. They need Pro: on Lite they never match, so a
      * shipping rule or discount that uses them isn't applied to every order.
@@ -43,33 +39,6 @@ class AddressLocation
      */
     public static function point(?Address $address): ?array
     {
-        if (!$address) {
-            return null;
-        }
-
-        if (is_numeric($address->latitude) && is_numeric($address->longitude)) {
-            return ['lat' => (float)$address->latitude, 'lng' => (float)$address->longitude];
-        }
-
-        $text = implode(', ', array_filter([
-            $address->addressLine1,
-            $address->addressLine2,
-            $address->locality,
-            $address->administrativeArea,
-            $address->postalCode,
-        ], fn($part) => is_string($part) && trim($part) !== ''));
-
-        if ($text === '') {
-            return null;
-        }
-
-        $country = $address->countryCode ?: null;
-        $key = $text . '|' . $country;
-        if (!array_key_exists($key, self::$_memo)) {
-            $found = GeoService::geocode($text, $country);
-            self::$_memo[$key] = $found ? ['lat' => (float)$found['lat'], 'lng' => (float)$found['lng']] : null;
-        }
-
-        return self::$_memo[$key];
+        return Plugin::getInstance()->addresses->point($address);
     }
 }

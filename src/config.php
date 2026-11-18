@@ -39,6 +39,10 @@ return [
         // Pro: look up coordinates in the background for locations saved with only an address.
         // 'geocodeMissing' => true,
 
+        // Pro: which of Craft’s own addresses also get coordinates: 'entries' (Addresses fields on entries),
+        // 'all' (also users’ and Commerce orders’ addresses, sent to the map service), or false.
+        // 'geocodeAddresses' => 'entries',
+
         // Pro: JSON search endpoints for headless front ends, at /actions/geomaps/search?endpoint=stores
         // 'searchEndpoints' => [
         //     'stores' => [

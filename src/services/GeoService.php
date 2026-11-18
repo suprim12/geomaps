@@ -45,10 +45,26 @@ class GeoService extends Component
     public const CACHE_DURATION = 60 * 60 * 24 * 30;
 
     /**
-     * Returns `['lat' => float, 'lng' => float]` for a coordinate array or an address string.
+     * Returns `['lat' => float, 'lng' => float]` for a coordinate array, an address string, a Craft address or a
+     * location field's value.
      */
     public static function resolveLocation(mixed $location, ?string $country = null): ?array
     {
+        // A Craft address, such as a Commerce order's shipping address.
+        if ($location instanceof \craft\elements\Address) {
+            return Plugin::getInstance()->addresses->point($location);
+        }
+
+        // Another location field's value: its coordinates, or its address looked up.
+        if ($location instanceof \suprim\geomaps\models\GeoValue) {
+            if ($location->hasCoordinates()) {
+                return ['lat' => (float)$location->lat, 'lng' => (float)$location->lng];
+            }
+            $text = Plugin::getInstance()->missingCoordinates->addressText($location);
+
+            return $text !== null ? static::geocode($text, $location->countryCode ?? $country) : null;
+        }
+
         if (is_array($location)) {
             $lat = $location['lat'] ?? $location[0] ?? null;
             $lng = $location['lng'] ?? $location[1] ?? null;

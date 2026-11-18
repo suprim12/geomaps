@@ -6,6 +6,8 @@ Locations need coordinates for maps, distance search and zone lookups. Content f
 
 With Pro active, when an entry (or any other element) is saved with an address but no coordinates, a background job looks the address up and saves the coordinates. This covers [Feed Me](/guides/feed-me) imports, front-end forms and anything else that saves elements.
 
+Craft’s own addresses in Addresses fields on entries get coordinates the same way. See [Craft Addresses](/guides/addresses).
+
 It’s on by default. To turn it off, set `geocodeMissing` in `config/geomaps.php`:
 
 ```php

@@ -32,6 +32,7 @@ use suprim\geomaps\integrations\graphql\types\GeoType;
 use suprim\geomaps\jobs\RebuildLookup;
 use suprim\geomaps\models\Settings;
 use suprim\geomaps\records\GeoRecord;
+use suprim\geomaps\services\Addresses;
 use suprim\geomaps\services\GeoService;
 use suprim\geomaps\services\ImportService;
 use suprim\geomaps\services\MapService;
@@ -47,6 +48,7 @@ use yii\base\Event;
  * @property-read ImportService $import
  * @property-read ZoneService $zones
  * @property-read MissingCoordinates $missingCoordinates
+ * @property-read Addresses $addresses
  * @method Settings getSettings()
  */
 
@@ -87,6 +89,7 @@ class Plugin extends BasePlugin
                 'import' => ImportService::class,
                 'zones' => ZoneService::class,
                 'missingCoordinates' => MissingCoordinates::class,
+                'addresses' => Addresses::class,
             ],
         ];
     }
@@ -178,6 +181,20 @@ class Plugin extends BasePlugin
             }
         }
 
+
+        // Pro: Craft addresses saved without coordinates get them in the background, like missing coordinates.
+        Event::on(\craft\elements\Address::class, \craft\base\Element::EVENT_AFTER_SAVE, function(\craft\events\ModelEvent $event) {
+            /** @var \craft\elements\Address $address */
+            $address = $event->sender;
+            if ($this->addresses->shouldQueue($address)) {
+                $this->missingCoordinates->queue();
+            }
+        });
+
+        // `near()` on address queries: `craft.addresses.near({ location: 'Adelaide', radius: 20 })`.
+        Event::on(\craft\elements\db\AddressQuery::class, \craft\elements\db\ElementQuery::EVENT_DEFINE_BEHAVIORS, function(\craft\events\DefineBehaviorsEvent $event) {
+            $event->behaviors['geomapsNear'] = \suprim\geomaps\behaviors\AddressQueryBehavior::class;
+        });
 
         // When an existing field becomes a Geo Maps field (e.g. a Maps import arriving via project config),
         // index its saved values so location search works straight away.

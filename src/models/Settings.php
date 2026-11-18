@@ -53,6 +53,17 @@ class Settings extends Model
     /** Pro: find coordinates in the background for saved locations that only have an address. */
     public bool $geocodeMissing = true;
 
+    /** Craft addresses in Addresses fields on entries get coordinates. */
+    public const ADDRESSES_ENTRIES = 'entries';
+    /** Every Craft address gets coordinates, including users’ and Commerce orders’. */
+    public const ADDRESSES_ALL = 'all';
+
+    /**
+     * Pro, config file only: which of Craft’s own addresses get coordinates in the background, along with missing
+     * coordinates: `entries` (addresses in Addresses fields on entries), `all` (also users’ and orders’), or false.
+     */
+    public string|bool $geocodeAddresses = self::ADDRESSES_ENTRIES;
+
     /**
      * Pro, config file only: JSON search endpoints, keyed by name, for `actions/geomaps/search?endpoint=name`.
      * See `src/config.php` for the options.
@@ -85,6 +96,7 @@ class Settings extends Model
             ['mapboxToken', 'required', 'when' => fn() => $this->service === self::SERVICE_MAPBOX, 'message' => Craft::t('geomaps', 'Add a Mapbox access token to use Mapbox.')],
             ['mapToken', 'required', 'when' => fn() => $this->service === self::SERVICE_GOOGLE, 'message' => Craft::t('geomaps', 'Add a browser key to use Google Maps.')],
             ['geocodeMissing', 'boolean'],
+            ['geocodeAddresses', 'in', 'range' => [self::ADDRESSES_ENTRIES, self::ADDRESSES_ALL, true, false], 'strict' => true],
             ['mapboxPermanent', 'boolean'],
             [['mapProvider', 'cpMapProvider'], 'in', 'range' => ['auto', 'google', 'tiles']],
         ]);
