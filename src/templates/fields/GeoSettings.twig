@@ -35,6 +35,14 @@
 }) }}
 
 {{ forms.lightswitchField({
+	label: 'Allow Several Locations'|t('geomaps'),
+	instructions: 'Let authors add more than one location, such as a business’s branches. Distance search finds the nearest one.'|t('geomaps') ~ (craft.app.plugins.getPlugin('geomaps').isPro() ? '' : ' ' ~ 'Needs Geo Maps Pro.'|t('geomaps')),
+	id: 'allowMultiple',
+	name: 'allowMultiple',
+	on: field.allowMultiple
+}) }}
+
+{{ forms.lightswitchField({
 	label: 'Hide Search',
 	instructions: 'Hide the address search. Authors can still click the map or type coordinates.'|t('geomaps'),
 	id: 'hideSearch',

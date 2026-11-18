@@ -59,6 +59,8 @@ class GeoField extends Field implements PreviewableFieldInterface
      * their location is then the centre of the shapes.
      */
     public bool $showMarker = true;
+    /** Pro: whether authors can add more than one location, such as a business's branches. */
+    public bool $allowMultiple = false;
 
 
     /**
@@ -540,6 +542,8 @@ class GeoField extends Field implements PreviewableFieldInterface
                 'language' => Craft::$app->language,
                 // The field saves what's found, so Mapbox is only used with permanent geocoding.
                 'search' => $settings->usesMapboxForSaving() ? 'mapbox' : null,
+                // Pro: more than one location.
+                'multiple' => $this->allowMultiple && Plugin::getInstance()->isPro(),
                 'mapboxToken' => $settings->usesMapboxForSaving() ? $settings->getMapboxToken() : null,
             ],
             'settings' => $this->getSettings(),
@@ -553,13 +557,17 @@ class GeoField extends Field implements PreviewableFieldInterface
             return '';
         }
 
-        return implode(' ', array_filter([
-            $value->full_address,
-            $value->address1,
-            $value->suburb,
-            $value->postcode,
-            $value->country,
-        ]));
+        $words = [];
+        foreach ($value->getLocations() as $location) {
+            $words[] = $location->label;
+            $words[] = $location->full_address;
+            $words[] = $location->address1;
+            $words[] = $location->suburb;
+            $words[] = $location->postcode;
+            $words[] = $location->country;
+        }
+
+        return implode(' ', array_unique(array_filter($words)));
     }
 
     public function getElementConditionRuleType(): array|string|null

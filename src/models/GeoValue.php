@@ -46,11 +46,20 @@ class GeoValue extends Model
     public ?string $countryCode = null;
     public ?string $geoJson = null;
 
+    /** Pro: a name for this location among several, such as a branch name. */
+    public ?string $label = null;
+
     /**
      * Distance from the searched location, in the search unit.
-     * Only set on results of a proximity search.
+     * Only set on results of a proximity search; with several locations, to the nearest one.
      */
     public ?float  $distance = null;
+
+    /**
+     * With several locations, the one nearest the searched location.
+     * Only set on results of a proximity search.
+     */
+    public ?GeoValue $nearest = null;
 
     /**
      * Builds a value from stored/posted data. Returns null when there is nothing to store.
@@ -85,8 +94,59 @@ class GeoValue extends Model
 
         $geoJson = $data['geoJson'] ?? null;
         $value->geoJson = is_array($geoJson) ? json_encode($geoJson) : self::stringOrNull($geoJson);
+        $value->label = self::stringOrNull($data['label'] ?? null);
+
+        // Pro: more locations, such as a business's other branches. They're plain locations: no shapes or more.
+        $more = $data['locations'] ?? null;
+        if (is_string($more)) {
+            $more = Json::decodeIfJson($more);
+        }
+        foreach (is_array($more) ? $more : [] as $i => $location) {
+            if (!is_array($location)) {
+                continue;
+            }
+            unset($location['locations'], $location['geoJson']);
+            $extra = self::fromArray($location);
+            if (!$extra) {
+                continue;
+            }
+            foreach ($extra->getInputErrors() as $error) {
+                $value->_inputErrors[] = Craft::t('geomaps', 'Location {number}: {error}', ['number' => $i + 2, 'error' => $error]);
+            }
+            $value->_more[] = $extra;
+        }
 
         return $value->isEmpty() && empty($value->_inputErrors) ? null : $value;
+    }
+
+    /**
+     * Every location: this one first, then any more, such as a business's other branches (Pro).
+     *
+     *   {% for branch in entry.stores.locations %}{{ branch.label }}: {{ branch.address }}{% endfor %}
+     *
+     * @return GeoValue[]
+     */
+    public function getLocations(): array
+    {
+        return array_merge($this->isFirstEmpty() ? [] : [$this], $this->_more);
+    }
+
+    /**
+     * The locations after the first.
+     *
+     * @return GeoValue[]
+     */
+    public function getMoreLocations(): array
+    {
+        return $this->_more;
+    }
+
+    /**
+     * @param GeoValue[] $locations
+     */
+    public function setMoreLocations(array $locations): void
+    {
+        $this->_more = array_values($locations);
     }
 
     private static function coordinate(mixed $raw, string $label, int $limit, array &$errors): ?float
@@ -269,6 +329,11 @@ class GeoValue extends Model
     }
 
     public function isEmpty(): bool
+    {
+        return $this->isFirstEmpty() && !$this->_more;
+    }
+
+    private function isFirstEmpty(): bool
     {
         return !$this->hasCoordinates()
             && $this->full_address === null
@@ -623,6 +688,9 @@ class GeoValue extends Model
     /** @var string[] */
     private array $_inputErrors = [];
 
+    /** @var GeoValue[] Locations after the first. */
+    private array $_more = [];
+
     private ?ElementInterface $_element = null;
 
     /** Whether the field shows a location pin (set by the field; used as the embed() default). */
@@ -650,6 +718,9 @@ class GeoValue extends Model
             $this->_staticMap = new StaticMap();
             $this->_staticMap->center = ['lat' => $this->lat, 'lng' => $this->lng];
             $this->_staticMap->zoom = $this->zoom ?? 14;
+            if ($this->_more) {
+                $this->_staticMap->markers = $this->locationMarkers();
+            }
         }
 
         return $this->_staticMap;
@@ -672,15 +743,41 @@ class GeoValue extends Model
         $model = new EmbedMap();
 
         // Field value provides the defaults (location, zoom, shapes, pin); caller options take precedence.
-        $merged = array_merge([
+        $defaults = [
             // Values with only an address (e.g. from a feed) are centred on the geocoded address.
             'center' => $this->hasCoordinates() ? ['lat' => $this->lat, 'lng' => $this->lng] : $this->full_address,
             'zoom' => $this->zoom ?? 14,
             'geoJson' => $this->getGeoJsonData(),
             'marker' => $this->_showMarker,
-        ], $options);
+        ];
+
+        // Several locations: a pin for each, and the map zoomed to show them all.
+        if ($this->_more) {
+            $defaults['markers'] = $this->locationMarkers();
+            $defaults['fitMarkers'] = true;
+        }
+
+        $merged = array_merge($defaults, $options);
 
         return $model->embed($merged);
+    }
+
+    /**
+     * A marker for each location with coordinates, labelled with its label or address.
+     */
+    private function locationMarkers(): array
+    {
+        $markers = [];
+        foreach ($this->getLocations() as $location) {
+            if ($location->hasCoordinates() && ($location !== $this || $this->_showMarker)) {
+                $markers[] = [
+                    'location' => ['lat' => $location->lat, 'lng' => $location->lng],
+                    'label' => $location->label ?? $location->full_address,
+                ];
+            }
+        }
+
+        return $markers;
     }
 
     // -------------------------------------------------------------------------
@@ -694,7 +791,7 @@ class GeoValue extends Model
      */
     public function fields(): array
     {
-        return [
+        $fields = [
             'lat',
             'lng',
             'zoom',
@@ -706,5 +803,15 @@ class GeoValue extends Model
             'countryCode',
             'geoJson',
         ];
+
+        // Only stored when used, so values with one location are saved exactly as before.
+        if ($this->label !== null) {
+            $fields[] = 'label';
+        }
+        if ($this->_more) {
+            $fields['locations'] = fn() => array_map(fn(GeoValue $l) => array_diff_key($l->toArray(), ['geoJson' => true, 'zoom' => true]), $this->_more);
+        }
+
+        return $fields;
     }
 }

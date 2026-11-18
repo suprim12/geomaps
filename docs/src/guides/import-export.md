@@ -52,6 +52,7 @@ The first row names the columns. Geo Maps recognises these, in any order and upp
 | `postcode` | `zip`, `postal_code` |
 | `country`, `countryCode` | `country_code` |
 | `geoJson` | A drawn shape as GeoJSON text |
+| `location_label`, `locations` | For [fields with several locations](/guides/several-locations): the first location’s name, and the others as JSON |
 
 ```csv
 title,slug,lat,lng,address,suburb,postcode,country_code,phone

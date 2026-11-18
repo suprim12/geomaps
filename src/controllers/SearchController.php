@@ -160,6 +160,8 @@ class SearchController extends Controller
     {
         $value = $element->getFieldValue($handle);
         $location = $value instanceof GeoValue ? $value : null;
+        // With several locations, the one nearest the search.
+        $place = $location->nearest ?? $location;
 
         if (isset($config['transform']) && is_callable($config['transform'])) {
             return (array)($config['transform'])($element, $location);
@@ -171,16 +173,17 @@ class SearchController extends Controller
             'url' => $element->getUrl(),
             'distance' => $location?->distance,
             'unit' => $location?->distance !== null ? $unit : null,
-            'location' => $location ? [
-                'lat' => $location->lat,
-                'lng' => $location->lng,
-                'address' => $location->getAddress(),
-                'address1' => $location->address1,
-                'suburb' => $location->suburb,
-                'postcode' => $location->postcode,
-                'country' => $location->country,
-                'countryCode' => $location->countryCode,
-            ] : null,
+            'location' => $place ? array_filter([
+                'lat' => $place->lat,
+                'lng' => $place->lng,
+                'label' => $place->label,
+                'address' => $place->getAddress(),
+                'address1' => $place->address1,
+                'suburb' => $place->suburb,
+                'postcode' => $place->postcode,
+                'country' => $place->country,
+                'countryCode' => $place->countryCode,
+            ], fn($v, $k) => $k !== 'label' || $v !== null, ARRAY_FILTER_USE_BOTH) : null,
         ];
 
         foreach ((array)($config['fields'] ?? []) as $name) {

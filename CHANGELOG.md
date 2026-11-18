@@ -11,6 +11,7 @@
 - Pro: the locator searches live. Results and pins update without reloading the page, the address bar keeps the search, and **Search this area** searches the part of the map in view. Turn it off with `live: false`.
 - `filtersTemplate` for the locator puts your own filters, such as a category select, inside its search form.
 - Page scripts can replace a map’s markers with `element.geomaps.setMarkers()`, zoom to them with `fit()`, read the area in view with `getBounds()`, and follow the visitor’s moves with the `geomaps:moveend` event.
+- Pro: several locations in one field, such as a business’s branches. Turn on **Allow Several Locations** in the field’s settings. Distance search finds each entry by its nearest location, with `nearest` set to it; `locations` lists them all; maps show a pin for each; and the locator, search endpoints, GraphQL, missing coordinates and import and export all handle them. Values with one location are stored as before.
 
 ### Fixed
 - The locator didn’t say when no locations were found within the chosen distance.

@@ -29,7 +29,8 @@ class GeoType extends ObjectType implements SingularTypeInterface
             static::getName(),
             fn() => new self([
                 'name' => static::getName(),
-                'fields' => static::getFieldDefinitions(),
+                // A thunk: `locations` and `nearest` refer back to this type.
+                'fields' => fn() => static::getFieldDefinitions(),
             ])
         );
     }
@@ -47,7 +48,10 @@ class GeoType extends ObjectType implements SingularTypeInterface
             'country' => ['type' => Type::string(), 'description' => 'Country'],
             'countryCode' => ['type' => Type::string(), 'description' => 'Country Code'],
             'geoJson' => ['type' => Type::string(), 'description' => 'GeoJSON string'],
-            'distance' => ['type' => Type::float(),  'description' => 'Distance from the searched location (proximity searches only)'],
+            'distance' => ['type' => Type::float(),  'description' => 'Distance from the searched location (proximity searches only); with several locations, to the nearest'],
+            'label' => ['type' => Type::string(), 'description' => 'Name of this location among several, such as a branch'],
+            'locations' => ['type' => Type::listOf(static::getType()), 'description' => 'Every location: this one first, then any more (fields that allow several)'],
+            'nearest' => ['type' => static::getType(), 'description' => 'The location nearest the searched location (proximity searches only)'],
         ];
     }
 }

@@ -348,6 +348,87 @@
     border-top: 0;
 }
 
+/* Several locations (Pro) */
+.supgeo__locations {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--supgeo-border);
+}
+
+.supgeo__location-list {
+    margin: 0 0 10px;
+    padding: 0;
+    list-style: none;
+}
+
+.supgeo__location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 6px;
+}
+
+.supgeo__location.--active {
+    background: var(--gray-050, #f3f7fc);
+    box-shadow: inset 3px 0 0 var(--link-color, #2563eb);
+}
+
+.supgeo__location-pick {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px 8px;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.supgeo__location-number {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: #64748b;
+    border-radius: 50%;
+}
+
+.supgeo__location.--active .supgeo__location-number {
+    background: var(--link-color, #2563eb);
+}
+
+.supgeo__location-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.supgeo__location-remove {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--light-text-color, #64748b);
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.supgeo__location-remove:hover {
+    color: var(--error-color, #dc2626);
+    background: var(--gray-050, #f3f7fc);
+}
+
 .supgeo__details-head {
     margin-bottom: 12px;
     font-size: 14px;

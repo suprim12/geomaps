@@ -110,6 +110,12 @@ document.addEventListener("alpine:init", () => {
     suburb: null,
     country: null,
     countryCode: null,
+    // Pro: several locations. The fields above are the one being edited; `locations` holds them all.
+    label: null,
+    multiple: false,
+    locations: [],
+    activeIndex: 0,
+    _otherMarkers: null,
     geojsonText: null,
     suggestions: [],
     searchQuery: "",
@@ -271,6 +277,17 @@ document.addEventListener("alpine:init", () => {
       this.suburb = data.suburb || null;
       this.country = data.country || null;
       this.countryCode = data.countryCode || null;
+      this.label = data.label || null;
+
+      // Pro: several locations, with the first being edited.
+      this.multiple = !!data.multiple;
+      if (this.multiple) {
+        const more = Array.isArray(data.locations) ? data.locations : [];
+        this.locations = [this.locationSnapshot(), ...more.map((l) => this.locationSnapshot(l))];
+        this._otherMarkers = L.layerGroup().addTo(this.map);
+        this.drawOtherLocations();
+        if (more.length) this.fitLocations();
+      }
 
       // Initialize Geo JSON data
       if (data.geoJson) {
@@ -1336,9 +1353,83 @@ document.addEventListener("alpine:init", () => {
       }
       return JSON.stringify(gj, null, 2);
     },
+    // ########################################## Several locations (Pro)
+    locationSnapshot(from = this) {
+      const keys = ["lat", "lng", "full_address", "address1", "suburb", "postcode", "country", "countryCode", "label"];
+      return Object.fromEntries(keys.map((k) => [k, from[k] === undefined || from[k] === "" ? null : from[k]]));
+    },
+    // Every location, with the one being edited as it is now.
+    get postedLocations() {
+      return this.locations.map((l, i) => (i === this.activeIndex ? this.locationSnapshot() : l));
+    },
+    get moreLocationsJson() {
+      const more = this.postedLocations
+        .slice(1)
+        .filter((l) => (l.lat !== null && l.lng !== null) || l.full_address || l.address1);
+      return more.length ? JSON.stringify(more) : "";
+    },
+    locationRowLabel(l) {
+      const place = l.full_address || l.address1 || (l.lat !== null && l.lng !== null ? `${l.lat}, ${l.lng}` : null);
+      if (l.label && place) return `${l.label} · ${place}`;
+      return l.label || place || "New location";
+    },
+    loadLocation(l) {
+      ["lat", "lng", "full_address", "address1", "suburb", "postcode", "country", "countryCode", "label"].forEach((k) => (this[k] = l[k] ?? null));
+      this.searchQuery = "";
+      const searchInput = this.$refs["apgeo-search"]?.querySelector("input");
+      if (searchInput) searchInput.value = "";
+      if (this.hasLocation) {
+        this.createMarker(parseFloat(this.lat), parseFloat(this.lng));
+        this.map.setView([parseFloat(this.lat), parseFloat(this.lng)], Math.max(this.map.getZoom(), 13));
+      } else {
+        this.createMarker(this.defaultLat, this.defaultLng);
+      }
+    },
+    selectLocation(i) {
+      if (i === this.activeIndex) return;
+      this.locations[this.activeIndex] = this.locationSnapshot();
+      this.activeIndex = i;
+      this.loadLocation(this.locations[i]);
+      this.drawOtherLocations();
+    },
+    addLocation() {
+      this.locations[this.activeIndex] = this.locationSnapshot();
+      this.locations.push(this.locationSnapshot({}));
+      this.activeIndex = this.locations.length - 1;
+      this.loadLocation(this.locations[this.activeIndex]);
+      this.drawOtherLocations();
+      this.$nextTick(() => this.$refs["apgeo-search"]?.querySelector("input")?.focus());
+    },
+    removeLocation(i) {
+      this.locations[this.activeIndex] = this.locationSnapshot();
+      this.locations.splice(i, 1);
+      if (!this.locations.length) this.locations.push(this.locationSnapshot({}));
+      if (i < this.activeIndex || this.activeIndex >= this.locations.length) this.activeIndex = Math.max(0, this.activeIndex - 1);
+      this.loadLocation(this.locations[this.activeIndex]);
+      this.drawOtherLocations();
+    },
+    // The other locations as small numbered pins; clicking one edits it.
+    drawOtherLocations() {
+      if (!this._otherMarkers) return;
+      this._otherMarkers.clearLayers();
+      this.locations.forEach((l, i) => {
+        if (i === this.activeIndex || l.lat === null || l.lng === null) return;
+        L.circleMarker([parseFloat(l.lat), parseFloat(l.lng)], {
+          radius: 8, color: "#fff", weight: 2, fillColor: "#64748b", fillOpacity: 0.9, pmIgnore: true,
+        })
+          .bindTooltip(`${i + 1}. ${this.locationRowLabel(l)}`)
+          .on("click", () => this.selectLocation(i))
+          .addTo(this._otherMarkers);
+      });
+    },
+    fitLocations() {
+      const points = this.locations.filter((l) => l.lat !== null && l.lng !== null).map((l) => [parseFloat(l.lat), parseFloat(l.lng)]);
+      if (points.length > 1) this.map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 15 });
+    },
     clearAddress() {
       this.lat = null;
       this.lng = null;
+      this.label = null;
       this.full_address =
         this.address1 =
         this.postcode =

@@ -24,6 +24,7 @@ class Install extends Migration
                 'ownerId' => $this->integer()->notNull(),
                 'ownerSiteId' => $this->integer()->notNull(),
                 'fieldId' => $this->integer()->notNull(),
+                'locationIndex' => $this->smallInteger()->notNull()->defaultValue(0),
                 'lat' => $this->double(),
                 'lng' => $this->double(),
                 'shape' => $this->mediumText(),
@@ -36,7 +37,7 @@ class Install extends Migration
                 'uid' => $this->uid(),
             ]);
 
-            $this->createIndex(null, '{{%supgeo}}', ['ownerId', 'ownerSiteId', 'fieldId'], true);
+            $this->createIndex(null, '{{%supgeo}}', ['ownerId', 'ownerSiteId', 'fieldId', 'locationIndex'], true);
             $this->createIndex(null, '{{%supgeo}}', ['lat', 'lng']);
             $this->createIndex(null, '{{%supgeo}}', ['fieldId', 'minLat', 'maxLat']);
 
@@ -57,6 +58,7 @@ class Install extends Migration
             $this->addColumn('{{%supgeo}}', 'maxLng', $this->double()->after('minLng'));
             $this->createIndex(null, '{{%supgeo}}', ['fieldId', 'minLat', 'maxLat']);
         }
+        m261119_000000_lookup_locations::addLocationIndex($this);
 
         Plugin::getInstance()->maps->rebuildLookup();
 

@@ -53,20 +53,33 @@ class MapService extends Component
      */
     public function saveLookup(GeoField $field, ElementInterface $element, ?GeoValue $value): void
     {
-        $key = [
-            'ownerId' => $element->id,
-            'ownerSiteId' => $element->siteId,
-            'fieldId' => $field->id,
-        ];
+        $this->writeLookup((int)$element->id, (int)$element->siteId, (int)$field->id, $value);
+    }
 
-        $columns = $value ? $this->lookupColumns($value) : null;
+    /**
+     * Writes a value's rows: one for each location, numbered from 0, and none when there's nothing to index.
+     */
+    private function writeLookup(int $ownerId, int $siteId, int $fieldId, ?GeoValue $value): int
+    {
+        $key = ['ownerId' => $ownerId, 'ownerSiteId' => $siteId, 'fieldId' => $fieldId];
+        $rows = 0;
+        $index = 0;
 
-        if (!$columns) {
-            Db::delete(GeoRecord::TABLE_NAME, $key);
-            return;
+        // The first location also holds the value's shapes; more locations are points.
+        foreach ($value ? array_merge([$value], $value->getMoreLocations()) : [] as $i => $location) {
+            $columns = $this->lookupColumns($location);
+            if ($columns === null) {
+                continue;
+            }
+            Db::upsert(GeoRecord::TABLE_NAME, $key + ['locationIndex' => $index] + $columns, $columns);
+            $index++;
+            $rows++;
         }
 
-        Db::upsert(GeoRecord::TABLE_NAME, $key + $columns, $columns);
+        // Rows for locations that were removed.
+        Db::delete(GeoRecord::TABLE_NAME, ['and', $key, ['>=', 'locationIndex', $index]]);
+
+        return $rows;
     }
 
     /**
@@ -128,14 +141,8 @@ class MapService extends Component
             foreach ($rows->each(500) as $row) {
                 $content = Json::decodeIfJson($row['content']);
                 $value = is_array($content) ? GeoValue::fromArray($content[$keyByLayout[$row['fieldLayoutId']]] ?? null) : null;
-                $columns = $value ? $this->lookupColumns($value) : null;
 
-                if ($columns) {
-                    Db::upsert(GeoRecord::TABLE_NAME, [
-                        'ownerId' => $row['elementId'],
-                        'ownerSiteId' => $row['siteId'],
-                        'fieldId' => $field->id,
-                    ] + $columns, $columns);
+                if ($value && $this->writeLookup((int)$row['elementId'], (int)$row['siteId'], (int)$field->id, $value)) {
                     $count++;
                 }
             }
@@ -254,19 +261,30 @@ class MapService extends Component
         $lat = (float)$origin['lat'];
         $lng = (float)$origin['lng'];
 
+        // Each element once, at the distance of its nearest location (a field can hold several), and only
+        // locations within the radius count.
+        $distanceSql = self::distanceSql('[[g.lat]]', '[[g.lng]]', $lat, $lng, $perDegree);
+        $nearest = (new Query())
+            ->select(['g.ownerId', 'g.ownerSiteId', 'distance' => new Expression("MIN($distanceSql)")])
+            ->from(['g' => GeoRecord::TABLE_NAME])
+            ->where(['g.fieldId' => $fieldIds])
+            ->andWhere(['not', ['g.lat' => null]])
+            ->groupBy(['g.ownerId', 'g.ownerSiteId']);
+
+        if ($radius !== null) {
+            $nearest->andWhere(self::radiusCondition('g.lat', 'g.lng', $distanceSql, $lat, $lng, $radius, $perDegree));
+        }
+
         $query->subQuery->innerJoin(
-            [$alias => GeoRecord::TABLE_NAME],
+            [$alias => $nearest],
             [
                 'and',
                 "[[$alias.ownerId]] = [[elements.id]]",
                 "[[$alias.ownerSiteId]] = [[elements_sites.siteId]]",
-                ["$alias.fieldId" => $fieldIds],
             ]
         );
 
-        $distanceSql = self::distanceSql("[[$alias.lat]]", "[[$alias.lng]]", $lat, $lng, $perDegree);
-
-        $query->subQuery->addSelect(['distance' => new Expression($distanceSql)]);
+        $query->subQuery->addSelect(['distance' => "$alias.distance"]);
 
         // Order by distance unless the template asked for something else.
         if (self::usesDefaultOrder($query)) {
@@ -275,13 +293,7 @@ class MapService extends Component
 
         $this->attachDistancePopulator($query, $instances[0]->handle, $lat, $lng, $perDegree);
 
-        if ($radius === null) {
-            return $within;
-        }
-
-        $condition = self::radiusCondition("$alias.lat", "$alias.lng", $distanceSql, $lat, $lng, $radius, $perDegree);
-
-        return $within !== null ? ['and', $within, $condition] : $condition;
+        return $within;
     }
 
     /**
@@ -502,8 +514,25 @@ class MapService extends Component
         $handler = function(PopulateElementEvent $event) use ($handle, $lat, $lng, $perDegree) {
             $value = $event->element->getFieldValue($handle);
 
-            if ($value instanceof GeoValue && $value->hasCoordinates()) {
-                $value->distance = round(self::distance($lat, $lng, $value->lat, $value->lng, $perDegree), 3);
+            if (!$value instanceof GeoValue) {
+                return;
+            }
+
+            // With several locations, the nearest one.
+            $value->distance = null;
+            $value->nearest = null;
+            foreach ($value->getLocations() as $location) {
+                if (!$location->hasCoordinates()) {
+                    continue;
+                }
+                $distance = round(self::distance($lat, $lng, $location->lat, $location->lng, $perDegree), 3);
+                if ($location !== $value) {
+                    $location->distance = $distance;
+                }
+                if ($value->distance === null || $distance < $value->distance) {
+                    $value->distance = $distance;
+                    $value->nearest = $location;
+                }
             }
         };
 

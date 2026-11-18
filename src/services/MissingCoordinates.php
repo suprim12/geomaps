@@ -45,7 +45,7 @@ class MissingCoordinates extends Component
      * when the field isn't translated. Items carry ids rather than elements, so `fill()` works on a
      * fresh copy.
      *
-     * @return Generator<array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string}>
+     * @return Generator<array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string, index?: int}>
      */
     public function find(?string $fieldHandle = null, bool $retry = false): Generator
     {
@@ -83,27 +83,34 @@ class MissingCoordinates extends Component
                         }
 
                         $value = $element->getFieldValue($layoutField->handle);
-                        $address = $value instanceof GeoValue ? $this->addressText($value) : null;
-
-                        if ($address === null || $value->hasCoordinates()) {
+                        if (!$value instanceof GeoValue) {
                             continue;
                         }
 
-                        $country = $this->countryFor($value, $field);
+                        // Each location: the first, then any more (Pro).
+                        foreach (array_merge([$value], $value->getMoreLocations()) as $index => $location) {
+                            $address = $this->addressText($location);
+                            if ($address === null || $location->hasCoordinates()) {
+                                continue;
+                            }
 
-                        if (!$retry && $this->isKnownNotFound($address, $country)) {
-                            continue;
+                            $country = $this->countryFor($location, $field);
+
+                            if (!$retry && $this->isKnownNotFound($address, $country)) {
+                                continue;
+                            }
+
+                            yield [
+                                'type' => $type,
+                                'id' => (int)$element->id,
+                                'siteId' => (int)$element->siteId,
+                                'handle' => $layoutField->handle,
+                                'fieldId' => (int)$field->id,
+                                'address' => $address,
+                                'country' => $country,
+                                'index' => $index,
+                            ];
                         }
-
-                        yield [
-                            'type' => $type,
-                            'id' => (int)$element->id,
-                            'siteId' => (int)$element->siteId,
-                            'handle' => $layoutField->handle,
-                            'fieldId' => (int)$field->id,
-                            'address' => $address,
-                            'country' => $country,
-                        ];
                     }
                 }
             }
@@ -119,7 +126,7 @@ class MissingCoordinates extends Component
      * Looks up one value's address and saves its coordinates on a freshly loaded copy of the element,
      * so changes made since the scan (titles, a pin placed by hand) aren't overwritten.
      *
-     * @param array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string} $item
+     * @param array{type: class-string<ElementInterface>, id: int, siteId: int, handle: ?string, fieldId: int, address: string, country: ?string, index?: int} $item
      * @return string One of the class constants.
      */
     public function fill(array $item): string
@@ -130,16 +137,18 @@ class MissingCoordinates extends Component
 
         $element = $item['type']::find()->id($item['id'])->siteId($item['siteId'])->status(null)->one();
         $value = $element?->getFieldValue($item['handle']);
+        $index = (int)($item['index'] ?? 0);
+        $location = $value instanceof GeoValue ? ($index === 0 ? $value : ($value->getMoreLocations()[$index - 1] ?? null)) : null;
 
         // Deleted, given coordinates, or its address edited since the scan: nothing to do.
-        if (!$value instanceof GeoValue || $value->hasCoordinates() || $this->addressText($value) !== $item['address']) {
+        if (!$location || $location->hasCoordinates() || $this->addressText($location) !== $item['address']) {
             return self::SKIPPED;
         }
 
         $result = GeoService::geocodeForSaving($item['address'], $item['country']);
 
         // The field's search country is only a hint; the address may be elsewhere.
-        if ($result === null && $item['country'] && !$value->countryCode) {
+        if ($result === null && $item['country'] && !$location->countryCode) {
             $result = GeoService::geocodeForSaving($item['address']);
         }
 
@@ -152,8 +161,8 @@ class MissingCoordinates extends Component
             return self::NOT_FOUND;
         }
 
-        $value->lat = round($result['lat'], 6);
-        $value->lng = round($result['lng'], 6);
+        $location->lat = round($result['lat'], 6);
+        $location->lng = round($result['lng'], 6);
         $element->setFieldValue($item['handle'], $value);
         // A background update, like `resave/entries`: no new entry revision for each location.
         $element->resaving = true;
@@ -215,7 +224,7 @@ class MissingCoordinates extends Component
      */
     public function shouldQueue(?GeoValue $value, ?GeoField $field = null): bool
     {
-        if (!$value || $value->hasCoordinates()) {
+        if (!$value) {
             return false;
         }
 
@@ -224,12 +233,14 @@ class MissingCoordinates extends Component
             return false;
         }
 
-        $address = $this->addressText($value);
-        if ($address === null) {
-            return false;
+        foreach (array_merge([$value], $value->getMoreLocations()) as $location) {
+            $address = $location->hasCoordinates() ? null : $this->addressText($location);
+            if ($address !== null && !$this->isKnownNotFound($address, $this->countryFor($location, $field))) {
+                return true;
+            }
         }
 
-        return !$this->isKnownNotFound($address, $this->countryFor($value, $field));
+        return false;
     }
 
     /**

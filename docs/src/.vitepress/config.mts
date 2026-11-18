@@ -51,6 +51,7 @@ export default defineConfig({
           { text: 'Feed Me', link: '/guides/feed-me' },
           { text: 'Console Commands', link: '/guides/console' },
           { text: 'Missing Coordinates', link: '/guides/missing-coordinates' },
+          { text: 'Several Locations', link: '/guides/several-locations' },
           { text: 'Craft Addresses', link: '/guides/addresses' },
           { text: 'Search Endpoint', link: '/guides/search-endpoint' },
           { text: 'Import and Export', link: '/guides/import-export' },

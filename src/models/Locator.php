@@ -166,7 +166,9 @@ class Locator extends Model
         $markers = [];
 
         foreach ($elements as $i => $element) {
-            $location = $element->getFieldValue($handle);
+            $value = $element->getFieldValue($handle);
+            // With several locations, the one nearest the search.
+            $location = $value instanceof GeoValue ? ($value->nearest ?? $value) : null;
             if (!$location instanceof GeoValue || !$location->hasCoordinates()) {
                 continue;
             }
@@ -175,7 +177,7 @@ class Locator extends Model
             $vars = [
                 'entry' => $element,
                 'location' => $location,
-                'distance' => $searched ? $location->distance : null,
+                'distance' => $searched ? $value->distance : null,
                 'unit' => $unit,
                 'number' => $number,
             ];

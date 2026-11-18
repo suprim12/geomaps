@@ -13,3 +13,5 @@ Map any of them to columns in your feed. A few things are handled for you:
 - Imported coordinates are indexed for [Location Search](/guides/search) as entries are saved.
 
 If a feed only has addresses and no coordinates, import them into **Full Address** (or the address parts). With [Geo Maps Pro](/getting-started/pro), the coordinates are then [looked up automatically](/guides/missing-coordinates) in the background. On Lite, entries show the address but won’t appear in location search until they have coordinates — open them and pick the address from search, or geocode the feed beforehand.
+
+Feed Me sets the field’s first location. For [fields with several locations](/guides/several-locations), import the others with [`geomaps/locations/import`](/guides/import-export) and a `locations` column.

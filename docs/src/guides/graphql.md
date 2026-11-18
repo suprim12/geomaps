@@ -58,6 +58,16 @@ with variables:
 
 Results are nearest first, and `distance` is set in the requested unit.
 
+For [fields with several locations](/guides/several-locations), `locations` lists them all, `distance` is to the nearest, and `nearest` is that location:
+
+```graphql
+storeLocation {
+  distance
+  nearest { label full_address lat lng }
+  locations { label full_address }
+}
+```
+
 ## Finding the area containing a place
 
 ```graphql

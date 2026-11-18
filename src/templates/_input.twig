@@ -26,16 +26,18 @@
 {% set enableGeoJson = (settings.enableGeoJson ?? true) and not hideMap %}
 {% set showMarker = settings.showMarker ?? true %}
 {% set mapHeight = max(240, (settings.mapHeigth ?? 420)|integer) %}
+{# Pro: several locations. The inputs then edit the chosen location, and every location is posted from hidden inputs. #}
+{% set multiple = mapData.multiple ?? false %}
 
 {% macro textInput(id, name, key, label, attrs) %}
 	<div class="supgeo__input{{ attrs.wide ?? false ? ' --wide' }}">
 		<label class="supgeo__label" for="{{ id }}-{{ key }}">{{ label }}</label>
-		<input id="{{ id }}-{{ key }}" class="text fullwidth" type="text" name="{{ name }}[{{ key }}]" x-model="{{ key }}" autocomplete="off"{% if attrs.inputmode ?? false %} inputmode="{{ attrs.inputmode }}"{% endif %}{% if attrs.placeholder ?? false %} placeholder="{{ attrs.placeholder }}"{% endif %}>
+		<input id="{{ id }}-{{ key }}" class="text fullwidth" type="text"{% if not (attrs.unnamed ?? false) %} name="{{ name }}[{{ key }}]"{% endif %} x-model="{{ key }}" autocomplete="off"{% if attrs.inputmode ?? false %} inputmode="{{ attrs.inputmode }}"{% endif %}{% if attrs.placeholder ?? false %} placeholder="{{ attrs.placeholder }}"{% endif %}>
 	</div>
 {% endmacro %}
 
 <div x-data="appgeo" x-init="initMap({{ mapData|json_encode }}, true, {{ settings|json_encode }})"
-	class="supgeo{{ hideMap ? ' --hideMap' }}{{ hideAddress ? ' --noDetails' }}"
+	class="supgeo{{ hideMap ? ' --hideMap' }}{{ hideAddress and not multiple ? ' --noDetails' }}"
 	:class="{ '--showEditor': showEditor, '--googleFailed': googleFailed || provider === 'osm' }"
 	style="--supgeo-map-h: {{ mapHeight }}px">
 
@@ -223,35 +225,76 @@
 				</div>
 		</div>
 
-		{% if not hideAddress %}
+		{% if not hideAddress or multiple %}
 			<div class="supgeo__details" x-show="!showEditor">
-				<div class="supgeo__details-head">{{ 'Location details'|t('geomaps') }}</div>
+				{% if multiple %}
+					<div class="supgeo__locations">
+						<div class="supgeo__details-head">{{ 'Locations'|t('geomaps') }}</div>
+						<ol class="supgeo__location-list">
+							<template x-for="(loc, i) in postedLocations" :key="i">
+								<li class="supgeo__location" :class="{ '--active': i === activeIndex }">
+									<button type="button" class="supgeo__location-pick" @click="selectLocation(i)" :aria-current="i === activeIndex ? 'true' : null">
+										<span class="supgeo__location-number" x-text="i + 1"></span>
+										<span class="supgeo__location-text" x-text="locationRowLabel(loc)"></span>
+									</button>
+									<button type="button" class="supgeo__location-remove" @click="removeLocation(i)" :aria-label="'{{ 'Remove location'|t('geomaps')|e('js') }} ' + (i + 1)" title="{{ 'Remove'|t('geomaps') }}">&times;</button>
+								</li>
+							</template>
+						</ol>
+						<button type="button" class="btn add icon dashed small" @click="addLocation()">{{ 'Add location'|t('geomaps') }}</button>
+					</div>
+				{% endif %}
+				{% if not hideAddress %}
+				<div class="supgeo__details-head">
+					{% if multiple %}{{ 'Location'|t('geomaps') }} <span x-text="activeIndex + 1"></span>{% else %}{{ 'Location details'|t('geomaps') }}{% endif %}
+				</div>
 				<div class="supgeo__grid">
-					{{ _self.textInput(id, name, 'full_address', 'Full address'|t('geomaps'), { wide: true }) }}
-					{{ _self.textInput(id, name, 'address1', 'Street address'|t('geomaps'), { wide: true }) }}
-					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geomaps')) }}
-					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geomaps')) }}
-					{{ _self.textInput(id, name, 'country', 'Country'|t('geomaps'), { wide: true }) }}
+					{% if multiple %}
+						{{ _self.textInput(id, name, 'label', 'Name'|t('geomaps'), { wide: true, unnamed: true, placeholder: 'Such as the branch name'|t('geomaps') }) }}
+					{% endif %}
+					{{ _self.textInput(id, name, 'full_address', 'Full address'|t('geomaps'), { wide: true, unnamed: multiple }) }}
+					{{ _self.textInput(id, name, 'address1', 'Street address'|t('geomaps'), { wide: true, unnamed: multiple }) }}
+					{{ _self.textInput(id, name, 'suburb', 'Suburb / City'|t('geomaps'), { unnamed: multiple }) }}
+					{{ _self.textInput(id, name, 'postcode', 'Postcode'|t('geomaps'), { unnamed: multiple }) }}
+					{{ _self.textInput(id, name, 'country', 'Country'|t('geomaps'), { wide: true, unnamed: multiple }) }}
 					{% if showMarker %}
-						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geomaps'), { inputmode: 'decimal' }) }}
-						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geomaps'), { inputmode: 'decimal' }) }}
+						{{ _self.textInput(id, name, 'lat', 'Latitude'|t('geomaps'), { inputmode: 'decimal', unnamed: multiple }) }}
+						{{ _self.textInput(id, name, 'lng', 'Longitude'|t('geomaps'), { inputmode: 'decimal', unnamed: multiple }) }}
+					{% elseif multiple %}
+						{# Posted from the hidden inputs below. #}
 					{% else %}
 						{# Without a pin, the location is set from the centre of the shapes when the entry is saved. #}
 						<input type="hidden" name="{{ name }}[lat]" :value="lat">
 						<input type="hidden" name="{{ name }}[lng]" :value="lng">
 					{% endif %}
 				</div>
+				{% endif %}
 			</div>
 		{% endif %}
 	</div>
 
-	{# Values must still post when the details panel is hidden. #}
-	{% if hideAddress %}
-		{% for key in ['full_address', 'address1', 'suburb', 'postcode', 'country', 'lat', 'lng'] %}
-			<input type="hidden" name="{{ name }}[{{ key }}]" :value="{{ key }}">
+	{% if multiple %}
+		{# The first location in the value's own keys, so templates written for one location show it; the rest as JSON. #}
+		{% for key in ['full_address', 'address1', 'suburb', 'postcode', 'country', 'countryCode', 'lat', 'lng', 'label'] %}
+			<input type="hidden" name="{{ name }}[{{ key }}]" :value="postedLocations[0]?.{{ key }} ?? ''">
 		{% endfor %}
+		<input type="hidden" name="{{ name }}[locations]" :value="moreLocationsJson">
+	{% else %}
+		{# Values must still post when the details panel is hidden. #}
+		{% if hideAddress %}
+			{% for key in ['full_address', 'address1', 'suburb', 'postcode', 'country', 'lat', 'lng'] %}
+				<input type="hidden" name="{{ name }}[{{ key }}]" :value="{{ key }}">
+			{% endfor %}
+		{% endif %}
+		<input type="hidden" name="{{ name }}[countryCode]" :value="countryCode">
+		{# More locations saved when the field allowed several (or on Pro) are kept. #}
+		{% if value.locations ?? false %}
+			<input type="hidden" name="{{ name }}[locations]" value="{{ value.locations|json_encode }}">
+		{% endif %}
+		{% if value.label ?? false %}
+			<input type="hidden" name="{{ name }}[label]" value="{{ value.label }}">
+		{% endif %}
 	{% endif %}
-	<input type="hidden" name="{{ name }}[countryCode]" :value="countryCode">
 	<input type="hidden" name="{{ name }}[zoom]" :value="hasLocation ? zoom : ''">
 	<textarea hidden name="{{ name }}[geoJson]" x-model="geojsonText"></textarea>
 

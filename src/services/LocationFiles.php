@@ -33,6 +33,9 @@ class LocationFiles
         'country' => ['country'],
         'countryCode' => ['countrycode', 'country_code'],
         'geoJson' => ['geojson'],
+        // Pro: a name for the location, and more locations as JSON, for fields with several.
+        'label' => ['location_label'],
+        'locations' => ['locations'],
     ];
 
     public static function formatFromPath(string $path): ?string
@@ -236,9 +239,14 @@ class LocationFiles
             $value = ['geoJson' => ['type' => 'Feature', 'properties' => $shapeProps ?: new \stdClass(), 'geometry' => $geometry]];
         }
 
+        // More locations, for fields with several.
+        if (is_array($props['locations'] ?? null)) {
+            $value['locations'] = $props['locations'];
+        }
+
         // Address details stored as properties.
         foreach (self::CSV_COLUMNS as $prop => $names) {
-            if ($prop === 'lat' || $prop === 'lng' || $prop === 'geoJson') {
+            if ($prop === 'lat' || $prop === 'lng' || $prop === 'geoJson' || $prop === 'locations') {
                 continue;
             }
             foreach ($names as $name) {
@@ -338,14 +346,14 @@ class LocationFiles
     private static function writeCsv(array $rows): string
     {
         $extra = $rows ? array_keys($rows[0]['fields']) : [];
-        $header = array_merge(['id', 'title', 'slug', 'url', 'lat', 'lng', 'full_address', 'address1', 'suburb', 'postcode', 'country', 'countryCode', 'geoJson'], $extra);
+        $header = array_merge(['id', 'title', 'slug', 'url', 'lat', 'lng', 'full_address', 'address1', 'suburb', 'postcode', 'country', 'countryCode', 'geoJson', 'location_label', 'locations'], $extra);
 
         $out = fopen('php://temp', 'r+');
         fputcsv($out, $header, ',', '"', '');
         foreach ($rows as $row) {
             $v = $row['value'];
             fputcsv($out, array_merge(
-                [$row['id'], $row['title'], $row['slug'], $row['url'], $v->lat, $v->lng, $v->full_address, $v->address1, $v->suburb, $v->postcode, $v->country, $v->countryCode, ($shape = $v->getGeoJsonData()) ? Json::encode($shape, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null],
+                [$row['id'], $row['title'], $row['slug'], $row['url'], $v->lat, $v->lng, $v->full_address, $v->address1, $v->suburb, $v->postcode, $v->country, $v->countryCode, ($shape = $v->getGeoJsonData()) ? Json::encode($shape, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null, $v->label, ($more = $v->toArray()['locations'] ?? null) ? Json::encode($more, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null],
                 array_map(fn($x) => is_scalar($x) || $x === null ? $x : Json::encode($x), array_values($row['fields']))
             ), ',', '"', '');
         }
@@ -375,7 +383,9 @@ class LocationFiles
             ], fn($x) => $x !== null && $x !== '') + $row['fields'];
 
             if ($v->hasCoordinates()) {
-                $features[] = ['type' => 'Feature', 'properties' => $props, 'geometry' => ['type' => 'Point', 'coordinates' => [$v->lng, $v->lat]]];
+                // More locations go with the first, so importing the file brings them back.
+                $more = array_filter(['location_label' => $v->label, 'locations' => $v->toArray()['locations'] ?? null]);
+                $features[] = ['type' => 'Feature', 'properties' => $props + $more, 'geometry' => ['type' => 'Point', 'coordinates' => [$v->lng, $v->lat]]];
             }
             // Drawn shapes, each with the entry's details and its own shape properties.
             foreach (self::shapes($v->getGeoJsonData()) as $shape) {
